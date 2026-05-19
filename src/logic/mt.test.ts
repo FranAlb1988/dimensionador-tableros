@@ -56,9 +56,15 @@ describe('dimensionarMt', () => {
   });
 
   it('rechaza Icc fuera de catálogo', () => {
-    const r = dimensionarMt(base, 36, 50);
+    const r = dimensionarMt(base, 36, 99);
     expect(r.tablero).toBeUndefined();
     expect(r.motivo).toMatch(/Icc/);
+  });
+
+  it('acepta Icc de 65 kA', () => {
+    const r = dimensionarMt(base, 36, 65);
+    expect(r.tablero).toBeDefined();
+    expect(r.tablero?.iccKa).toBe(65);
   });
 
   it('sin celdas válidas devuelve motivo', () => {
