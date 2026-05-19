@@ -24,6 +24,13 @@ const cards = [
     activo: true,
   },
   {
+    to: '/mt',
+    titulo: 'MT',
+    sub: 'Switchgear de media tensión',
+    desc: 'Celdas metal-clad (entrada / salida / acople / medida) por clase de tensión y corriente.',
+    activo: true,
+  },
+  {
     to: '/auxiliares',
     titulo: 'Auxiliares',
     sub: 'Inventario de equipos de la sala eléctrica',

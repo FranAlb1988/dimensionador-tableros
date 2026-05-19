@@ -1,6 +1,6 @@
 // Tipos de dominio del dimensionador.
 
-export type TipoTablero = 'CCM' | 'CDC' | 'TDG';
+export type TipoTablero = 'CCM' | 'CDC' | 'TDG' | 'MT';
 
 /** Norma del catálogo: IEC (Schneider Compact NSX, TeSys, Blokset) o NEMA (ANSI frames, NEMA contactors, X=6"). */
 export type Norma = 'IEC' | 'NEMA';
@@ -430,5 +430,69 @@ export interface TableroTdg {
   columnas: number;
   altoTotalMm: number;
   anchoTotalMm: number;
+  profundidadTotalMm: number;
+}
+
+// ----- MT (switchgear media tensión — celdas metal-clad genéricas) -----
+
+export type TipoCeldaMt = 'entrada' | 'salida' | 'acople' | 'medida';
+
+export const TIPO_CELDA_MT_LABEL: Record<TipoCeldaMt, string> = {
+  entrada: 'Entrada',
+  salida: 'Salida / alimentador',
+  acople: 'Acople de barras',
+  medida: 'Medida',
+};
+
+export interface CeldaMtCatalogo {
+  tipo: TipoCeldaMt;
+  /** Ancho de la celda (mm) indexado por clase de tensión (kV) como string. */
+  anchoMm: Record<string, number>;
+}
+
+export interface CeldasMtCatalogoRaiz {
+  clasesTensionKv: number[];
+  iccKaDisponibles: number[];
+  barrasA: number[];
+  celdas: CeldaMtCatalogo[];
+}
+
+export interface EnvolventeMtCatalogo {
+  altoTotalMm: number;
+  profundidadMm: number;
+  altoCompartimentoAltaMm: number;
+  altoCompartimentoControlMm: number;
+  zocaloMm: number;
+}
+
+/** Una celda definida por el usuario (entrada de datos). */
+export interface SalidaMt {
+  id: string;
+  descripcion: string;
+  tipoCelda: TipoCeldaMt;
+  /** Potencia aparente en MVA (opcional, para derivar corriente si no se da corrienteA). */
+  potenciaMva?: number;
+  /** Corriente nominal en A. Si se ingresa, prevalece sobre la derivada de MVA. */
+  corrienteA?: number;
+}
+
+export interface CeldaAsignadaMt {
+  salida: SalidaMt;
+  anchoMm: number;
+  /** Corriente de diseño usada (A). */
+  corrienteA: number;
+}
+
+export interface TableroMt {
+  tipo: 'MT';
+  claseTensionKv: number;
+  iccKa: number;
+  /** Barra principal seleccionada del catálogo (A). */
+  corrienteBarraA: number;
+  /** Corriente de diseño que define la barra (A). */
+  corrienteRequeridaA: number;
+  celdas: CeldaAsignadaMt[];
+  anchoTotalMm: number;
+  altoTotalMm: number;
   profundidadTotalMm: number;
 }

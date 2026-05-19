@@ -3,6 +3,7 @@ import { Layout } from './components/Layout';
 import { CcmPage } from './pages/CcmPage';
 import { CdcPage } from './pages/CdcPage';
 import { TdgPage } from './pages/TdgPage';
+import { MtPage } from './pages/MtPage';
 import { AuxiliaresPage } from './pages/AuxiliaresPage';
 import { Home } from './pages/Home';
 
@@ -16,6 +17,7 @@ export const router = createHashRouter([
       { path: 'ccm', element: <CcmPage /> },
       { path: 'cdc', element: <CdcPage /> },
       { path: 'tdg', element: <TdgPage /> },
+      { path: 'mt', element: <MtPage /> },
       { path: 'auxiliares', element: <AuxiliaresPage /> },
       { path: '*', element: <Navigate to="/" replace /> },
     ],

@@ -26,6 +26,9 @@ export function Layout() {
             <NavLink to="/tdg" className={({ isActive }) => `${linkBase} ${isActive ? linkActive : linkInactive}`}>
               TDG
             </NavLink>
+            <NavLink to="/mt" className={({ isActive }) => `${linkBase} ${isActive ? linkActive : linkInactive}`}>
+              MT
+            </NavLink>
             <NavLink to="/auxiliares" className={({ isActive }) => `${linkBase} ${isActive ? linkActive : linkInactive}`}>
               Auxiliares
             </NavLink>
