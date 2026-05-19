@@ -1,0 +1,28 @@
+{
+  "_comment": "Interruptor principal (incoming) para Switchgear BT — convención NEMA / ANSI. Datos de la guía P268, hoja \"SWITCHGEAR BT y MT\". Cada rango FLC mapea al frame ANSI y al rating AS (Ampere Setting) del breaker electrónico principal.",
+  "mains": [
+    { "flcMin": 0,    "flcMax": 80,   "frameAF": 800,  "rating": "200AS",  "ratingA": 200 },
+    { "flcMin": 81,   "flcMax": 120,  "frameAF": 800,  "rating": "200AS",  "ratingA": 200 },
+    { "flcMin": 121,  "flcMax": 160,  "frameAF": 800,  "rating": "200AS",  "ratingA": 200 },
+    { "flcMin": 161,  "flcMax": 200,  "frameAF": 800,  "rating": "250AS",  "ratingA": 250 },
+    { "flcMin": 201,  "flcMax": 240,  "frameAF": 800,  "rating": "300AS",  "ratingA": 300 },
+    { "flcMin": 241,  "flcMax": 320,  "frameAF": 800,  "rating": "400AS",  "ratingA": 400 },
+    { "flcMin": 321,  "flcMax": 400,  "frameAF": 800,  "rating": "600AS",  "ratingA": 600 },
+    { "flcMin": 401,  "flcMax": 480,  "frameAF": 800,  "rating": "600AS",  "ratingA": 600 },
+    { "flcMin": 481,  "flcMax": 600,  "frameAF": 800,  "rating": "800AS",  "ratingA": 800 },
+    { "flcMin": 601,  "flcMax": 640,  "frameAF": 800,  "rating": "800AS",  "ratingA": 800 },
+    { "flcMin": 641,  "flcMax": 800,  "frameAF": 2000, "rating": "1000AS", "ratingA": 1000 },
+    { "flcMin": 801,  "flcMax": 960,  "frameAF": 2000, "rating": "1200AS", "ratingA": 1200 },
+    { "flcMin": 961,  "flcMax": 1200, "frameAF": 2000, "rating": "1600AS", "ratingA": 1600 },
+    { "flcMin": 1201, "flcMax": 1280, "frameAF": 2000, "rating": "1600AS", "ratingA": 1600 },
+    { "flcMin": 1281, "flcMax": 1600, "frameAF": 2000, "rating": "2000AS", "ratingA": 2000 },
+    { "flcMin": 1601, "flcMax": 1920, "frameAF": 3200, "rating": "2500AS", "ratingA": 2500 },
+    { "flcMin": 1921, "flcMax": 2000, "frameAF": 3200, "rating": "2500AS", "ratingA": 2500 },
+    { "flcMin": 2001, "flcMax": 2400, "frameAF": 3200, "rating": "3000AS", "ratingA": 3000 },
+    { "flcMin": 2401, "flcMax": 2560, "frameAF": 3200, "rating": "3000AS", "ratingA": 3000 },
+    { "flcMin": 2561, "flcMax": 2800, "frameAF": 4000, "rating": "3200AS", "ratingA": 3200 },
+    { "flcMin": 2801, "flcMax": 3200, "frameAF": 4000, "rating": "4000AS", "ratingA": 4000 },
+    { "flcMin": 3201, "flcMax": 4000, "frameAF": 5000, "rating": "5000AS", "ratingA": 5000 },
+    { "flcMin": 4001, "flcMax": 4800, "frameAF": 6000, "rating": "6000AS", "ratingA": 6000 }
+  ]
+}

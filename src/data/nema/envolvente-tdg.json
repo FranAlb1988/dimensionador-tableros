@@ -1,0 +1,11 @@
+{
+  "_comment": "Envolvente Switchgear BT NEMA — sección vertical estándar. Las dimensiones son aproximaciones razonables (90\" alto, 30\" ancho, 24\" profundidad); ajustar a especificación real del proyecto.",
+  "altoTotalMm": 2286,
+  "anchoColumnaMm": 762,
+  "profundidadMm": 610,
+  "reservaPrincipalMm": 700,
+  "reservaBarrasMm": 250,
+  "reservaZocaloMm": 100,
+  "altoUtilSalidasMm": 1236,
+  "altoCeldaSalidaMm": 250
+}

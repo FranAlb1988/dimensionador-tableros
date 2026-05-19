@@ -1,0 +1,10 @@
+{
+  "_comment": "Capacidades estándar de barra principal horizontal para CCM NEMA, según FLC del tablero. Tiempo de cortocircuito barra: 3 s. Icoci sym se define respecto al Scoci aguas arriba.",
+  "barras": [
+    { "flcMin": 0,    "flcMax": 480,   "capacidadA": 600,  "tiempoCociS": 3 },
+    { "flcMin": 480,  "flcMax": 640,   "capacidadA": 800,  "tiempoCociS": 3 },
+    { "flcMin": 640,  "flcMax": 960,   "capacidadA": 1200, "tiempoCociS": 3 },
+    { "flcMin": 960,  "flcMax": 1280,  "capacidadA": 1600, "tiempoCociS": 3 },
+    { "flcMin": 1280, "flcMax": 1600,  "capacidadA": 2000, "tiempoCociS": 3 }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "_comment": "Breakers termomagnéticos tipo FDR (alimentadores) hasta 400 AF. Datos de la guía P268. Cada entrada es una combinación frame + trip rating (AT). El frame define el tamaño físico (y por tanto los espacios X = 6\"). El rating AT (Ampere Trip) define la corriente de operación.",
+  "frames": [
+    { "frameAF": 100, "icuRange": "65, 100", "espaciosX": 2 },
+    { "frameAF": 225, "icuRange": "65, 100", "espaciosX": 3 },
+    { "frameAF": 400, "icuRange": "65, 100", "espaciosX": 5 }
+  ],
+  "ratings": [
+    { "frameAF": 100, "trip": "15AT",  "tripA": 15 },
+    { "frameAF": 100, "trip": "20AT",  "tripA": 20 },
+    { "frameAF": 100, "trip": "30AT",  "tripA": 30 },
+    { "frameAF": 100, "trip": "35AT",  "tripA": 35 },
+    { "frameAF": 100, "trip": "40AT",  "tripA": 40 },
+    { "frameAF": 100, "trip": "45AT",  "tripA": 45 },
+    { "frameAF": 100, "trip": "50AT",  "tripA": 50 },
+    { "frameAF": 100, "trip": "60AT",  "tripA": 60 },
+    { "frameAF": 100, "trip": "70AT",  "tripA": 70 },
+    { "frameAF": 100, "trip": "80AT",  "tripA": 80 },
+    { "frameAF": 100, "trip": "90AT",  "tripA": 90 },
+    { "frameAF": 100, "trip": "100AT", "tripA": 100 },
+    { "frameAF": 225, "trip": "110AT", "tripA": 110 },
+    { "frameAF": 225, "trip": "125AT", "tripA": 125 },
+    { "frameAF": 225, "trip": "150AT", "tripA": 150 },
+    { "frameAF": 225, "trip": "175AT", "tripA": 175 },
+    { "frameAF": 225, "trip": "200AT", "tripA": 200 },
+    { "frameAF": 225, "trip": "225AT", "tripA": 225 },
+    { "frameAF": 400, "trip": "250AT", "tripA": 250 },
+    { "frameAF": 400, "trip": "300AT", "tripA": 300 },
+    { "frameAF": 400, "trip": "350AT", "tripA": 350 },
+    { "frameAF": 400, "trip": "400AT", "tripA": 400 }
+  ]
+}

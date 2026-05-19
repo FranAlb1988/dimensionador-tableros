@@ -1,0 +1,17 @@
+{
+  "_comment": "Cofres Pragma para CDC. Cada fila aloja módulos DIN de 18 mm. Tamaños típicos: 13/18/24 módulos por fila, 1 a 6 filas por cofre. Las dimensiones externas son aproximadas y deben verificarse contra el catálogo Schneider Pragma del proyecto. Para Kaedra (IP65) las dimensiones cambian — agregar en una versión futura.",
+  "filaModuloMm": 18,
+  "cofres": [
+    { "id": "pragma-13-1", "referencia": "Pragma 13",      "modulosPorFila": 13, "filas": 1, "altoMm": 250,  "anchoMm": 320, "profundidadMm": 105, "placeholder": true },
+    { "id": "pragma-18-1", "referencia": "Pragma 18",      "modulosPorFila": 18, "filas": 1, "altoMm": 250,  "anchoMm": 405, "profundidadMm": 105, "placeholder": true },
+    { "id": "pragma-24-1", "referencia": "Pragma 24",      "modulosPorFila": 24, "filas": 1, "altoMm": 250,  "anchoMm": 525, "profundidadMm": 105, "placeholder": true },
+    { "id": "pragma-18-2", "referencia": "Pragma 18×2",    "modulosPorFila": 18, "filas": 2, "altoMm": 380,  "anchoMm": 405, "profundidadMm": 105, "placeholder": true },
+    { "id": "pragma-24-2", "referencia": "Pragma 24×2",    "modulosPorFila": 24, "filas": 2, "altoMm": 380,  "anchoMm": 525, "profundidadMm": 105, "placeholder": true },
+    { "id": "pragma-18-3", "referencia": "Pragma 18×3",    "modulosPorFila": 18, "filas": 3, "altoMm": 510,  "anchoMm": 405, "profundidadMm": 105, "placeholder": true },
+    { "id": "pragma-24-3", "referencia": "Pragma 24×3",    "modulosPorFila": 24, "filas": 3, "altoMm": 510,  "anchoMm": 525, "profundidadMm": 105, "placeholder": true },
+    { "id": "pragma-18-4", "referencia": "Pragma 18×4",    "modulosPorFila": 18, "filas": 4, "altoMm": 640,  "anchoMm": 405, "profundidadMm": 105, "placeholder": true },
+    { "id": "pragma-24-4", "referencia": "Pragma 24×4",    "modulosPorFila": 24, "filas": 4, "altoMm": 640,  "anchoMm": 525, "profundidadMm": 105, "placeholder": true },
+    { "id": "pragma-18-5", "referencia": "Pragma 18×5",    "modulosPorFila": 18, "filas": 5, "altoMm": 770,  "anchoMm": 405, "profundidadMm": 105, "placeholder": true },
+    { "id": "pragma-24-6", "referencia": "Pragma 24×6",    "modulosPorFila": 24, "filas": 6, "altoMm": 1030, "anchoMm": 525, "profundidadMm": 105, "placeholder": true }
+  ]
+}

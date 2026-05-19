@@ -1,0 +1,16 @@
+{
+  "_comment": "Envolvente Prisma para TDG. Dimensiones placeholder; ajustar a la versión Prisma P/G del proyecto. Una columna típica aloja el principal + barras + N salidas.",
+  "envolvente": {
+    "altoTotalMm": 2000,
+    "anchoColumnaMm": 600,
+    "profundidadMm": 600,
+    "reservaPrincipalMm": 600,
+    "reservaBarrasMm": 200,
+    "reservaZocaloMm": 100,
+    "altoUtilSalidasMm": 1100
+  },
+  "salida": {
+    "altoCeldaMm": 200,
+    "_comment": "Alto reservado por salida en la columna de salidas. Permite acomodar NSX hasta 250 A; ajustar para 400/630 A."
+  }
+}

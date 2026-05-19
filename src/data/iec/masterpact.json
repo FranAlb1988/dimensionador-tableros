@@ -1,0 +1,17 @@
+{
+  "_comment": "Masterpact NT (630-1600 A) y NW (800-6300 A) para interruptores principales en TDG. Las referencias comerciales completas (LV...) deben verificarse contra el catálogo Schneider vigente; capacidad de corte (Icu) varía por nivel de prestación (H1, H2, L1...).",
+  "interruptores": [
+    { "id": "nt06h1", "familia": "MasterpactNT", "referencia": "Masterpact NT06H1 630A 3P",   "inA": 630,  "icuKA": 42, "polos": 3, "placeholder": true },
+    { "id": "nt08h1", "familia": "MasterpactNT", "referencia": "Masterpact NT08H1 800A 3P",   "inA": 800,  "icuKA": 42, "polos": 3, "placeholder": true },
+    { "id": "nt10h1", "familia": "MasterpactNT", "referencia": "Masterpact NT10H1 1000A 3P",  "inA": 1000, "icuKA": 42, "polos": 3, "placeholder": true },
+    { "id": "nt12h1", "familia": "MasterpactNT", "referencia": "Masterpact NT12H1 1250A 3P",  "inA": 1250, "icuKA": 42, "polos": 3, "placeholder": true },
+    { "id": "nt16h1", "familia": "MasterpactNT", "referencia": "Masterpact NT16H1 1600A 3P",  "inA": 1600, "icuKA": 42, "polos": 3, "placeholder": true },
+    { "id": "nw08h1", "familia": "MasterpactNW", "referencia": "Masterpact NW08H1 800A 3P",   "inA": 800,  "icuKA": 65, "polos": 3, "placeholder": true },
+    { "id": "nw12h1", "familia": "MasterpactNW", "referencia": "Masterpact NW12H1 1250A 3P",  "inA": 1250, "icuKA": 65, "polos": 3, "placeholder": true },
+    { "id": "nw16h1", "familia": "MasterpactNW", "referencia": "Masterpact NW16H1 1600A 3P",  "inA": 1600, "icuKA": 65, "polos": 3, "placeholder": true },
+    { "id": "nw20h1", "familia": "MasterpactNW", "referencia": "Masterpact NW20H1 2000A 3P",  "inA": 2000, "icuKA": 65, "polos": 3, "placeholder": true },
+    { "id": "nw25h1", "familia": "MasterpactNW", "referencia": "Masterpact NW25H1 2500A 3P",  "inA": 2500, "icuKA": 65, "polos": 3, "placeholder": true },
+    { "id": "nw32h1", "familia": "MasterpactNW", "referencia": "Masterpact NW32H1 3200A 3P",  "inA": 3200, "icuKA": 65, "polos": 3, "placeholder": true },
+    { "id": "nw40h1", "familia": "MasterpactNW", "referencia": "Masterpact NW40H1 4000A 3P",  "inA": 4000, "icuKA": 65, "polos": 3, "placeholder": true }
+  ]
+}

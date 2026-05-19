@@ -1,0 +1,17 @@
+{
+  "_comment": "Barras Cu (cobre electrolítico) tipo pletina, capacidades nominales aproximadas a 35 °C ambiente, instalación al canto, una pletina por fase. Las capacidades reales dependen del montaje, ventilación y temperatura. Verificar contra tablas Schneider/Linergy y norma IEC 61439.",
+  "barras": [
+    { "id": "cu-25x5",   "referencia": "Cu 25×5 mm",   "inA": 250,  "material": "Cu", "dimensionMm": "25×5",   "seccionMm2": 125,  "placeholder": true },
+    { "id": "cu-32x5",   "referencia": "Cu 32×5 mm",   "inA": 315,  "material": "Cu", "dimensionMm": "32×5",   "seccionMm2": 160,  "placeholder": true },
+    { "id": "cu-40x5",   "referencia": "Cu 40×5 mm",   "inA": 400,  "material": "Cu", "dimensionMm": "40×5",   "seccionMm2": 200,  "placeholder": true },
+    { "id": "cu-50x5",   "referencia": "Cu 50×5 mm",   "inA": 500,  "material": "Cu", "dimensionMm": "50×5",   "seccionMm2": 250,  "placeholder": true },
+    { "id": "cu-63x5",   "referencia": "Cu 63×5 mm",   "inA": 630,  "material": "Cu", "dimensionMm": "63×5",   "seccionMm2": 315,  "placeholder": true },
+    { "id": "cu-80x5",   "referencia": "Cu 80×5 mm",   "inA": 800,  "material": "Cu", "dimensionMm": "80×5",   "seccionMm2": 400,  "placeholder": true },
+    { "id": "cu-100x5",  "referencia": "Cu 100×5 mm",  "inA": 1000, "material": "Cu", "dimensionMm": "100×5",  "seccionMm2": 500,  "placeholder": true },
+    { "id": "cu-100x10", "referencia": "Cu 100×10 mm", "inA": 1500, "material": "Cu", "dimensionMm": "100×10", "seccionMm2": 1000, "placeholder": true },
+    { "id": "cu-125x10", "referencia": "Cu 125×10 mm", "inA": 2000, "material": "Cu", "dimensionMm": "125×10", "seccionMm2": 1250, "placeholder": true },
+    { "id": "cu-160x10", "referencia": "Cu 160×10 mm", "inA": 2500, "material": "Cu", "dimensionMm": "160×10", "seccionMm2": 1600, "placeholder": true },
+    { "id": "cu-200x10", "referencia": "Cu 200×10 mm", "inA": 3200, "material": "Cu", "dimensionMm": "200×10", "seccionMm2": 2000, "placeholder": true },
+    { "id": "cu-160x10x2", "referencia": "Cu 2×(160×10) mm", "inA": 4000, "material": "Cu", "dimensionMm": "2×(160×10)", "seccionMm2": 3200, "placeholder": true, "notas": "Dos pletinas por fase" }
+  ]
+}

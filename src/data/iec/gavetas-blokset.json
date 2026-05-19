@@ -1,0 +1,19 @@
+{
+  "_comment": "Tamaños relativos de gaveta Blokset y altura típica en mm. Los valores aquí son aproximaciones de MVP — VERIFICAR contra el catálogo Blokset del proyecto. La unidad base (¼) suele tomarse como módulo de 150 mm para columnas Blokset estándar de 2200 mm de alto. Reservas típicas: cabezal de barras 400 mm, zócalo 200 mm.",
+  "tamanos": [
+    { "tamano": "1/4",   "altoMm": 150, "unidadesBase": 1, "placeholder": true },
+    { "tamano": "1/2",   "altoMm": 300, "unidadesBase": 2, "placeholder": true },
+    { "tamano": "1",     "altoMm": 600, "unidadesBase": 4, "placeholder": true },
+    { "tamano": "1+1/2", "altoMm": 900, "unidadesBase": 6, "placeholder": true },
+    { "tamano": "2",     "altoMm": 1200, "unidadesBase": 8, "placeholder": true }
+  ],
+  "columna": {
+    "altoTotalMm": 2200,
+    "anchoMm": 600,
+    "profundidadMm": 600,
+    "reservaCabezalMm": 400,
+    "reservaZocaloMm": 0,
+    "altoUtilMm": 1800,
+    "_comment": "Alto útil 1800 mm = 12 unidades base de 150 mm. altoTotal (2200) - cabezal (400) = 1800. Sin zócalo en este placeholder. Ajustar a la columna Blokset real (zócalo, base, altura de cabezal según versión)."
+  }
+}
