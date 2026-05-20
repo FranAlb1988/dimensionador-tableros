@@ -219,6 +219,28 @@ function empaquetarEnColumnas(asignaciones: AsignacionCcmNema[], altoUtilX: numb
   return columnas;
 }
 
+/**
+ * Devuelve la etiqueta comercial de la protección para una carga NEMA.
+ * Usado para mostrar el frame en la tabla de cargas (solo lectura).
+ * - Motor con HP → MCP del catálogo (e.g. "30 A MCP")
+ * - Alimentador   → breaker FDR o electrónico mínimo (e.g. "100AF · 50AT")
+ */
+export function frameProteccionNema(carga: Carga): string | undefined {
+  if (carga.tipo === 'motor') {
+    const hp = hpDeCarga(carga);
+    if (hp == null || hp <= 0) return undefined;
+    const motor = MOTORES.find((m) => m.hp >= hp);
+    if (!motor || motor.mcpFrameA == null) return undefined;
+    return `${motor.mcpFrameA} A MCP`;
+  }
+  const I = corrienteDiseno(carga);
+  const Imin = Math.max(I, carga.corrienteProteccionA ?? 0);
+  if (Imin <= 0) return undefined;
+  const b = sugerirBreakerNema(Imin);
+  if (!b) return undefined;
+  return `${b.frameAF}AF · ${b.rating}`;
+}
+
 export const MOTORES_NEMA = MOTORES;
 export const FDR_FRAMES_NEMA = FDR_FRAMES;
 export const ELEC_FRAMES_NEMA = ELEC_FRAMES;

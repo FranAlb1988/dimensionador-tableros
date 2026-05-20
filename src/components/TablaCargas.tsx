@@ -1,7 +1,9 @@
 import type { ChangeEvent } from 'react';
-import { ARRANQUE_LABEL, FASES, TIPOS_ARRANQUE, TIPOS_CARGA, useCcmCargas, useCcmStore } from '../store/ccm';
+import { ARRANQUE_LABEL, FASES, TIPOS_ARRANQUE, TIPOS_CARGA, useCcmCargas, useCcmNorma, useCcmStore } from '../store/ccm';
 import type { Carga, UnidadPotencia } from '../types';
 import { corrienteNominal } from '../logic/corriente';
+import { frameProteccionNema } from '../logic/ccm-nema';
+import { sugerirProteccionNsx } from '../logic/proteccion';
 import { fmtAmp } from '../util/format';
 import { aKw, desdeKw } from '../util/potencia';
 
@@ -74,9 +76,15 @@ export function TablaCargas() {
                 </th>
                 <th
                   className="px-3 py-2.5 text-right font-semibold border-b border-slate-200 dark:border-slate-800 w-24"
-                  title="Corriente que define el frame del NSX (define el tamaño de gaveta). Opcional — fuerza el In mínimo del interruptor."
+                  title="Corriente mínima que debe tener el interruptor de protección. Opcional — si se deja vacío el sistema usa la corriente calculada."
                 >
                   I prot.
+                </th>
+                <th
+                  className="px-3 py-2.5 text-left font-semibold border-b border-slate-200 dark:border-slate-800 w-36 bg-slate-50 dark:bg-slate-800/50"
+                  title="Frame comercial de protección seleccionado automáticamente según corriente de diseño. Solo lectura."
+                >
+                  Frame protección
                 </th>
                 <th className="px-3 py-2.5 text-left font-semibold border-b border-slate-200 dark:border-slate-800 w-32">
                   Arranque
@@ -131,7 +139,13 @@ function potenciaMostrada(carga: Carga): string {
 
 function FilaCarga({ carga, zebra, onChange, onDuplicar, onEliminar }: FilaProps) {
   const I = corrienteNominal(carga);
+  const norma = useCcmNorma();
   const unidad: UnidadPotencia = carga.unidadPotencia ?? 'HP';
+
+  const frameLabel =
+    norma === 'NEMA'
+      ? frameProteccionNema(carga)
+      : sugerirProteccionNsx(carga)?.referencia;
 
   const onNumber =
     (campo: 'corrienteA' | 'corrienteProteccionA' | 'tensionV' | 'factorServicio') =>
@@ -251,8 +265,17 @@ function FilaCarga({ carga, zebra, onChange, onDuplicar, onEliminar }: FilaProps
           value={carga.corrienteProteccionA ?? ''}
           onChange={onNumber('corrienteProteccionA')}
           placeholder="(auto)"
-          title="Fuerza el frame mínimo del NSX. Vacío usa I calc × margen."
+          title="Fuerza el In mínimo del interruptor de protección. Vacío: el sistema selecciona automáticamente."
         />
+      </td>
+      <td className={`${cellCls} bg-slate-50 dark:bg-slate-900/60`}>
+        {frameLabel ? (
+          <span className="font-mono text-xs text-slate-800 dark:text-slate-200 whitespace-nowrap">
+            {frameLabel}
+          </span>
+        ) : (
+          <span className="text-slate-400 text-xs">—</span>
+        )}
       </td>
       <td className={cellCls}>
         {carga.tipo === 'motor' ? (
