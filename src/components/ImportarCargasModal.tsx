@@ -234,7 +234,7 @@ function AyudaAutoCad() {
             Los bloques de motor / partidor del unilineal deben tener atributos. Mínimo recomendado:
           </p>
           <ul className="list-disc list-inside ml-2 mt-1 space-y-0.5">
-            <li><code className="px-1 bg-slate-200 dark:bg-slate-800 rounded">TAG</code> — identificación (p.ej. <span className="font-mono">5770-EM-13718</span>)</li>
+            <li><code className="px-1 bg-slate-200 dark:bg-slate-800 rounded">TAG</code> — identificación (p.ej. <span className="font-mono">EM-001</span>)</li>
             <li><code className="px-1 bg-slate-200 dark:bg-slate-800 rounded">DESCRIPCION</code> — servicio (p.ej. <span className="font-mono">BOMBA AGITADOR</span>)</li>
             <li><code className="px-1 bg-slate-200 dark:bg-slate-800 rounded">HP</code> o <code className="px-1 bg-slate-200 dark:bg-slate-800 rounded">KW</code> — potencia</li>
             <li><code className="px-1 bg-slate-200 dark:bg-slate-800 rounded">PARTIDOR</code> — MCP / VDF / CB / SST</li>
