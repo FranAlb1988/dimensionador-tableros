@@ -7,6 +7,9 @@ import { sugerirProteccionNsx } from '../logic/proteccion';
 import { fmtAmp } from '../util/format';
 import { aKw, desdeKw } from '../util/potencia';
 
+/** Tensiones de alimentación más comunes en CCM (V). */
+const TENSIONES_V = [110, 220, 380, 400, 415, 440, 480, 600, 660, 690] as const;
+
 const inputCls =
   'w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded ' +
   'px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-500 ' +
@@ -47,49 +50,59 @@ export function TablaCargas() {
         </div>
       ) : (
         <div className="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-lg">
-          <table className="w-full text-sm border-separate border-spacing-0">
+          <table className="min-w-max text-sm border-separate border-spacing-0">
             <thead className="bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-200">
               <tr>
                 <th className="px-3 py-2.5 text-left font-semibold border-b border-slate-200 dark:border-slate-800 min-w-[14rem]">
                   Descripción
                 </th>
-                <th className="px-3 py-2.5 text-left font-semibold border-b border-slate-200 dark:border-slate-800 w-32">
+                <th className="px-3 py-2.5 text-left font-semibold border-b border-slate-200 dark:border-slate-800 min-w-[7rem]">
                   Tipo
                 </th>
-                <th className="px-3 py-2.5 text-right font-semibold border-b border-slate-200 dark:border-slate-800 w-36">
+                <th className="px-3 py-2.5 text-right font-semibold border-b border-slate-200 dark:border-slate-800 min-w-[9rem]">
                   Potencia
                 </th>
-                <th className="px-3 py-2.5 text-right font-semibold border-b border-slate-200 dark:border-slate-800 w-20">V</th>
-                <th className="px-3 py-2.5 text-left font-semibold border-b border-slate-200 dark:border-slate-800 w-16">Φ</th>
-                <th className="px-3 py-2.5 text-right font-semibold border-b border-slate-200 dark:border-slate-800 w-16" title="Factor de servicio">FS</th>
                 <th
-                  className="px-3 py-2.5 text-right font-semibold border-b border-slate-200 dark:border-slate-800 w-24"
-                  title="Corriente nominal de la carga (override). Si está vacío, se calcula desde P y V."
+                  className="px-3 py-2.5 text-right font-semibold border-b border-slate-200 dark:border-slate-800 min-w-[6rem]"
+                  title="Tensión de alimentación de la carga (V). Selección rápida de los valores más comunes."
                 >
-                  In carga
+                  Tensión (V)
+                </th>
+                <th className="px-3 py-2.5 text-left font-semibold border-b border-slate-200 dark:border-slate-800 min-w-[5rem]">Fases</th>
+                <th
+                  className="px-3 py-2.5 text-right font-semibold border-b border-slate-200 dark:border-slate-800 min-w-[5.5rem]"
+                  title="Factor de servicio: multiplicador sobre la corriente nominal para obtener la corriente de diseño. I diseño = In × FS. Motores NEMA con SF 1,15 usan FS ≥ 1,15."
+                >
+                  F.S. ×
                 </th>
                 <th
-                  className="px-3 py-2.5 text-right font-semibold border-b border-slate-200 dark:border-slate-800 w-24 bg-slate-50 dark:bg-slate-800/50"
-                  title="Corriente calculada (P / (√3 · V · cosφ · η)). Solo lectura."
+                  className="px-3 py-2.5 text-right font-semibold border-b border-slate-200 dark:border-slate-800 min-w-[6rem]"
+                  title="Corriente nominal real (FLA de placa). Opcional — si se deja vacío se calcula desde la potencia y tensión ingresadas."
                 >
-                  I calc
+                  In placa (A)
                 </th>
                 <th
-                  className="px-3 py-2.5 text-right font-semibold border-b border-slate-200 dark:border-slate-800 w-24"
-                  title="Corriente mínima que debe tener el interruptor de protección. Opcional — si se deja vacío el sistema usa la corriente calculada."
+                  className="px-3 py-2.5 text-right font-semibold border-b border-slate-200 dark:border-slate-800 min-w-[6rem] bg-slate-50 dark:bg-slate-800/50"
+                  title="Corriente nominal calculada: P / (√3 · V · cosφ · η). Solo lectura — se usa como base para el diseño si In placa está vacío."
                 >
-                  I prot.
+                  I calc (A)
                 </th>
                 <th
-                  className="px-3 py-2.5 text-left font-semibold border-b border-slate-200 dark:border-slate-800 w-36 bg-slate-50 dark:bg-slate-800/50"
-                  title="Frame comercial de protección seleccionado automáticamente según corriente de diseño. Solo lectura."
+                  className="px-3 py-2.5 text-right font-semibold border-b border-slate-200 dark:border-slate-800 min-w-[6rem]"
+                  title="Corriente mínima que debe tener el interruptor de protección. Opcional — si se deja vacío el sistema selecciona automáticamente el frame comercial."
+                >
+                  I mín. prot.
+                </th>
+                <th
+                  className="px-3 py-2.5 text-left font-semibold border-b border-slate-200 dark:border-slate-800 min-w-[9rem] bg-slate-50 dark:bg-slate-800/50"
+                  title="Frame comercial de protección seleccionado automáticamente según corriente de diseño (I calc × F.S., o I mín. prot. si está definida). Solo lectura."
                 >
                   Frame protección
                 </th>
-                <th className="px-3 py-2.5 text-left font-semibold border-b border-slate-200 dark:border-slate-800 w-32">
+                <th className="px-3 py-2.5 text-left font-semibold border-b border-slate-200 dark:border-slate-800 min-w-[8rem]">
                   Arranque
                 </th>
-                <th className="px-3 py-2.5 border-b border-slate-200 dark:border-slate-800 w-20"></th>
+                <th className="px-3 py-2.5 border-b border-slate-200 dark:border-slate-800 min-w-[5rem]"></th>
               </tr>
             </thead>
             <tbody>
@@ -218,12 +231,20 @@ function FilaCarga({ carga, zebra, onChange, onDuplicar, onEliminar }: FilaProps
         </div>
       </td>
       <td className={cellCls}>
-        <input
-          className={`${inputCls} text-right`}
-          type="number" min="0"
-          value={carga.tensionV}
-          onChange={onNumber('tensionV')}
-        />
+        <select
+          className={inputTexto}
+          value={TENSIONES_V.includes(carga.tensionV as typeof TENSIONES_V[number]) ? carga.tensionV : ''}
+          onChange={(e) => {
+            if (e.target.value !== '') onChange({ tensionV: Number(e.target.value) });
+          }}
+        >
+          {TENSIONES_V.map((v) => (
+            <option key={v} value={v}>{v} V</option>
+          ))}
+          {!TENSIONES_V.includes(carga.tensionV as typeof TENSIONES_V[number]) && (
+            <option value={carga.tensionV}>{carga.tensionV} V</option>
+          )}
+        </select>
       </td>
       <td className={cellCls}>
         <select
@@ -248,7 +269,7 @@ function FilaCarga({ carga, zebra, onChange, onDuplicar, onEliminar }: FilaProps
           type="number" step="0.1" min="0"
           value={carga.corrienteA ?? ''}
           onChange={onNumber('corrienteA')}
-          placeholder="(calc)"
+          placeholder="(auto)"
         />
       </td>
       <td className={`${cellCls} bg-slate-50 dark:bg-slate-900/60 text-right tabular-nums font-medium`}>
