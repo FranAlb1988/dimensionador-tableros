@@ -1,5 +1,5 @@
 {
-  "_comment": "Catalogo generico de celdas metal-clad de media tension (entrada/salida/acople/medida). Anchos, barras e Icc son aproximaciones de referencia, alineadas a la clase del proyecto Rajo Inca (Siemens SDV7-SE: 27,6 kV / 1200 A / 25 kA, clase 36 kV). AJUSTAR con la planilla P268 hoja 'SWITCHGEAR BT y MT' cuando se cargue.",
+  "_comment": "Catalogo generico de celdas metal-clad de media tension (entrada/salida/acople/medida). Anchos, barras e Icc son aproximaciones de referencia para clase 36 kV / 1200 A / 25 kA. AJUSTAR con catalogo y especificacion tecnica del proyecto.",
   "clasesTensionKv": [12, 17.5, 24, 36],
   "iccKaDisponibles": [16, 20, 25, 31.5, 40, 50, 65],
   "barrasA": [630, 1250, 2000, 2500, 3150],

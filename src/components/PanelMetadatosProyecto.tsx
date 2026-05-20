@@ -13,11 +13,11 @@ interface Campo {
 }
 
 const CAMPOS: readonly Campo[] = [
-  { key: 'nombre',         label: 'Nombre del proyecto',  placeholder: 'Planta química litio Carmen',         ancho: 'col-span-3' },
-  { key: 'cliente',        label: 'Cliente',              placeholder: 'SQM',                                  ancho: 'col-span-1' },
-  { key: 'planta',         label: 'Planta / Área',        placeholder: 'PC-606 Planta recuperadora N°2',       ancho: 'col-span-2' },
-  { key: 'codigoHqr',      label: 'Código de plano HQR',  placeholder: '5701-PL-600-39754',                    ancho: 'col-span-1' },
-  { key: 'codigoCliente',  label: 'Código de plano cliente', placeholder: '1091-5701-PL-E-39754',              ancho: 'col-span-1' },
+  { key: 'nombre',         label: 'Nombre del proyecto',  placeholder: 'Descripción del proyecto',            ancho: 'col-span-3' },
+  { key: 'cliente',        label: 'Cliente',              placeholder: 'Nombre del cliente',                   ancho: 'col-span-1' },
+  { key: 'planta',         label: 'Planta / Área',        placeholder: 'Planta / Área de proceso',             ancho: 'col-span-2' },
+  { key: 'codigoHqr',      label: 'Código de plano HQR',  placeholder: 'XXXX-PL-000-00000',                    ancho: 'col-span-1' },
+  { key: 'codigoCliente',  label: 'Código de plano cliente', placeholder: 'XXXX-PL-E-00000',                   ancho: 'col-span-1' },
   { key: 'revision',       label: 'Revisión',             placeholder: 'B',                                    ancho: 'col-span-1' },
   { key: 'fecha',          label: 'Fecha',                                                                     ancho: 'col-span-1', tipo: 'date' },
   { key: 'proyecto',       label: 'Proyectó',             placeholder: 'Iniciales o nombre',                   ancho: 'col-span-1' },

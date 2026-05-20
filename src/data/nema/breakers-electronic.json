@@ -1,5 +1,5 @@
 {
-  "_comment": "Breakers con unidad de protección digital multifuncional para alimentadores e incoming sobre 400 AF. Datos de la guía P268. El rating AS (Ampere Setting) es ajustable en la unidad electrónica. Frame define el tamaño físico (espacios X = 6\").",
+  "_comment": "Breakers con unidad de protección digital multifuncional para alimentadores e incoming sobre 400 AF. Datos de referencia para selección de interruptores. El rating AS (Ampere Setting) es ajustable en la unidad electrónica. Frame define el tamaño físico (espacios X = 6\").",
   "frames": [
     { "frameAF": 600,  "icuRange": "65, 100", "espaciosX": 5 },
     { "frameAF": 800,  "icuRange": "65, 100", "espaciosX": 12 },

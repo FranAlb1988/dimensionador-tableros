@@ -6,11 +6,11 @@ import { persist } from 'zustand/middleware';
  * Todos los campos son opcionales — la app funciona con o sin ellos.
  */
 export interface MetadatosProyecto {
-  nombre: string;         // "Planta química litio Carmen"
-  cliente: string;        // "SQM"
-  planta: string;         // "PC-606 Planta recuperadora soluciones N°2"
-  codigoHqr: string;      // "5701-PL-600-39754"
-  codigoCliente: string;  // "1091-5701-PL-E-39754"
+  nombre: string;         // Nombre del proyecto
+  cliente: string;        // Nombre del cliente
+  planta: string;         // Planta / Área de proceso
+  codigoHqr: string;      // Código de plano (propio)
+  codigoCliente: string;  // Código de plano cliente
   revision: string;       // "B"
   fecha: string;          // ISO YYYY-MM-DD ("2026-05-11")
   proyecto: string;       // dibujante / proyectó

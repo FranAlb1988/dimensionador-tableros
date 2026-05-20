@@ -108,22 +108,22 @@ describe('autoMapear', () => {
 });
 
 describe('construirCandidatas — flujo end-to-end', () => {
-  const hojaSqm: HojaArchivo = {
+  const hojaConTag: HojaArchivo = {
     nombre: 'CCM',
     headers: ['TAG', 'DESCRIPCIÓN', 'HP', 'PARTIDOR'],
     filas: [
-      { TAG: '5770-EM-13718', DESCRIPCIÓN: 'BOMBA AGITADOR', HP: 60, PARTIDOR: 'MCP' },
-      { TAG: '5770-VFD-13720', DESCRIPCIÓN: 'BOMBA RECUPERACIÓN', HP: 40, PARTIDOR: 'VDF' },
-      { TAG: '5770-EM-13725', DESCRIPCIÓN: 'BOMBA DOSIFICACIÓN', HP: 0.5, PARTIDOR: 'MCP' },
+      { TAG: 'EM-001', DESCRIPCIÓN: 'BOMBA AGITADOR', HP: 60, PARTIDOR: 'MCP' },
+      { TAG: 'VFD-002', DESCRIPCIÓN: 'BOMBA RECUPERACIÓN', HP: 40, PARTIDOR: 'VDF' },
+      { TAG: 'EM-003', DESCRIPCIÓN: 'BOMBA DOSIFICACIÓN', HP: 0.5, PARTIDOR: 'MCP' },
     ],
   };
 
-  it('mapea cargas SQM con TAG + DESCRIPCIÓN, HP detectado como unidad', () => {
-    const map = autoMapear(hojaSqm.headers);
-    const cs = construirCandidatas(hojaSqm, map, VALORES_GLOBALES_DEFAULT);
+  it('mapea cargas con TAG + DESCRIPCIÓN, HP detectado como unidad', () => {
+    const map = autoMapear(hojaConTag.headers);
+    const cs = construirCandidatas(hojaConTag, map, VALORES_GLOBALES_DEFAULT);
     expect(cs).toHaveLength(3);
     const c1 = cs[0]!;
-    expect(c1.descripcion).toContain('5770-EM-13718');
+    expect(c1.descripcion).toContain('EM-001');
     expect(c1.descripcion).toContain('BOMBA AGITADOR');
     expect(c1.tipo).toBe('motor');
     expect(c1.arranque).toBe('DOL'); // MCP → DOL

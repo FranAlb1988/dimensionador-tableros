@@ -39,7 +39,7 @@ export function MtPage() {
           <h1 className="text-2xl font-semibold">MT — Switchgear de media tensión</h1>
           <p className="text-sm text-slate-600 dark:text-slate-400">
             Celdas metal-clad (entrada / salida / acople / medida) por clase de tensión y
-            corriente. Datos de referencia — ajustar con la planilla P268 hoja “SWITCHGEAR BT y MT”.
+            corriente. Datos de referencia — ajustar con catálogo y especificación técnica del proyecto.
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">

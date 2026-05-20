@@ -30,7 +30,7 @@ const FS_MAX = 1;
 
 /**
  * Dimensionamiento TDG (Switchgear BT) — convención NEMA / ANSI.
- * Tabla-driven (lookup por FLC), datos de la guía P268 hoja "SWITCHGEAR BT y MT".
+ * Tabla-driven (lookup por FLC), datos de referencia para convención NEMA / ANSI.
  *  1. Cada salida → breaker (FDR ≤400AF o electronic >400AF) por su corriente.
  *  2. FLC total = Σ I_diseño × factor de simultaneidad.
  *  3. Barra principal y main breaker se buscan por rango FLC en las tablas del Excel.

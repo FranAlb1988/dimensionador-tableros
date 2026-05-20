@@ -34,11 +34,18 @@ export const ENVOLVENTE_CCM_NEMA: EnvolventeCcmNemaCatalogo = envolventeData as 
 
 const UMBRAL_ELECTRONIC_AF = 400;
 
+export interface OverflowBarra {
+  corrienteTotalA: number;
+  maxFlcA: number;
+  idsOverflow: string[];
+}
+
 export interface ResultadoCcmNema {
   asignaciones: AsignacionCcmNema[];
   cargasSinAsignar: Carga[];
   tablero?: TableroCcmNema;
   motivo?: string;
+  overflowBarra?: OverflowBarra;
 }
 
 /**
@@ -66,9 +73,12 @@ export function dimensionarCcmNema(cargas: readonly Carga[]): ResultadoCcmNema {
   const corrienteTotalA = asignaciones.reduce((s, a) => s + a.corrienteDisenoA, 0);
   const barra = sugerirBarraNema(corrienteTotalA);
   if (!barra) {
+    const maxFlcA = Math.max(...BARRAS.map((b) => b.flcMax));
+    const idsOverflow = calcularIdsOverflow(asignaciones, maxFlcA);
     return {
       asignaciones, cargasSinAsignar,
       motivo: `Sin barra principal NEMA en catálogo para FLC ${corrienteTotalA.toFixed(0)} A.`,
+      overflowBarra: { corrienteTotalA, maxFlcA, idsOverflow },
     };
   }
 
@@ -164,6 +174,23 @@ export function sugerirBreakerNema(Imin: number): BreakerNemaSeleccionado | unde
  */
 export function sugerirBarraNema(flc: number): BarraNemaCatalogo | undefined {
   return BARRAS.find((b) => flc >= b.flcMin && flc <= b.flcMax);
+}
+
+/**
+ * Devuelve los IDs de las cargas que no caben dentro del límite maxFlcA.
+ * Procesa en orden original: acumula hasta el límite y el resto es overflow.
+ */
+function calcularIdsOverflow(asignaciones: AsignacionCcmNema[], maxFlcA: number): string[] {
+  let acumulado = 0;
+  const overflow: string[] = [];
+  for (const a of asignaciones) {
+    if (acumulado + a.corrienteDisenoA <= maxFlcA) {
+      acumulado += a.corrienteDisenoA;
+    } else {
+      overflow.push(a.carga.id);
+    }
+  }
+  return overflow;
 }
 
 /** Bin-pack First-Fit Decreasing por espacios X. */

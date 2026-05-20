@@ -1,5 +1,5 @@
 {
-  "_comment": "Breakers termomagnéticos tipo FDR (alimentadores) hasta 400 AF. Datos de la guía P268. Cada entrada es una combinación frame + trip rating (AT). El frame define el tamaño físico (y por tanto los espacios X = 6\"). El rating AT (Ampere Trip) define la corriente de operación.",
+  "_comment": "Breakers termomagnéticos tipo FDR (alimentadores) hasta 400 AF. Datos de referencia para selección de interruptores. Cada entrada es una combinación frame + trip rating (AT). El frame define el tamaño físico (y por tanto los espacios X = 6\"). El rating AT (Ampere Trip) define la corriente de operación.",
   "frames": [
     { "frameAF": 100, "icuRange": "65, 100", "espaciosX": 2 },
     { "frameAF": 225, "icuRange": "65, 100", "espaciosX": 3 },

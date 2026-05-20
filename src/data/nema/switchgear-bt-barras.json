@@ -1,5 +1,5 @@
 {
-  "_comment": "Barras principales para Switchgear BT (TDG) — convención NEMA / ANSI. Datos extraídos de la guía P268, hoja \"SWITCHGEAR BT y MT\". El frame ANSI define la sección de la barra; cada rango FLC del tablero mapea al frame inmediato.",
+  "_comment": "Barras principales para Switchgear BT (TDG) — convención NEMA / ANSI. Datos de referencia para selección de barras. El frame ANSI define la sección de la barra; cada rango FLC del tablero mapea al frame inmediato.",
   "barras": [
     { "flcMin": 0,    "flcMax": 1600, "frameAF": 2000 },
     { "flcMin": 1601, "flcMax": 2560, "frameAF": 3200 },

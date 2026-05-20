@@ -66,8 +66,7 @@ export function sugerirBarraMt(corriente: number): number | undefined {
  *  2. La barra principal se elige por la corriente requerida = máx(entrada/acople, Σ salidas).
  *  3. Las celdas se ordenan: entrada → salidas → acople → medida.
  *
- * Reglas y datos marcados como ajustables: refinar con la planilla P268 hoja
- * "SWITCHGEAR BT y MT" cuando esté disponible.
+ * Reglas y datos marcados como ajustables: refinar con catálogo y especificación técnica del proyecto.
  */
 export function dimensionarMt(
   salidas: readonly SalidaMt[],

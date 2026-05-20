@@ -58,10 +58,10 @@ function tableroVacio(nombre: string): MtTablero {
 }
 
 const EJEMPLO: SalidaMt[] = [
-  { id: 'mt-e1', descripcion: 'Entrada desde S/E Salvador', tipoCelda: 'entrada', corrienteA: 1200 },
+  { id: 'mt-e1', descripcion: 'Entrada desde subestación',   tipoCelda: 'entrada', corrienteA: 1200 },
   { id: 'mt-s1', descripcion: 'Alimentador TR1 2 MVA',      tipoCelda: 'salida',  potenciaMva: 2, corrienteA: 0 },
   { id: 'mt-s2', descripcion: 'Alimentador TR2 2 MVA',      tipoCelda: 'salida',  potenciaMva: 2, corrienteA: 0 },
-  { id: 'mt-s3', descripcion: 'Alimentador CCM molienda',   tipoCelda: 'salida',  corrienteA: 400 },
+  { id: 'mt-s3', descripcion: 'Alimentador CCM proceso',    tipoCelda: 'salida',  corrienteA: 400 },
   { id: 'mt-a1', descripcion: 'Acople de barras',           tipoCelda: 'acople',  corrienteA: 1200 },
   { id: 'mt-m1', descripcion: 'Celda de medida',            tipoCelda: 'medida' },
 ];
