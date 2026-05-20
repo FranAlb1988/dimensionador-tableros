@@ -1,5 +1,5 @@
 {
-  "_comment": "Interruptor principal (incoming) para Switchgear BT — convención NEMA / ANSI. Datos de la guía P268, hoja \"SWITCHGEAR BT y MT\". Cada rango FLC mapea al frame ANSI y al rating AS (Ampere Setting) del breaker electrónico principal.",
+  "_comment": "Interruptor principal (incoming) para Switchgear BT — convención NEMA / ANSI. Datos de referencia para selección de interruptor principal. Cada rango FLC mapea al frame ANSI y al rating AS (Ampere Setting) del breaker electrónico principal.",
   "mains": [
     { "flcMin": 0,    "flcMax": 80,   "frameAF": 800,  "rating": "200AS",  "ratingA": 200 },
     { "flcMin": 81,   "flcMax": 120,  "frameAF": 800,  "rating": "200AS",  "ratingA": 200 },

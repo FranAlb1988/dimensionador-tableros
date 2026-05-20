@@ -169,7 +169,7 @@ export function TablaSalidasMt() {
       </div>
       <p className="text-xs text-slate-500 dark:text-slate-400">
         Si se ingresan MVA y corriente, prevalece la corriente. Datos del catálogo MT
-        son de referencia (clase ~ proyecto Rajo Inca); ajustar con la planilla P268 MT.
+        son de referencia (clase 36 kV); ajustar con catálogo y especificación técnica del proyecto.
       </p>
     </div>
   );

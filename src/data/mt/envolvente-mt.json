@@ -1,5 +1,5 @@
 {
-  "_comment": "Envolvente generica de celda metal-clad MT. Dimensiones de referencia (clase 36 kV, ~ proyecto Rajo Inca). El alto se reparte en compartimento de alta tension (interruptor extraible / barras) y compartimento de control / BT. AJUSTAR con la planilla P268 MT.",
+  "_comment": "Envolvente generica de celda metal-clad MT. Dimensiones de referencia (clase 36 kV). El alto se reparte en compartimento de alta tension (interruptor extraible / barras) y compartimento de control / BT. AJUSTAR con catalogo del fabricante.",
   "altoTotalMm": 2300,
   "profundidadMm": 1500,
   "altoCompartimentoAltaMm": 1100,
