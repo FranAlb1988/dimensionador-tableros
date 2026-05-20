@@ -40,6 +40,8 @@ interface CcmState {
   eliminarTablero: (id: string) => void;
   setActivo: (id: string) => void;
 
+  desglosarTablero: (tableId: string, idsOverflow: string[], nombreNuevo: string) => void;
+
   // Operaciones sobre el tablero activo (mismos nombres que antes)
   setNorma: (n: Norma) => void;
   agregar: () => void;
@@ -117,6 +119,28 @@ export const useCcmStore = create<CcmState>()(
           return { tableros, activoId };
         }),
         setActivo: (id) => set({ activoId: id }),
+
+        desglosarTablero: (tableId, idsOverflow, nombreNuevo) => set((s) => {
+          const orig = s.tableros.find((t) => t.id === tableId);
+          if (!orig || idsOverflow.length === 0) return {};
+          const setOverflow = new Set(idsOverflow);
+          const cargasNuevo = orig.cargas
+            .filter((c) => setOverflow.has(c.id))
+            .map((c) => ({ ...c, id: nuevoId('c') }));
+          const cargasRestantes = orig.cargas.filter((c) => !setOverflow.has(c.id));
+          const nuevo: CcmTablero = {
+            id: nuevoId('ccm'),
+            nombre: nombreNuevo,
+            norma: orig.norma,
+            cargas: cargasNuevo,
+          };
+          return {
+            tableros: [
+              ...s.tableros.map((t) => (t.id === tableId ? { ...t, cargas: cargasRestantes } : t)),
+              nuevo,
+            ],
+          };
+        }),
 
         setNorma: (n) => set((s) => modificarActivo(s, (t) => ({ ...t, norma: n }))),
         agregar: () => set((s) => modificarActivo(s, (t) => ({
