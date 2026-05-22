@@ -272,8 +272,12 @@ export interface TableroCcmNema {
   norma: 'NEMA';
   tipo: 'CCM';
   columnas: ColumnaCcmNema[];
-  /** FLC sumada. */
+  /** FLC sumada (corriente real de las cargas, sin derrateo). */
   corrienteTotalA: number;
+  /** Factor F2 de derrateo por altura aplicado (1 = sin derrateo). */
+  factorDerrateoAltura: number;
+  /** Corriente con que se seleccionó la barra: corrienteTotalA / F2. */
+  corrienteSeleccionBarraA: number;
   barra: BarraNemaCatalogo;
   altoTotalMm: number;
   anchoTotalMm: number;

@@ -2,7 +2,7 @@ import { useState, type RefObject } from 'react';
 import { jsPDF } from 'jspdf';
 import { svg2pdf } from 'svg2pdf.js';
 import type { ResultadoCcmNema } from '../logic/ccm-nema';
-import { fmtAmp, fmtMm } from '../util/format';
+import { fmtAmp, fmtFactor, fmtMm } from '../util/format';
 import { dibujarCajetinProyecto, sufijoArchivoProyecto } from '../util/pdf-cajetin';
 
 interface Props {
@@ -29,8 +29,11 @@ export function ExportarPdfCcmNemaBoton({ svgRef, resultado }: Props) {
       doc.setFontSize(14);
       doc.text('Dimensionador CCM NEMA — Vista frontal', 14, 14);
       doc.setFontSize(9);
+      const derrateoTxt = t.factorDerrateoAltura < 1
+        ? `   Derrateo F2: ${fmtFactor(t.factorDerrateoAltura)} (selección ${fmtAmp(t.corrienteSeleccionBarraA)})`
+        : '';
       doc.text(
-        `Columnas: ${t.columnas.length}   Alto: ${fmtMm(t.altoTotalMm)}   Ancho: ${fmtMm(t.anchoTotalMm)}   FLC: ${fmtAmp(t.corrienteTotalA)}   Barra: ${t.barra.capacidadA} A`,
+        `Columnas: ${t.columnas.length}   Alto: ${fmtMm(t.altoTotalMm)}   Ancho: ${fmtMm(t.anchoTotalMm)}   FLC: ${fmtAmp(t.corrienteTotalA)}   Barra: ${t.barra.capacidadA} A${derrateoTxt}`,
         14, 20,
       );
 

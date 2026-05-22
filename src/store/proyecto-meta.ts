@@ -35,10 +35,25 @@ export const METADATOS_VACIOS: MetadatosProyecto = {
   notas: '',
 };
 
+/**
+ * Derrateo por altura geográfica (factor F2). Ajuste global del proyecto: la altitud
+ * se define una vez y aplica al dimensionamiento de todos los tableros.
+ */
+export interface DerrateoConfig {
+  /** Si está activo, el dimensionamiento corrige la capacidad de los equipos por F2. */
+  activo: boolean;
+  /** Altura de operación en metros sobre el nivel del mar. */
+  altitudM: number;
+}
+
+export const DERRATEO_DEFAULT: DerrateoConfig = { activo: false, altitudM: 2300 };
+
 interface MetaState {
   metadatos: MetadatosProyecto;
+  derrateo: DerrateoConfig;
   setMetadato: <K extends keyof MetadatosProyecto>(campo: K, valor: MetadatosProyecto[K]) => void;
   setMetadatos: (m: Partial<MetadatosProyecto>) => void;
+  setDerrateo: (parcial: Partial<DerrateoConfig>) => void;
   limpiar: () => void;
 }
 
@@ -46,8 +61,10 @@ export const useMetaStore = create<MetaState>()(
   persist(
     (set) => ({
       metadatos: { ...METADATOS_VACIOS },
+      derrateo: { ...DERRATEO_DEFAULT },
       setMetadato: (campo, valor) => set((s) => ({ metadatos: { ...s.metadatos, [campo]: valor } })),
       setMetadatos: (m) => set((s) => ({ metadatos: { ...s.metadatos, ...m } })),
+      setDerrateo: (parcial) => set((s) => ({ derrateo: { ...s.derrateo, ...parcial } })),
       limpiar: () => set({ metadatos: { ...METADATOS_VACIOS } }),
     }),
     { name: 'proyecto-meta-v1', version: 1 },

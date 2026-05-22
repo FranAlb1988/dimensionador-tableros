@@ -48,19 +48,30 @@ export interface ResultadoCcmNema {
   overflowBarra?: OverflowBarra;
 }
 
+/** Mayor capacidad de barra del catálogo NEMA (A). */
+export const CAPACIDAD_BARRA_MAXIMA_A = Math.max(...BARRAS.map((b) => b.capacidadA));
+
 /**
  * Dimensionamiento CCM convención NEMA. Tabla-driven (no fórmulas):
  *  - Motor → fila de la tabla por HP (contactor NEMA, MCP, espacios X, versión).
  *  - Alimentador → breaker FDR (≤400AF) o electronic (>400AF) por corriente.
  *  - Bin-pack en columnas de 12X (X=6") — estándar NEMA CCM (Square D Model 6, GE 8000…).
  *  - Barra principal por FLC total.
+ *
+ * `factorDerrateo` es el factor F2 por altura geográfica (Tabla V — ver derrateo.ts).
+ * No altera la corriente real de las cargas: reduce la capacidad útil del equipo, lo
+ * que equivale a seleccionar barra y breakers contra I / F2.
  */
-export function dimensionarCcmNema(cargas: readonly Carga[]): ResultadoCcmNema {
+export function dimensionarCcmNema(
+  cargas: readonly Carga[],
+  factorDerrateo = 1,
+): ResultadoCcmNema {
+  const f = factorDerrateo > 0 ? factorDerrateo : 1;
   const asignaciones: AsignacionCcmNema[] = [];
   const cargasSinAsignar: Carga[] = [];
 
   for (const c of cargas) {
-    const a = asignar(c);
+    const a = asignar(c, f);
     if (a) asignaciones.push(a);
     else cargasSinAsignar.push(c);
   }
@@ -71,13 +82,19 @@ export function dimensionarCcmNema(cargas: readonly Carga[]): ResultadoCcmNema {
 
   const columnas = empaquetarEnColumnas(asignaciones, ENVOLVENTE_CCM_NEMA.altoUtilXEspacios);
   const corrienteTotalA = asignaciones.reduce((s, a) => s + a.corrienteDisenoA, 0);
-  const barra = sugerirBarraNema(corrienteTotalA);
+  const corrienteSeleccionBarraA = corrienteTotalA / f;
+  const barra = sugerirBarraNema(corrienteSeleccionBarraA);
   if (!barra) {
     const maxFlcA = Math.max(...BARRAS.map((b) => b.flcMax));
-    const idsOverflow = calcularIdsOverflow(asignaciones, maxFlcA);
+    // El derrateo reduce la capacidad efectiva de la barra: el límite real de
+    // corriente que puede acumularse es maxFlcA · F2.
+    const idsOverflow = calcularIdsOverflow(asignaciones, maxFlcA * f);
+    const detalleDerrateo = f < 1
+      ? ` (selección ${corrienteSeleccionBarraA.toFixed(0)} A con derrateo F2 = ${f.toFixed(3)})`
+      : '';
     return {
       asignaciones, cargasSinAsignar,
-      motivo: `Sin barra principal NEMA en catálogo para FLC ${corrienteTotalA.toFixed(0)} A.`,
+      motivo: `Sin barra principal NEMA en catálogo para FLC ${corrienteTotalA.toFixed(0)} A${detalleDerrateo}.`,
       overflowBarra: { corrienteTotalA, maxFlcA, idsOverflow },
     };
   }
@@ -86,6 +103,8 @@ export function dimensionarCcmNema(cargas: readonly Carga[]): ResultadoCcmNema {
     norma: 'NEMA', tipo: 'CCM',
     columnas,
     corrienteTotalA,
+    factorDerrateoAltura: f,
+    corrienteSeleccionBarraA,
     barra,
     altoTotalMm: ENVOLVENTE_CCM_NEMA.altoTotalMm,
     anchoTotalMm: columnas.length * ENVOLVENTE_CCM_NEMA.anchoColumnaMm,
@@ -96,9 +115,9 @@ export function dimensionarCcmNema(cargas: readonly Carga[]): ResultadoCcmNema {
   return { asignaciones, cargasSinAsignar, tablero };
 }
 
-function asignar(c: Carga): AsignacionCcmNema | undefined {
+function asignar(c: Carga, factorDerrateo: number): AsignacionCcmNema | undefined {
   if (c.tipo === 'motor') return asignarMotor(c);
-  return asignarAlimentador(c);
+  return asignarAlimentador(c, factorDerrateo);
 }
 
 function asignarMotor(c: Carga): AsignacionCcmNema | undefined {
@@ -117,11 +136,12 @@ function asignarMotor(c: Carga): AsignacionCcmNema | undefined {
   };
 }
 
-function asignarAlimentador(c: Carga): AsignacionCcmNema | undefined {
+function asignarAlimentador(c: Carga, factorDerrateo: number): AsignacionCcmNema | undefined {
   const I = corrienteDiseno(c);
   const Imin = Math.max(I, c.corrienteProteccionA ?? 0);
   if (Imin <= 0) return undefined;
-  const breaker = sugerirBreakerNema(Imin);
+  // El breaker pierde capacidad con la altura: se selecciona contra Imin / F2.
+  const breaker = sugerirBreakerNema(Imin / factorDerrateo);
   if (!breaker) return undefined;
   return {
     carga: c,

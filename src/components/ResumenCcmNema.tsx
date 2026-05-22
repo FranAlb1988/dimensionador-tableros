@@ -1,8 +1,10 @@
 import type { ResultadoCcmNema } from '../logic/ccm-nema';
-import { fmtAmp, fmtMm } from '../util/format';
+import { fmtAmp, fmtFactor, fmtMm, fmtNumero } from '../util/format';
+import { useMetaStore } from '../store/proyecto-meta';
 
 export function ResumenCcmNema({ resultado }: { resultado: ResultadoCcmNema }) {
   const t = resultado.tablero;
+  const derrateo = useMetaStore((s) => s.derrateo);
   if (!t) return null;
 
   const conteoSize = new Map<number, number>();
@@ -39,6 +41,16 @@ export function ResumenCcmNema({ resultado }: { resultado: ResultadoCcmNema }) {
           <dd className="font-medium tabular-nums">{totalX}X / {xTotalDisponible}X</dd>
           <dt className="text-slate-500">FLC total</dt>
           <dd className="font-medium tabular-nums">{fmtAmp(t.corrienteTotalA)}</dd>
+          {derrateo.activo && (
+            <>
+              <dt className="text-slate-500">Altitud</dt>
+              <dd className="font-medium tabular-nums">{fmtNumero(derrateo.altitudM)} m.s.n.m.</dd>
+              <dt className="text-slate-500">Factor F2 (BT)</dt>
+              <dd className="font-medium tabular-nums">{fmtFactor(t.factorDerrateoAltura)}</dd>
+              <dt className="text-slate-500">Corriente selección barra</dt>
+              <dd className="font-medium tabular-nums">{fmtAmp(t.corrienteSeleccionBarraA)}</dd>
+            </>
+          )}
           <dt className="text-slate-500">Barra principal</dt>
           <dd className="font-medium tabular-nums">{t.barra.capacidadA} A</dd>
         </dl>
@@ -77,6 +89,16 @@ export function ResumenCcmNema({ resultado }: { resultado: ResultadoCcmNema }) {
           <span className="font-semibold tabular-nums">{resultado.asignaciones.length}</span>
         </div>
       </div>
+
+      {derrateo.activo && (
+        <p className="sm:col-span-2 text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+          Derrateo por altura (Tabla V — IEEE 37.20.1, baja tensión). Barra principal y
+          breakers de alimentador seleccionados contra I / F2 (F2 = {fmtFactor(t.factorDerrateoAltura)}).
+          Para conductores aplicar el mismo F2 en la memoria respectiva: I = (In·F1) / (F2·F3).
+          Los buckets de motor (MCP + contactor) son por HP de catálogo — verificar el
+          derrateo de altura del fabricante.
+        </p>
+      )}
     </div>
   );
 }

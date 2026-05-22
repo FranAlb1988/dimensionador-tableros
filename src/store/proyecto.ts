@@ -7,10 +7,16 @@ import { useCcmStore, type CcmTablero } from './ccm';
 import { useTdgStore, type SubtipoTdg, type TdgTablero } from './tdg';
 import { useCdcStore, type CdcTablero, type SubtipoCdc } from './cdc';
 import { useAuxiliaresStore } from './auxiliares';
-import { METADATOS_VACIOS, useMetaStore, type MetadatosProyecto } from './proyecto-meta';
+import {
+  DERRATEO_DEFAULT,
+  METADATOS_VACIOS,
+  useMetaStore,
+  type DerrateoConfig,
+  type MetadatosProyecto,
+} from './proyecto-meta';
 import { OPCIONES_CDC_DEFAULT, type OpcionesCdc } from '../logic/cdc';
 
-const VERSION = 5;
+const VERSION = 6;
 const META_APP = 'dimensionador-tableros';
 
 export interface ProyectoSerializado {
@@ -18,6 +24,7 @@ export interface ProyectoSerializado {
   version: number;
   exportadoEn: string;
   metadatos: MetadatosProyecto;
+  derrateo: DerrateoConfig;
   ccm: { tableros: CcmTablero[]; activoId: string | null };
   tdg: { tableros: TdgTablero[]; activoId: string | null };
   cdc: { tableros: CdcTablero[]; activoId: string | null };
@@ -41,6 +48,7 @@ export function capturarProyecto(): ProyectoSerializado {
     version: VERSION,
     exportadoEn: new Date().toISOString(),
     metadatos: meta.metadatos,
+    derrateo: meta.derrateo,
     ccm: { tableros: ccm.tableros, activoId: ccm.activoId },
     tdg: { tableros: tdg.tableros, activoId: tdg.activoId },
     cdc: { tableros: cdc.tableros, activoId: cdc.activoId },
@@ -50,7 +58,7 @@ export function capturarProyecto(): ProyectoSerializado {
 
 export function aplicarProyecto(data: unknown): void {
   const p = validar(data);
-  useMetaStore.setState({ metadatos: p.metadatos });
+  useMetaStore.setState({ metadatos: p.metadatos, derrateo: p.derrateo });
   useCcmStore.setState({ tableros: p.ccm.tableros, activoId: p.ccm.activoId });
   useTdgStore.setState({ tableros: p.tdg.tableros, activoId: p.tdg.activoId });
   useCdcStore.setState({ tableros: p.cdc.tableros, activoId: p.cdc.activoId });
@@ -66,7 +74,7 @@ export function nuevoProyecto(): void {
   useTdgStore.setState({ tableros: [tdgT], activoId: tdgT.id });
   useCdcStore.setState({ tableros: [cdcT], activoId: cdcT.id });
   useAuxiliaresStore.setState({ equipos: [] });
-  useMetaStore.setState({ metadatos: { ...METADATOS_VACIOS } });
+  useMetaStore.setState({ metadatos: { ...METADATOS_VACIOS }, derrateo: { ...DERRATEO_DEFAULT } });
 }
 
 export function descargarProyecto(nombre: string = nombreArchivoPorDefecto()): void {
@@ -113,6 +121,7 @@ interface ProyectoV3Like {
   version?: number;
   exportadoEn?: string;
   metadatos?: Partial<MetadatosProyecto>;
+  derrateo?: Partial<DerrateoConfig>;
   ccm?: { tableros?: CcmTablero[]; activoId?: string | null };
   tdg?: { tableros?: TdgTablero[]; activoId?: string | null };
   cdc?: { tableros?: CdcTablero[]; activoId?: string | null };
@@ -153,12 +162,14 @@ function validar(data: unknown): ProyectoSerializado {
       : [];
 
     const metadatos: MetadatosProyecto = { ...METADATOS_VACIOS, ...(d.metadatos ?? {}) };
+    const derrateo: DerrateoConfig = { ...DERRATEO_DEFAULT, ...(d.derrateo ?? {}) };
 
     return {
       app: META_APP,
       version: VERSION,
       exportadoEn: d.exportadoEn ?? new Date().toISOString(),
       metadatos,
+      derrateo,
       ccm: { tableros: ccmTableros, activoId: d.ccm?.activoId ?? ccmTableros[0]!.id },
       tdg: { tableros: tdgTableros, activoId: d.tdg?.activoId ?? tdgTableros[0]!.id },
       cdc: { tableros: cdcTableros, activoId: d.cdc?.activoId ?? cdcTableros[0]!.id },
@@ -191,6 +202,7 @@ function validar(data: unknown): ProyectoSerializado {
     version: VERSION,
     exportadoEn: d.exportadoEn ?? new Date().toISOString(),
     metadatos: { ...METADATOS_VACIOS },
+    derrateo: { ...DERRATEO_DEFAULT },
     ccm: { tableros: [ccmT], activoId: ccmT.id },
     tdg: { tableros: [tdgT], activoId: tdgT.id },
     cdc: { tableros: [cdcT], activoId: cdcT.id },

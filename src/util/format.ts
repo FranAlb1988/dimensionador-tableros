@@ -10,6 +10,11 @@ const FMT_NUM_FIJO = new Intl.NumberFormat('es-CL', {
   minimumFractionDigits: 1,
 });
 
+const FMT_FACTOR = new Intl.NumberFormat('es-CL', {
+  maximumFractionDigits: 3,
+  minimumFractionDigits: 3,
+});
+
 export function fmtNumero(n: number): string {
   if (!Number.isFinite(n)) return '—';
   return FMT_NUM.format(n);
@@ -30,4 +35,10 @@ export function fmtAmp(n: number): string {
 
 export function fmtKw(n: number): string {
   return `${fmtNumeroFijo(n)} kW`;
+}
+
+/** Factor adimensional con 3 decimales (p.ej. derrateo F2 = 0,994). */
+export function fmtFactor(n: number): string {
+  if (!Number.isFinite(n)) return '—';
+  return FMT_FACTOR.format(n);
 }
