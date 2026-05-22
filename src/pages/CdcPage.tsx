@@ -7,6 +7,8 @@ import { ExportarPdfCdcBoton } from '../components/ExportarPdfCdcBoton';
 import { SUBTIPOS_CDC_LABEL, useCdcCargas, useCdcOpciones, useCdcStore, useCdcSubtipo } from '../store/cdc';
 import { dimensionarCdc } from '../logic/cdc';
 import { TableroSelector } from '../components/TableroSelector';
+import { DerrateoControl } from '../components/DerrateoControl';
+import { useFactorDerrateo } from '../store/proyecto-meta';
 
 export function CdcPage() {
   const cargas = useCdcCargas();
@@ -32,7 +34,11 @@ export function CdcPage() {
     ...(t.subtipo !== 'general' ? { badge: SUBTIPOS_CDC_LABEL[t.subtipo], badgeColor: 'amber' as const } : {}),
   }));
 
-  const resultado = useMemo(() => dimensionarCdc(cargas, opciones), [cargas, opciones]);
+  const factorDerrateo = useFactorDerrateo('BT');
+  const resultado = useMemo(
+    () => dimensionarCdc(cargas, opciones, factorDerrateo),
+    [cargas, opciones, factorDerrateo],
+  );
 
   return (
     <div className="space-y-6">
@@ -41,7 +47,10 @@ export function CdcPage() {
           <h1 className="text-2xl font-semibold">{titulo}</h1>
           <p className="text-sm text-slate-600 dark:text-slate-400">{descripcion}</p>
         </div>
-        <ExportarPdfCdcBoton svgRef={svgRef} resultado={resultado} subtipo={subtipo} />
+        <div className="flex items-center gap-2 flex-wrap">
+          <DerrateoControl nivel="BT" />
+          <ExportarPdfCdcBoton svgRef={svgRef} resultado={resultado} subtipo={subtipo} />
+        </div>
       </header>
 
       <TableroSelector

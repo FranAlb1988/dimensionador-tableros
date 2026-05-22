@@ -43,6 +43,7 @@ export interface ResultadoCdc {
 export function dimensionarCdc(
   cargas: readonly Carga[],
   opts: OpcionesCdc = OPCIONES_CDC_DEFAULT,
+  factorDerrateo = 1,
 ): ResultadoCdc {
   const modPorFila = opts.modulosPorFila;
   const reserva = clampInt(opts.reservaPorFila, 0, modPorFila - 1);
@@ -59,7 +60,7 @@ export function dimensionarCdc(
   const cargasSinAsignar: Carga[] = [];
 
   for (const c of cargas) {
-    const proteccion = sugerirProteccionIc60(c);
+    const proteccion = sugerirProteccionIc60(c, factorDerrateo);
     const I = corrienteDiseno(c);
     if (!proteccion || I <= 0) {
       cargasSinAsignar.push(c);

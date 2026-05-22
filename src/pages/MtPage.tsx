@@ -11,6 +11,8 @@ import {
   useMtStore,
 } from '../store/mt';
 import { dimensionarMt } from '../logic/mt';
+import { DerrateoControl } from '../components/DerrateoControl';
+import { useFactorDerrateo } from '../store/proyecto-meta';
 
 export function MtPage() {
   const salidas = useMtSalidas();
@@ -25,9 +27,10 @@ export function MtPage() {
   const eliminarTablero = useMtStore((s) => s.eliminarTablero);
   const svgRef = useRef<SVGSVGElement | null>(null);
 
+  const factorDerrateo = useFactorDerrateo('MT');
   const resultado = useMemo(
-    () => dimensionarMt(salidas, kv, icc),
-    [salidas, kv, icc],
+    () => dimensionarMt(salidas, kv, icc, factorDerrateo),
+    [salidas, kv, icc, factorDerrateo],
   );
 
   const tablerosLite = tableros.map((t) => ({ id: t.id, nombre: t.nombre }));
@@ -43,6 +46,7 @@ export function MtPage() {
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
+          <DerrateoControl nivel="MT" />
           {resultado.tablero && (
             <ExportarPdfMtBoton svgRef={svgRef} resultado={resultado} />
           )}

@@ -35,11 +35,13 @@ export function sugerirProteccionNsx(carga: Carga): Proteccion | undefined {
 /**
  * Sugiere un iC60 para una carga de CDC.
  * Curva preferida: C para iluminación/tomas, D para cargas inductivas pequeñas (motor < 4 kW).
+ * `factorDerrateo` (F2 por altura): el interruptor se selecciona contra I / F2.
  */
-export function sugerirProteccionIc60(carga: Carga): Proteccion | undefined {
+export function sugerirProteccionIc60(carga: Carga, factorDerrateo = 1): Proteccion | undefined {
   const I = corrienteDiseno(carga);
   if (I <= 0) return undefined;
-  const Imin = I * MARGEN_IC60;
+  const f = factorDerrateo > 0 ? factorDerrateo : 1;
+  const Imin = (I * MARGEN_IC60) / f;
   const polosNecesarios = carga.fases === '3F' ? 3 : 1;
   return IC60
     .filter((p) => p.polos === polosNecesarios)

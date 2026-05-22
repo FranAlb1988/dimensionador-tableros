@@ -72,4 +72,12 @@ describe('dimensionarMt', () => {
     expect(r.tablero).toBeUndefined();
     expect(r.motivo).toMatch(/Sin celdas/);
   });
+
+  it('el derrateo por altura sube la barra principal (selección contra I/F2)', () => {
+    const sin = dimensionarMt(base, 36, 25);
+    const con = dimensionarMt(base, 36, 25, 0.8);
+    // 1200 A → barra 1250 A; con derrateo 1200/0,8 = 1500 A → barra 2000 A.
+    expect(sin.tablero!.corrienteBarraA).toBe(1250);
+    expect(con.tablero!.corrienteBarraA).toBe(2000);
+  });
 });

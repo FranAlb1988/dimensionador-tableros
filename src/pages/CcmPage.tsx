@@ -10,11 +10,10 @@ import { VistaFrontalCcmNemaSvg } from '../components/VistaFrontalCcmNemaSvg';
 import { ResumenCcmNema } from '../components/ResumenCcmNema';
 import { ExportarPdfCcmNemaBoton } from '../components/ExportarPdfCcmNemaBoton';
 import { useCcmCargas, useCcmNorma, useCcmStore } from '../store/ccm';
-import { useMetaStore } from '../store/proyecto-meta';
 import { dimensionarCcm } from '../logic/tablero';
 import { dimensionarCcmNema } from '../logic/ccm-nema';
-import { factorDerrateoAltura } from '../logic/derrateo';
-import { fmtFactor } from '../util/format';
+import { DerrateoControl } from '../components/DerrateoControl';
+import { useFactorDerrateo } from '../store/proyecto-meta';
 import type { Norma } from '../types';
 import { TableroSelector } from '../components/TableroSelector';
 
@@ -24,12 +23,7 @@ export function CcmPage() {
   const cargas = useCcmCargas();
   const norma = useCcmNorma();
   const setNorma = useCcmStore((s) => s.setNorma);
-  const derrateo = useMetaStore((s) => s.derrateo);
-  const setDerrateo = useMetaStore((s) => s.setDerrateo);
-  const factorDerrateo = useMemo(
-    () => (derrateo.activo ? factorDerrateoAltura(derrateo.altitudM, 'BT') : 1),
-    [derrateo],
-  );
+  const factorDerrateo = useFactorDerrateo('BT');
   const tableros = useCcmStore((s) => s.tableros);
   const activoId = useCcmStore((s) => s.activoId);
   const setActivo = useCcmStore((s) => s.setActivo);
@@ -77,40 +71,7 @@ export function CcmPage() {
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <div className="inline-flex items-center gap-2 border border-slate-300 dark:border-slate-700 rounded px-2.5 py-1">
-            <label
-              className="flex items-center gap-1.5 text-sm font-medium cursor-pointer select-none"
-              title="Aplica el factor F2 de corrección por altura geográfica (Tabla V, IEEE 37.20.1) a la barra y protecciones"
-            >
-              <input
-                type="checkbox"
-                checked={derrateo.activo}
-                onChange={(e) => setDerrateo({ activo: e.target.checked })}
-                className="accent-slate-900 dark:accent-slate-100"
-              />
-              Derrateo altura
-            </label>
-            {derrateo.activo && (
-              <span className="flex items-center gap-1.5 text-sm">
-                <input
-                  type="number"
-                  min={0}
-                  step={100}
-                  value={derrateo.altitudM}
-                  onChange={(e) => setDerrateo({ altitudM: Number(e.target.value) || 0 })}
-                  aria-label="Altitud en metros sobre el nivel del mar"
-                  className="w-20 px-1.5 py-0.5 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 tabular-nums"
-                />
-                <span className="text-slate-500">m.s.n.m.</span>
-                <span
-                  className="text-slate-600 dark:text-slate-300 tabular-nums"
-                  title="Factor F2 de corrección por altura (baja tensión)"
-                >
-                  F2 = {fmtFactor(factorDerrateo)}
-                </span>
-              </span>
-            )}
-          </div>
+          <DerrateoControl nivel="BT" />
           <div
             className="inline-flex border border-slate-300 dark:border-slate-700 rounded overflow-hidden"
             role="tablist"

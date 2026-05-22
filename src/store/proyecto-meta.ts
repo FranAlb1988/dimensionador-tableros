@@ -1,5 +1,7 @@
+import { useMemo } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { factorDerrateoAltura, type NivelTension } from '../logic/derrateo';
 
 /**
  * Metadatos del proyecto. Aparecen en el cajetín del PDF y se guardan junto al estado.
@@ -79,4 +81,16 @@ export function getMetadatos(): MetadatosProyecto {
 /** Indica si hay al menos un campo con valor no vacío. */
 export function tieneMetadatos(m: MetadatosProyecto = getMetadatos()): boolean {
   return Object.values(m).some((v) => typeof v === 'string' && v.trim() !== '');
+}
+
+/**
+ * Hook: factor de derrateo F2 según la configuración global del proyecto.
+ * Devuelve 1 si el derrateo está desactivado. `nivel` selecciona BT o MT.
+ */
+export function useFactorDerrateo(nivel: NivelTension): number {
+  const derrateo = useMetaStore((s) => s.derrateo);
+  return useMemo(
+    () => (derrateo.activo ? factorDerrateoAltura(derrateo.altitudM, nivel) : 1),
+    [derrateo, nivel],
+  );
 }

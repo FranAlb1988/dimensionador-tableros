@@ -72,4 +72,16 @@ describe('sugerirProteccionIc60', () => {
     const p = sugerirProteccionIc60(c);
     expect(p?.polos).toBe(3);
   });
+
+  it('el factor de derrateo selecciona contra I/F2 (interruptor mayor)', () => {
+    const c: Carga = {
+      id: 'l', descripcion: 'lum', tipo: 'iluminacion',
+      potenciaKw: 1.5, tensionV: 230, fases: '1F', factorServicio: 1,
+    };
+    const sinDerrateo = sugerirProteccionIc60(c);
+    const conDerrateo = sugerirProteccionIc60(c, 0.5);
+    expect(sinDerrateo).toBeDefined();
+    expect(conDerrateo).toBeDefined();
+    expect(conDerrateo!.inA).toBeGreaterThan(sinDerrateo!.inA);
+  });
 });

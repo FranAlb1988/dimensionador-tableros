@@ -72,6 +72,7 @@ export function dimensionarMt(
   salidas: readonly SalidaMt[],
   claseTensionKv: number,
   iccKa: number,
+  factorDerrateo = 1,
 ): ResultadoMt {
   if (!CATALOGO_MT.clasesTensionKv.includes(claseTensionKv)) {
     return {
@@ -119,11 +120,17 @@ export function dimensionarMt(
     .reduce((acc, c) => acc + c.corrienteA, 0);
   const corrienteRequeridaA = Math.max(corrEntradaAcople, sumaSalidas);
 
-  const corrienteBarraA = sugerirBarraMt(corrienteRequeridaA);
+  // El derrateo por altura reduce la capacidad de la barra: se selecciona contra I / F2.
+  const f = factorDerrateo > 0 ? factorDerrateo : 1;
+  const corrienteSeleccionA = corrienteRequeridaA / f;
+  const corrienteBarraA = sugerirBarraMt(corrienteSeleccionA);
   if (corrienteBarraA == null) {
+    const detalle = f < 1
+      ? `; selección ${corrienteSeleccionA.toFixed(0)} A con derrateo F2 = ${f.toFixed(3)}`
+      : '';
     return {
       celdas, salidasSinAsignar,
-      motivo: `Sin barra MT en catálogo para ${corrienteRequeridaA.toFixed(0)} A (máx ${Math.max(...CATALOGO_MT.barrasA)} A).`,
+      motivo: `Sin barra MT en catálogo para ${corrienteRequeridaA.toFixed(0)} A${detalle} (máx ${Math.max(...CATALOGO_MT.barrasA)} A).`,
     };
   }
 
