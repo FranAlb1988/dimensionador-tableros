@@ -26,7 +26,10 @@ export function CcmPage() {
   const setNorma = useCcmStore((s) => s.setNorma);
   const derrateo = useMetaStore((s) => s.derrateo);
   const setDerrateo = useMetaStore((s) => s.setDerrateo);
-  const factorDerrateo = derrateo.activo ? factorDerrateoAltura(derrateo.altitudM, 'BT') : 1;
+  const factorDerrateo = useMemo(
+    () => (derrateo.activo ? factorDerrateoAltura(derrateo.altitudM, 'BT') : 1),
+    [derrateo],
+  );
   const tableros = useCcmStore((s) => s.tableros);
   const activoId = useCcmStore((s) => s.activoId);
   const setActivo = useCcmStore((s) => s.setActivo);
@@ -38,6 +41,15 @@ export function CcmPage() {
   const svgRefIec = useRef<SVGSVGElement | null>(null);
   const svgRefNema = useRef<SVGSVGElement | null>(null);
   const [importAbierto, setImportAbierto] = useState(false);
+
+  const resultadoIec = useMemo(
+    () => (norma === 'IEC' ? dimensionarCcm(cargas) : null),
+    [cargas, norma],
+  );
+  const resultadoNema = useMemo(
+    () => (norma === 'NEMA' ? dimensionarCcmNema(cargas, factorDerrateo) : null),
+    [cargas, norma, factorDerrateo],
+  );
 
   const handleDesglosar = () => {
     if (!resultadoNema?.overflowBarra || !activoId) return;
@@ -52,15 +64,6 @@ export function CcmPage() {
     }
     desglosarTablero(activoId, idsOverflow, nombreNuevo);
   };
-
-  const resultadoIec = useMemo(
-    () => (norma === 'IEC' ? dimensionarCcm(cargas) : null),
-    [cargas, norma],
-  );
-  const resultadoNema = useMemo(
-    () => (norma === 'NEMA' ? dimensionarCcmNema(cargas, factorDerrateo) : null),
-    [cargas, norma, factorDerrateo],
-  );
 
   return (
     <div className="space-y-6">
