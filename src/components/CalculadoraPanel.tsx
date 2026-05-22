@@ -19,8 +19,11 @@ export function CalculadoraPanel({ calculadora }: { calculadora: Calculadora }) 
   const [entradas, setEntradas] = useState<EntradasCalc>(() => entradasIniciales(calculadora));
   const resultado = calculadora.calcular(entradas);
 
-  const set = (key: string, valor: string) =>
-    setEntradas((prev) => ({ ...prev, [key]: valor }));
+  const set = (key: string, valor: string) => {
+    const campo = calculadora.campos.find((c) => c.key === key);
+    const extra = campo?.autollenar ? campo.autollenar(valor) : {};
+    setEntradas((prev) => ({ ...prev, [key]: valor, ...extra }));
+  };
 
   return (
     <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">

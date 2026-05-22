@@ -1,6 +1,7 @@
 // Calculadoras del grupo "Conductores": caída de tensión y corriente de diseño.
 import type { Calculadora, EntradasCalc, ResultadoCalc } from './tipos';
 import { num } from './tipos';
+import { autollenarConductor, opcionesConductor } from './conductores-catalogo';
 import { factorDerrateoAltura, type NivelTension } from '../derrateo';
 
 const SQRT3 = Math.sqrt(3);
@@ -47,6 +48,11 @@ function caidaTension(
 
 const camposLinea = [
   { key: 'L', label: 'Longitud del circuito', unidad: 'm' },
+  {
+    key: 'conductor', label: 'Conductor', tipo: 'select' as const, defecto: '',
+    opciones: opcionesConductor(), autollenar: autollenarConductor('R', 'X'),
+    ayuda: 'Autocompleta R y X con valores típicos de cobre. Quedan editables.',
+  },
   { key: 'R', label: 'Resistencia del conductor', unidad: 'Ω/km' },
   { key: 'X', label: 'Reactancia del conductor', unidad: 'Ω/km' },
   { key: 'n', label: 'Conductores por fase', unidad: '', defecto: 1 },

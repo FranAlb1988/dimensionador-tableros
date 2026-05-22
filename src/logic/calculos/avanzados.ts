@@ -1,6 +1,7 @@
 // Calculadoras del grupo "Avanzados": cortocircuito, armónicos y malla de tierra.
 import type { Calculadora, ResultadoCalc } from './tipos';
 import { num } from './tipos';
+import { autollenarConductor, opcionesConductor } from './conductores-catalogo';
 
 const SQRT3 = Math.sqrt(3);
 
@@ -50,6 +51,11 @@ const cortocircuitoBarra: Calculadora = {
     { key: 'pctZ', label: 'Impedancia del transformador %Z', unidad: '%', defecto: 5.75 },
     { key: 'Vll', label: 'Tensión de línea (secundario)', unidad: 'V', defecto: 400 },
     { key: 'L', label: 'Longitud del tramo de cable', unidad: 'm', defecto: 0, opcional: true, ayuda: '0 = cortocircuito en el secundario del transformador.' },
+    {
+      key: 'conductor', label: 'Conductor', tipo: 'select', defecto: '', opcional: true,
+      opciones: opcionesConductor(), autollenar: autollenarConductor('Runit', 'Xunit'),
+      ayuda: 'Autocompleta R y X con valores típicos de cobre. Quedan editables.',
+    },
     { key: 'Runit', label: 'Resistencia del cable', unidad: 'Ω/km', defecto: 0.041, opcional: true },
     { key: 'Xunit', label: 'Reactancia del cable', unidad: 'Ω/km', defecto: 0.08, opcional: true },
     { key: 'nParalelos', label: 'Conductores en paralelo por fase', unidad: '', defecto: 1, opcional: true },

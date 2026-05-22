@@ -28,6 +28,11 @@ export interface CampoCalc {
   ayuda?: string;
   /** Si true, el campo puede quedar vacío sin marcar error (entrada opcional). */
   opcional?: boolean;
+  /**
+   * Si está definido, al cambiar este campo se autocompletan otros campos.
+   * Devuelve un mapa de clave→valor a fusionar en las entradas.
+   */
+  autollenar?: (valor: string) => Record<string, string>;
 }
 
 export interface SalidaCalc {

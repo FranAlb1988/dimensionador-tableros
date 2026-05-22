@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { calculadoraPorId, CALCULADORAS } from './index';
+import { CATALOGO_CONDUCTORES, autollenarConductor } from './conductores-catalogo';
 
 function calc(id: string) {
   const c = calculadoraPorId(id);
@@ -122,5 +123,26 @@ describe('Malla de puesta a tierra (IEEE 80)', () => {
     expect(r.valores.Em).toBeGreaterThan(0);
     expect(r.valores.Es).toBeGreaterThan(0);
     expect(r.nota).toBeDefined();
+  });
+});
+
+describe('Catálogo de conductores', () => {
+  it('tiene entradas con R y X positivos', () => {
+    expect(CATALOGO_CONDUCTORES.length).toBeGreaterThan(0);
+    for (const c of CATALOGO_CONDUCTORES) {
+      expect(c.R).toBeGreaterThan(0);
+      expect(c.X).toBeGreaterThan(0);
+    }
+  });
+  it('autollenar devuelve R y X en las claves indicadas', () => {
+    const fn = autollenarConductor('R', 'X');
+    expect(fn('mcm-500')).toEqual({ R: '0.0886', X: '0.107' });
+    const fn2 = autollenarConductor('Runit', 'Xunit');
+    expect(Object.keys(fn2('mm2-120'))).toEqual(['Runit', 'Xunit']);
+  });
+  it('autollenar devuelve vacío para id desconocido o manual', () => {
+    const fn = autollenarConductor('R', 'X');
+    expect(fn('')).toEqual({});
+    expect(fn('no-existe')).toEqual({});
   });
 });
