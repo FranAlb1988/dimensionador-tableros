@@ -65,7 +65,7 @@ export function dibujarCajetinProyecto(doc: jsPDF, opts: OpcionesCajetin): numbe
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
   if (meta.codigoHqr) {
-    doc.text('Plano HQR:', der, yd);
+    doc.text('Plano interno:', der, yd);
     doc.setFont('helvetica', 'normal');
     doc.text(meta.codigoHqr, der + 22, yd);
     doc.setFont('helvetica', 'bold');
