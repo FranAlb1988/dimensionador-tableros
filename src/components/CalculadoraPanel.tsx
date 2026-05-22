@@ -95,8 +95,11 @@ export function CalculadoraPanel({ calculadora }: { calculadora: Calculadora }) 
             <>
               <dl className="space-y-1.5">
                 {calculadora.salidas.map((salida) => {
-                  const valor = resultado.valores[salida.key];
                   const destacado = salida.destacado;
+                  const valorTexto = salida.esTexto
+                    ? (resultado.textos?.[salida.key] ?? '—')
+                    : null;
+                  const valor = salida.esTexto ? undefined : resultado.valores[salida.key];
                   return (
                     <div
                       key={salida.key}
@@ -111,8 +114,12 @@ export function CalculadoraPanel({ calculadora }: { calculadora: Calculadora }) 
                         {salida.label}
                       </dt>
                       <dd className={(destacado ? 'text-base font-bold' : 'text-sm font-medium') + ' tabular-nums'}>
-                        {valor == null ? '—' : fmtCantidad(valor, salida.decimales ?? 2)}
-                        {salida.unidad ? <span className="font-normal opacity-70"> {salida.unidad}</span> : null}
+                        {salida.esTexto
+                          ? valorTexto
+                          : valor == null ? '—' : fmtCantidad(valor, salida.decimales ?? 2)}
+                        {!salida.esTexto && salida.unidad
+                          ? <span className="font-normal opacity-70"> {salida.unidad}</span>
+                          : null}
                       </dd>
                     </div>
                   );

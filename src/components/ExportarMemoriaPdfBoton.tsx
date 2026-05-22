@@ -96,9 +96,14 @@ export function ExportarMemoriaPdfBoton({ calculadora, entradas, resultado }: Pr
 
       seccion('Resultados');
       for (const salida of calculadora.salidas) {
-        const v = resultado.valores[salida.key];
-        const u = salida.unidad ? ` ${salida.unidad}` : '';
-        const txt = v == null ? '—' : `${fmtCantidad(v, salida.decimales ?? 2)}${u}`;
+        let txt: string;
+        if (salida.esTexto) {
+          txt = resultado.textos?.[salida.key] ?? '—';
+        } else {
+          const v = resultado.valores[salida.key];
+          const u = salida.unidad ? ` ${salida.unidad}` : '';
+          txt = v == null ? '—' : `${fmtCantidad(v, salida.decimales ?? 2)}${u}`;
+        }
         fila(salida.label, txt, salida.destacado);
       }
 

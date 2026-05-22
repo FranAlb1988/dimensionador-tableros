@@ -43,6 +43,8 @@ export interface SalidaCalc {
   destacado?: boolean;
   /** Decimales a mostrar (por defecto 2). */
   decimales?: number;
+  /** Si true, el valor es textual y se lee de `resultado.textos`. */
+  esTexto?: boolean;
 }
 
 /** Entradas crudas del formulario: texto para number, value para select. */
@@ -51,6 +53,8 @@ export type EntradasCalc = Record<string, string>;
 export interface ResultadoCalc {
   /** Valores numéricos por clave de salida. */
   valores: Record<string, number>;
+  /** Valores textuales por clave de salida (para salidas con `esTexto`). */
+  textos?: Record<string, string>;
   /** Mensaje de error si las entradas no permiten calcular. */
   error?: string;
   /** Nota informativa opcional (p.ej. resultado de una verificación). */

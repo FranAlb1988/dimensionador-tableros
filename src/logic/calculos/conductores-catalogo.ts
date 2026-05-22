@@ -1,10 +1,8 @@
-// Catálogo de conductores de cobre — valores típicos de referencia para
-// autocompletar R y X (Ω/km) en las calculadoras de caída de tensión y
-// cortocircuito. Cobre en ducto, ~75–90 °C, 50 Hz.
-//
-// AWG/MCM: derivado de NEC Cap. 9, Tabla 9 (cobre en ducto), reactancia
-//   ajustada de 60 a 50 Hz.
-// mm²: valores típicos IEC para cobre.
+// Catálogo de conductores de cobre — valores típicos de referencia.
+// R y X (Ω/km): para caída de tensión y cortocircuito. Cobre en ducto,
+//   ~75–90 °C, 50 Hz. AWG/MCM derivado de NEC Cap. 9, Tabla 9; mm² típicos IEC.
+// areaMm2 y diametroMm: del conductor con aislación (THHN/THWN para AWG,
+//   XLPE típico para mm²), para el cálculo de canalizaciones.
 //
 // Son valores de referencia y quedan editables tras autocompletar:
 // verificar siempre contra la hoja de datos del cable del proyecto.
@@ -18,37 +16,41 @@ export interface ConductorCatalogo {
   R: number;
   /** Reactancia, Ω/km. */
   X: number;
+  /** Área del conductor con aislación, mm². */
+  areaMm2: number;
+  /** Diámetro exterior del conductor con aislación, mm. */
+  diametroMm: number;
 }
 
 export const CATALOGO_CONDUCTORES: readonly ConductorCatalogo[] = [
-  { id: 'awg-12', nombre: '#12 AWG', R: 6.56, X: 0.148 },
-  { id: 'awg-10', nombre: '#10 AWG', R: 3.94, X: 0.137 },
-  { id: 'awg-8', nombre: '#8 AWG', R: 2.56, X: 0.142 },
-  { id: 'awg-6', nombre: '#6 AWG', R: 1.61, X: 0.139 },
-  { id: 'awg-4', nombre: '#4 AWG', R: 1.02, X: 0.131 },
-  { id: 'awg-2', nombre: '#2 AWG', R: 0.623, X: 0.123 },
-  { id: 'awg-1-0', nombre: '1/0 AWG', R: 0.394, X: 0.12 },
-  { id: 'awg-2-0', nombre: '2/0 AWG', R: 0.328, X: 0.118 },
-  { id: 'awg-4-0', nombre: '4/0 AWG', R: 0.203, X: 0.112 },
-  { id: 'mcm-250', nombre: '250 MCM', R: 0.171, X: 0.112 },
-  { id: 'mcm-350', nombre: '350 MCM', R: 0.125, X: 0.109 },
-  { id: 'mcm-500', nombre: '500 MCM', R: 0.0886, X: 0.107 },
-  { id: 'mcm-750', nombre: '750 MCM', R: 0.0623, X: 0.104 },
-  { id: 'mm2-2.5', nombre: '2,5 mm²', R: 9.45, X: 0.11 },
-  { id: 'mm2-4', nombre: '4 mm²', R: 5.88, X: 0.107 },
-  { id: 'mm2-6', nombre: '6 mm²', R: 3.93, X: 0.1 },
-  { id: 'mm2-10', nombre: '10 mm²', R: 2.33, X: 0.094 },
-  { id: 'mm2-16', nombre: '16 mm²', R: 1.47, X: 0.09 },
-  { id: 'mm2-25', nombre: '25 mm²', R: 0.927, X: 0.086 },
-  { id: 'mm2-35', nombre: '35 mm²', R: 0.668, X: 0.083 },
-  { id: 'mm2-50', nombre: '50 mm²', R: 0.494, X: 0.083 },
-  { id: 'mm2-70', nombre: '70 mm²', R: 0.342, X: 0.082 },
-  { id: 'mm2-95', nombre: '95 mm²', R: 0.247, X: 0.082 },
-  { id: 'mm2-120', nombre: '120 mm²', R: 0.196, X: 0.08 },
-  { id: 'mm2-150', nombre: '150 mm²', R: 0.159, X: 0.08 },
-  { id: 'mm2-185', nombre: '185 mm²', R: 0.128, X: 0.08 },
-  { id: 'mm2-240', nombre: '240 mm²', R: 0.0981, X: 0.079 },
-  { id: 'mm2-300', nombre: '300 mm²', R: 0.079, X: 0.079 },
+  { id: 'awg-12', nombre: '#12 AWG', R: 6.56, X: 0.148, areaMm2: 8.58, diametroMm: 3.3 },
+  { id: 'awg-10', nombre: '#10 AWG', R: 3.94, X: 0.137, areaMm2: 13.61, diametroMm: 4.17 },
+  { id: 'awg-8', nombre: '#8 AWG', R: 2.56, X: 0.142, areaMm2: 23.61, diametroMm: 5.49 },
+  { id: 'awg-6', nombre: '#6 AWG', R: 1.61, X: 0.139, areaMm2: 32.71, diametroMm: 6.45 },
+  { id: 'awg-4', nombre: '#4 AWG', R: 1.02, X: 0.131, areaMm2: 53.16, diametroMm: 8.23 },
+  { id: 'awg-2', nombre: '#2 AWG', R: 0.623, X: 0.123, areaMm2: 74.71, diametroMm: 9.75 },
+  { id: 'awg-1-0', nombre: '1/0 AWG', R: 0.394, X: 0.12, areaMm2: 119.7, diametroMm: 12.34 },
+  { id: 'awg-2-0', nombre: '2/0 AWG', R: 0.328, X: 0.118, areaMm2: 143.4, diametroMm: 13.51 },
+  { id: 'awg-4-0', nombre: '4/0 AWG', R: 0.203, X: 0.112, areaMm2: 208.8, diametroMm: 16.31 },
+  { id: 'mcm-250', nombre: '250 MCM', R: 0.171, X: 0.112, areaMm2: 256.1, diametroMm: 18.06 },
+  { id: 'mcm-350', nombre: '350 MCM', R: 0.125, X: 0.109, areaMm2: 322.7, diametroMm: 20.27 },
+  { id: 'mcm-500', nombre: '500 MCM', R: 0.0886, X: 0.107, areaMm2: 431.4, diametroMm: 23.44 },
+  { id: 'mcm-750', nombre: '750 MCM', R: 0.0623, X: 0.104, areaMm2: 655.4, diametroMm: 28.88 },
+  { id: 'mm2-2.5', nombre: '2,5 mm²', R: 9.45, X: 0.11, areaMm2: 28.3, diametroMm: 6.0 },
+  { id: 'mm2-4', nombre: '4 mm²', R: 5.88, X: 0.107, areaMm2: 34.2, diametroMm: 6.6 },
+  { id: 'mm2-6', nombre: '6 mm²', R: 3.93, X: 0.1, areaMm2: 40.7, diametroMm: 7.2 },
+  { id: 'mm2-10', nombre: '10 mm²', R: 2.33, X: 0.094, areaMm2: 56.7, diametroMm: 8.5 },
+  { id: 'mm2-16', nombre: '16 mm²', R: 1.47, X: 0.09, areaMm2: 72.4, diametroMm: 9.6 },
+  { id: 'mm2-25', nombre: '25 mm²', R: 0.927, X: 0.086, areaMm2: 102.1, diametroMm: 11.4 },
+  { id: 'mm2-35', nombre: '35 mm²', R: 0.668, X: 0.083, areaMm2: 124.7, diametroMm: 12.6 },
+  { id: 'mm2-50', nombre: '50 mm²', R: 0.494, X: 0.083, areaMm2: 158.4, diametroMm: 14.2 },
+  { id: 'mm2-70', nombre: '70 mm²', R: 0.342, X: 0.082, areaMm2: 201.1, diametroMm: 16.0 },
+  { id: 'mm2-95', nombre: '95 mm²', R: 0.247, X: 0.082, areaMm2: 254.5, diametroMm: 18.0 },
+  { id: 'mm2-120', nombre: '120 mm²', R: 0.196, X: 0.08, areaMm2: 307.9, diametroMm: 19.8 },
+  { id: 'mm2-150', nombre: '150 mm²', R: 0.159, X: 0.08, areaMm2: 366.4, diametroMm: 21.6 },
+  { id: 'mm2-185', nombre: '185 mm²', R: 0.128, X: 0.08, areaMm2: 444.9, diametroMm: 23.8 },
+  { id: 'mm2-240', nombre: '240 mm²', R: 0.0981, X: 0.079, areaMm2: 555.7, diametroMm: 26.6 },
+  { id: 'mm2-300', nombre: '300 mm²', R: 0.079, X: 0.079, areaMm2: 669.7, diametroMm: 29.2 },
 ];
 
 /** Opciones para un campo select de conductor (incluye la opción manual). */
@@ -59,14 +61,29 @@ export function opcionesConductor(): OpcionCampo[] {
   ];
 }
 
-/**
- * Crea una función `autollenar` que, dado el id de un conductor, devuelve
- * los valores de R y X para las claves de campo indicadas.
- */
+/** Función `autollenar` que carga R y X (Ω/km) en las claves indicadas. */
 export function autollenarConductor(keyR: string, keyX: string) {
   return (valor: string): Record<string, string> => {
     const c = CATALOGO_CONDUCTORES.find((x) => x.id === valor);
     if (!c) return {};
     return { [keyR]: String(c.R), [keyX]: String(c.X) };
+  };
+}
+
+/** Función `autollenar` que carga el área del conductor con aislación (mm²). */
+export function autollenarArea(keyArea: string) {
+  return (valor: string): Record<string, string> => {
+    const c = CATALOGO_CONDUCTORES.find((x) => x.id === valor);
+    if (!c) return {};
+    return { [keyArea]: String(c.areaMm2) };
+  };
+}
+
+/** Función `autollenar` que carga el diámetro exterior del conductor (mm). */
+export function autollenarDiametro(keyDiam: string) {
+  return (valor: string): Record<string, string> => {
+    const c = CATALOGO_CONDUCTORES.find((x) => x.id === valor);
+    if (!c) return {};
+    return { [keyDiam]: String(c.diametroMm) };
   };
 }

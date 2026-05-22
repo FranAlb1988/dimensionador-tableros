@@ -9,9 +9,9 @@ function calc(id: string) {
 }
 
 describe('registro de calculadoras', () => {
-  it('expone 10 calculadoras con id único', () => {
-    expect(CALCULADORAS).toHaveLength(10);
-    expect(new Set(CALCULADORAS.map((c) => c.id)).size).toBe(10);
+  it('expone 12 calculadoras con id único', () => {
+    expect(CALCULADORAS).toHaveLength(12);
+    expect(new Set(CALCULADORAS.map((c) => c.id)).size).toBe(12);
   });
 });
 
@@ -144,5 +144,35 @@ describe('Catálogo de conductores', () => {
     const fn = autollenarConductor('R', 'X');
     expect(fn('')).toEqual({});
     expect(fn('no-existe')).toEqual({});
+  });
+});
+
+describe('Tamaño de ducto (conduit)', () => {
+  it('3 conductores → relleno 40% y elige el ducto EMT que cubre', () => {
+    // 3 × 4/0 AWG (208,8 mm²) → área total 626,4 → área req 1566 mm² → 2″ EMT.
+    const r = calc('tamano-ducto').calcular({ tipo: 'metalico', area: '208.8', cantidad: '3' });
+    expect(r.valores.areaTotal).toBeCloseTo(626.4, 1);
+    expect(r.valores.relleno).toBe(40);
+    expect(r.textos?.ducto).toBe('2″ EMT');
+    expect(r.valores.rellenoReal).toBeLessThanOrEqual(40);
+  });
+  it('un solo conductor usa el 53%', () => {
+    const r = calc('tamano-ducto').calcular({ tipo: 'pvc', area: '100', cantidad: '1' });
+    expect(r.valores.relleno).toBe(53);
+    expect(r.textos?.ducto).toMatch(/PVC/);
+  });
+  it('marca cuando supera el ducto más grande', () => {
+    const r = calc('tamano-ducto').calcular({ tipo: 'metalico', area: '5000', cantidad: '10' });
+    expect(r.textos?.ducto).toMatch(/Supera/);
+    expect(r.nota).toMatch(/varios ductos/);
+  });
+});
+
+describe('Ancho de escalerilla portaconductores', () => {
+  it('ancho requerido = n · diámetro, elige el ancho normalizado', () => {
+    // 6 × 500 MCM (23,44 mm) → 140,6 mm → escalerilla 150 mm.
+    const r = calc('ancho-escalerilla').calcular({ diametro: '23.44', cantidad: '6' });
+    expect(r.valores.anchoRequerido).toBeCloseTo(140.64, 1);
+    expect(r.valores.anchoSugerido).toBe(150);
   });
 });
