@@ -42,3 +42,12 @@ export function fmtFactor(n: number): string {
   if (!Number.isFinite(n)) return '—';
   return FMT_FACTOR.format(n);
 }
+
+/** Cantidad genérica con el número de decimales indicado (formato es-CL). */
+export function fmtCantidad(n: number, decimales = 2): string {
+  if (!Number.isFinite(n)) return '—';
+  return new Intl.NumberFormat('es-CL', {
+    minimumFractionDigits: decimales,
+    maximumFractionDigits: decimales,
+  }).format(n);
+}

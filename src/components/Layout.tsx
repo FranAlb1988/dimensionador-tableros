@@ -32,6 +32,9 @@ export function Layout() {
             <NavLink to="/auxiliares" className={({ isActive }) => `${linkBase} ${isActive ? linkActive : linkInactive}`}>
               Auxiliares
             </NavLink>
+            <NavLink to="/calculos" className={({ isActive }) => `${linkBase} ${isActive ? linkActive : linkInactive}`}>
+              Cálculos
+            </NavLink>
           </nav>
           <div className="ml-auto flex items-center gap-3">
             <span className="hidden lg:inline text-xs text-slate-500 dark:text-slate-400">

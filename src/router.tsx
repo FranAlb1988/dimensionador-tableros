@@ -5,6 +5,7 @@ import { CdcPage } from './pages/CdcPage';
 import { TdgPage } from './pages/TdgPage';
 import { MtPage } from './pages/MtPage';
 import { AuxiliaresPage } from './pages/AuxiliaresPage';
+import { CalculosPage } from './pages/CalculosPage';
 import { Home } from './pages/Home';
 
 // HashRouter funciona sin servidor — ideal para GitHub Pages estático.
@@ -19,6 +20,7 @@ export const router = createHashRouter([
       { path: 'tdg', element: <TdgPage /> },
       { path: 'mt', element: <MtPage /> },
       { path: 'auxiliares', element: <AuxiliaresPage /> },
+      { path: 'calculos', element: <CalculosPage /> },
       { path: '*', element: <Navigate to="/" replace /> },
     ],
   },
