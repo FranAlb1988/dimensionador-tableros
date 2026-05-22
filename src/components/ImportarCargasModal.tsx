@@ -229,7 +229,7 @@ function AyudaAutoCad() {
         </p>
 
         <div>
-          <div className="font-medium mb-1">Pre-requisito (una vez por template HQR)</div>
+          <div className="font-medium mb-1">Pre-requisito (una vez por plantilla de extracción)</div>
           <p>
             Los bloques de motor / partidor del unilineal deben tener atributos. Mínimo recomendado:
           </p>
@@ -247,9 +247,9 @@ function AyudaAutoCad() {
           <ol className="list-decimal list-inside ml-2 space-y-1">
             <li>Abre el plano del unilineal en AutoCAD.</li>
             <li>Comando: <code className="px-1 bg-slate-200 dark:bg-slate-800 rounded">DATAEXTRACTION</code> (Enter).</li>
-            <li>Elige <em>"Create a new data extraction"</em> → guarda el <code className="px-1 bg-slate-200 dark:bg-slate-800 rounded">.dxe</code> con un nombre genérico (p.ej. <em>"HQR-CCM.dxe"</em>) para reusarlo en futuros proyectos.</li>
+            <li>Elige <em>"Create a new data extraction"</em> → guarda el <code className="px-1 bg-slate-200 dark:bg-slate-800 rounded">.dxe</code> con un nombre genérico (p.ej. <em>"extraccion-CCM.dxe"</em>) para reusarlo en futuros proyectos.</li>
             <li>Fuente: <em>"Drawings/Sheet set"</em> → seleccionar el plano actual.</li>
-            <li>Objetos: filtra solo los bloques de motor/partidor (puedes desmarcar todos y dejar los del template HQR).</li>
+            <li>Objetos: filtra solo los bloques de motor/partidor (puedes desmarcar todos y dejar los de tu plantilla de extracción).</li>
             <li>Propiedades: marca solo los atributos relevantes (TAG, DESCRIPCION, HP, PARTIDOR, TENSION, FASES).</li>
             <li>Vista previa: <strong>desmarca "Combine identical rows"</strong> — cada motor debe ser una fila aparte.</li>
             <li>Salida: marca <em>"Output to External File (.xls .xlsx .csv .mdb .txt)"</em> y guarda como <strong>.xlsx</strong>.</li>

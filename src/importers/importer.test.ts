@@ -93,7 +93,7 @@ describe('autoMapear', () => {
   });
 
   it('ignora Count y Name que agrega AutoCAD DATAEXTRACTION', () => {
-    // Salida típica de DATAEXTRACTION sobre bloques de motor con atributos HQR.
+    // Salida típica de DATAEXTRACTION sobre bloques de motor con atributos.
     const m = autoMapear(['Count', 'Name', 'TAG', 'DESCRIPCION', 'HP', 'PARTIDOR', 'TENSION', 'FASES']);
     expect(m.tag).toBe('TAG');
     expect(m.descripcion).toBe('DESCRIPCION');
