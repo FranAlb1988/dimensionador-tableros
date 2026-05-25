@@ -220,7 +220,43 @@ describe('Ancho de escalerilla portaconductores', () => {
       'grupos.2.diametro': '8.23',  'grupos.2.cantidad': '1',
     });
     expect(r.valores.totalConductores).toBe(5);
+    expect(r.valores.capasUsadas).toBe(1);
     expect(r.valores.anchoRequerido).toBeCloseTo(94.86, 1);
     expect(r.valores.anchoSugerido).toBe(100);
+  });
+  it('2 capas reducen el ancho requerido a la mitad para conductores iguales', () => {
+    // 6 × 500 MCM en 2 capas → 3 por capa → ancho = 3·23,44 = 70,32 → escalerilla 100 mm.
+    const r = calc('ancho-escalerilla').calcular({
+      capas: '2',
+      'grupos.count': '1',
+      'grupos.0.diametro': '23.44', 'grupos.0.cantidad': '6',
+    });
+    expect(r.valores.totalConductores).toBe(6);
+    expect(r.valores.capasUsadas).toBe(2);
+    expect(r.valores.anchoRequerido).toBeCloseTo(70.32, 1);
+    expect(r.valores.anchoSugerido).toBe(100);
+  });
+  it('bin-packing balancea calibres distintos entre capas', () => {
+    // 3 × 23,44 (grandes) + 2 × 8,23 (pequeños) en 2 capas.
+    // best-fit decreasing: capa0=[23.44,23.44]=46,88; capa1=[23.44,8.23,8.23]=39,90.
+    // máx = 46,88 → escalerilla 100 mm.
+    const r = calc('ancho-escalerilla').calcular({
+      capas: '2',
+      'grupos.count': '2',
+      'grupos.0.diametro': '23.44', 'grupos.0.cantidad': '3',
+      'grupos.1.diametro': '8.23',  'grupos.1.cantidad': '2',
+    });
+    expect(r.valores.capasUsadas).toBe(2);
+    expect(r.valores.anchoRequerido).toBeCloseTo(46.88, 1);
+    expect(r.valores.anchoSugerido).toBe(100);
+  });
+  it('capas no puede ser mayor que el total de conductores', () => {
+    const r = calc('ancho-escalerilla').calcular({
+      capas: '10',
+      'grupos.count': '1',
+      'grupos.0.diametro': '23.44', 'grupos.0.cantidad': '3',
+    });
+    expect(r.valores.capasUsadas).toBe(3);
+    expect(r.valores.anchoRequerido).toBeCloseTo(23.44, 2);
   });
 });

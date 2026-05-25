@@ -69,3 +69,27 @@ export function areaDuctoMaxima(tipo: TipoDucto): number {
 export function sugerirAnchoEscalerilla(anchoRequeridoMm: number): number | undefined {
   return [...ANCHOS_ESCALERILLA].sort((a, b) => a - b).find((w) => w >= anchoRequeridoMm);
 }
+
+/**
+ * Distribuye los elementos en `capas` filas balanceando la suma de tamaños
+ * por fila (bin-packing best-fit decreasing). Resulta en filas cuya suma
+ * máxima es aproximadamente Σ tamaños / capas. Determinista: ordena por
+ * tamaño descendente y asigna cada elemento a la fila con menor suma actual.
+ */
+export function distribuirEnCapas<T>(
+  items: readonly T[],
+  getSize: (item: T) => number,
+  capas: number,
+): T[][] {
+  const n = Math.max(1, Math.round(capas));
+  const orden = [...items].sort((a, b) => getSize(b) - getSize(a));
+  const filas: T[][] = Array.from({ length: n }, () => [] as T[]);
+  const sumas = new Array<number>(n).fill(0);
+  for (const item of orden) {
+    let idx = 0;
+    for (let i = 1; i < n; i += 1) if (sumas[i]! < sumas[idx]!) idx = i;
+    filas[idx]!.push(item);
+    sumas[idx]! += getSize(item);
+  }
+  return filas;
+}

@@ -1,5 +1,6 @@
 import type { EntradasCalc, ResultadoCalc } from '../logic/calculos';
-import { leerFilas } from '../logic/calculos';
+import { leerFilas, num } from '../logic/calculos';
+import { distribuirEnCapas } from '../logic/calculos/canalizaciones-catalogo';
 import { fmtCantidad } from '../util/format';
 
 interface Props {
@@ -7,7 +8,7 @@ interface Props {
   resultado: ResultadoCalc;
 }
 
-/** Colores por grupo (calibre). El estilo del trazo se deriva del fill. */
+/** Colores por grupo (calibre). */
 const COLORES = [
   { fill: '#fbbf24', stroke: '#92400e' }, // ámbar
   { fill: '#4ade80', stroke: '#166534' }, // verde
@@ -29,9 +30,9 @@ interface Conductor {
 }
 
 /**
- * Corte transversal de una escalerilla portaconductores. Lee la lista de
- * grupos de la calculadora y dibuja los conductores con su diámetro real,
- * coloreados por grupo, tendidos en una sola capa sobre la base.
+ * Corte transversal de la escalerilla. Distribuye los conductores en las
+ * capas indicadas con el mismo bin-packing que la calculadora, y los dibuja
+ * apilados con su diámetro real, coloreados por grupo.
  */
 export function EscalerillaVista({ entradas, resultado }: Props) {
   const filas = leerFilas(entradas, 'grupos', ['conductor', 'diametro', 'cantidad']);
@@ -55,35 +56,47 @@ export function EscalerillaVista({ entradas, resultado }: Props) {
   if (ancho == null || ancho <= 0) return null;
 
   const supera = anchoSug == null;
-  const maxDia = Math.max(...conductores.map((c) => c.dia));
+  const capasPedidas = Math.max(1, Math.round(num(entradas, 'capas') || 1));
+  const capasUsadas = Math.min(capasPedidas, conductores.length);
 
-  // Geometría en mm (viewBox). El SVG escala vía CSS.
+  // Mismo bin-packing que la calculadora.
+  const capas = distribuirEnCapas(conductores, (c) => c.dia, capasUsadas);
+  const alturasCapa = capas.map((capa) => Math.max(...capa.map((c) => c.dia), 0));
+  const totalAltoConductores = alturasCapa.reduce((s, h) => s + h, 0);
+
+  // Geometría en mm (viewBox).
   const margin = 14;
   const railW = 4;
-  const railH = Math.max(maxDia * 1.5, 50);
+  const railH = Math.max(totalAltoConductores + 8, 50);
   const plateT = 4;
   const totalW = ancho + 2 * railW + 2 * margin;
-  const totalH = margin + railH + plateT + 14; // espacio inferior para la cota
+  const totalH = margin + railH + plateT + 14; // 14: cota inferior
 
   const interiorLeftX = margin + railW;
   const interiorRightX = margin + railW + ancho;
   const bottomTopY = margin + railH;
 
-  // Conductores centrados horizontalmente en el espacio interior.
-  const totalAnchoConductores = conductores.reduce((s, c) => s + c.dia, 0);
-  const offset = (ancho - totalAnchoConductores) / 2;
-  let cursor = interiorLeftX + offset;
-  const posiciones = conductores.map((c) => {
-    const cx = cursor + c.dia / 2;
-    cursor += c.dia;
-    return { ...c, cx, cy: bottomTopY - c.dia / 2 };
-  });
+  // Posicionar los conductores: capa 0 abajo (sobre la base), apilando hacia arriba.
+  type Pos = Conductor & { cx: number; cy: number };
+  const posiciones: Pos[] = [];
+  let yBase = bottomTopY;
+  for (let r = 0; r < capas.length; r += 1) {
+    const capa = capas[r]!;
+    const sumaCapa = capa.reduce((s, c) => s + c.dia, 0);
+    const offset = (ancho - sumaCapa) / 2;
+    let cursor = interiorLeftX + offset;
+    for (const c of capa) {
+      posiciones.push({ ...c, cx: cursor + c.dia / 2, cy: yBase - c.dia / 2 });
+      cursor += c.dia;
+    }
+    yBase -= alturasCapa[r]!;
+  }
 
   const trayColor = supera ? '#fecaca' : '#cbd5e1';
   const trayStroke = supera ? '#b91c1c' : '#64748b';
   const cotaY = bottomTopY + plateT + 5;
 
-  // Resumen por grupo para el caption superior.
+  // Leyenda por grupo.
   const resumenGrupos = filas
     .map((f, gi) => {
       const d = Number((f.diametro ?? '').replace(',', '.'));
@@ -97,7 +110,10 @@ export function EscalerillaVista({ entradas, resultado }: Props) {
   return (
     <div className="space-y-2">
       <div className="text-sm text-slate-700 dark:text-slate-200 flex flex-wrap items-center gap-x-3 gap-y-1">
-        <span>Corte transversal — escalerilla de <strong>{ancho.toFixed(0)} mm</strong>{supera ? ' (excede catálogo)' : ''}:</span>
+        <span>
+          Corte transversal — <strong>{capasUsadas}</strong> {capasUsadas === 1 ? 'capa' : 'capas'} en
+          escalerilla de <strong>{ancho.toFixed(0)} mm</strong>{supera ? ' (excede catálogo)' : ''}:
+        </span>
         {resumenGrupos.map((g, i) => (
           <span key={i} className="inline-flex items-center gap-1">
             <span

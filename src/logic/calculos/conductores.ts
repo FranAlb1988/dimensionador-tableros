@@ -5,7 +5,7 @@ import {
   autollenarArea, autollenarConductor, autollenarDiametro, opcionesConductor,
 } from './conductores-catalogo';
 import {
-  ANCHOS_ESCALERILLA, areaDuctoMaxima, porcentajeRelleno,
+  ANCHOS_ESCALERILLA, areaDuctoMaxima, distribuirEnCapas, porcentajeRelleno,
   sugerirAnchoEscalerilla, sugerirDucto, type TipoDucto,
 } from './canalizaciones-catalogo';
 import { factorDerrateoAltura, type NivelTension } from '../derrateo';
@@ -256,15 +256,19 @@ const tamanoDucto: Calculadora = {
   },
 };
 
-/** Ancho de escalerilla portaconductores por suma de diámetros, con múltiples calibres. */
+/** Ancho de escalerilla portaconductores, con múltiples calibres y capas. */
 const anchoEscalerilla: Calculadora = {
   id: 'ancho-escalerilla',
   grupo: 'conductores',
   nombre: 'Ancho de escalerilla portaconductores',
-  descripcion: 'Ancho de bandeja portacable para conductores tendidos en una sola capa, según la suma de diámetros exteriores (NEC 392). Admite grupos con calibres distintos (fases, neutro, tierra).',
+  descripcion: 'Ancho de bandeja portacable según la suma de diámetros exteriores por capa (NEC 392). Admite grupos con calibres distintos y apilamiento en una o más capas.',
   norma: 'RIC N°4 · NEC 392',
-  formula: 'Ancho requerido = Σ (n · diámetro exterior por calibre)',
+  formula: 'Ancho requerido = máx (Σ diámetros por capa)    capas ≥ 1',
   campos: [
+    {
+      key: 'capas', label: 'Capas', unidad: '', defecto: 1,
+      ayuda: 'Número de capas en que se apilan los conductores. NEC 392 permite más de una.',
+    },
     {
       key: 'grupos', label: 'Conductores en la escalerilla', tipo: 'lista',
       filasMin: 1, filasMax: 10, etiquetaFila: 'Calibre',
@@ -282,34 +286,41 @@ const anchoEscalerilla: Calculadora = {
   ],
   salidas: [
     { key: 'totalConductores', label: 'Total de conductores', unidad: '', decimales: 0 },
-    { key: 'anchoRequerido', label: 'Ancho requerido (suma de diámetros)', unidad: 'mm' },
+    { key: 'capasUsadas', label: 'Capas usadas', unidad: '', decimales: 0 },
+    { key: 'anchoRequerido', label: 'Ancho requerido (máx por capa)', unidad: 'mm' },
     { key: 'anchoSugerido', label: 'Escalerilla sugerida', unidad: 'mm', destacado: true, decimales: 0 },
   ],
   calcular: (e): ResultadoCalc => {
+    const capasPedidas = Math.max(1, Math.round(num(e, 'capas') || 1));
     const filas = leerFilas(e, 'grupos', ['diametro', 'cantidad']);
-    let anchoRequerido = 0;
+    const diametros: number[] = [];
     let totalConductores = 0;
     for (const f of filas) {
       const d = Number((f.diametro ?? '').replace(',', '.'));
       const n = Math.round(Number((f.cantidad ?? '').replace(',', '.')));
       if (Number.isFinite(d) && d > 0 && Number.isFinite(n) && n >= 1) {
-        anchoRequerido += d * n;
+        for (let i = 0; i < n; i += 1) diametros.push(d);
         totalConductores += n;
       }
     }
     if (totalConductores === 0) {
       return { valores: {}, error: 'Agrega al menos un grupo con diámetro y cantidad.' };
     }
+    const capasUsadas = Math.min(capasPedidas, totalConductores);
+    const distribuidos = distribuirEnCapas(diametros, (d) => d, capasUsadas);
+    const anchoRequerido = Math.max(...distribuidos.map((capa) => capa.reduce((s, d) => s + d, 0)));
     const anchoSugerido = sugerirAnchoEscalerilla(anchoRequerido);
     if (anchoSugerido == null) {
       return {
-        valores: { totalConductores, anchoRequerido },
-        nota: `El ancho requerido (${anchoRequerido.toFixed(0)} mm) supera la escalerilla más ancha del catálogo (${Math.max(...ANCHOS_ESCALERILLA)} mm). Usa varias escalerillas o conductores en más de una capa.`,
+        valores: { totalConductores, capasUsadas, anchoRequerido },
+        nota: `El ancho requerido (${anchoRequerido.toFixed(0)} mm) supera la escalerilla más ancha del catálogo (${Math.max(...ANCHOS_ESCALERILLA)} mm). Aumenta las capas o divide los conductores en varias escalerillas.`,
       };
     }
     return {
-      valores: { totalConductores, anchoRequerido, anchoSugerido },
-      nota: `${totalConductores} conductores tendidos en una sola capa (NEC 392).`,
+      valores: { totalConductores, capasUsadas, anchoRequerido, anchoSugerido },
+      nota: capasUsadas > 1
+        ? `${totalConductores} conductores distribuidos en ${capasUsadas} capas (NEC 392).`
+        : `${totalConductores} conductores en una sola capa (NEC 392).`,
     };
   },
   visualizacion: 'escalerilla',
