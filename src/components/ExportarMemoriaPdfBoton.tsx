@@ -81,8 +81,25 @@ export function ExportarMemoriaPdfBoton({ calculadora, entradas, resultado }: Pr
 
       seccion('Datos de entrada');
       for (const campo of calculadora.campos) {
-        const u = campo.unidad ? ` (${campo.unidad})` : '';
-        fila(`${campo.label}${u}`, textoEntrada(campo, entradas));
+        if (campo.tipo === 'lista' && campo.filaCampos) {
+          fila(campo.label, '');
+          const count = Math.max(0, Math.round(Number(entradas[`${campo.key}.count`] ?? '0')));
+          for (let i = 0; i < count; i += 1) {
+            const partes: string[] = [];
+            for (const sc of campo.filaCampos) {
+              const v = entradas[`${campo.key}.${i}.${sc.key}`] ?? '';
+              const display = sc.tipo === 'select'
+                ? (sc.opciones?.find((o) => o.value === v)?.label ?? v)
+                : v;
+              const u = sc.unidad ? ` ${sc.unidad}` : '';
+              if (display.trim() !== '') partes.push(`${sc.label}: ${display}${u}`);
+            }
+            fila(`  ${i + 1}.`, partes.join(' · '));
+          }
+        } else {
+          const u = campo.unidad ? ` (${campo.unidad})` : '';
+          fila(`${campo.label}${u}`, textoEntrada(campo, entradas));
+        }
       }
 
       seccion('Fórmula aplicada');

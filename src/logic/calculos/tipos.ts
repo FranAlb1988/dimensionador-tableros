@@ -20,7 +20,7 @@ export interface CampoCalc {
   key: string;
   label: string;
   unidad?: string;
-  tipo?: 'number' | 'select';
+  tipo?: 'number' | 'select' | 'lista';
   opciones?: readonly OpcionCampo[];
   /** Valor por defecto al abrir la calculadora. */
   defecto?: number | string;
@@ -30,9 +30,20 @@ export interface CampoCalc {
   opcional?: boolean;
   /**
    * Si está definido, al cambiar este campo se autocompletan otros campos.
-   * Devuelve un mapa de clave→valor a fusionar en las entradas.
+   * En un subcampo de lista, las claves devueltas son subclaves (la fila las
+   * prefijará automáticamente).
    */
   autollenar?: (valor: string) => Record<string, string>;
+
+  // ----- Solo para tipo='lista' -----
+  /** Descripción de cada columna de la fila. */
+  filaCampos?: readonly CampoCalc[];
+  /** Filas mínimas (por defecto 1). */
+  filasMin?: number;
+  /** Filas máximas (por defecto 10). */
+  filasMax?: number;
+  /** Texto del botón "+ X" para agregar fila. Por defecto "Fila". */
+  etiquetaFila?: string;
 }
 
 export interface SalidaCalc {
@@ -92,4 +103,26 @@ export function num(e: EntradasCalc, key: string): number {
 /** Indica si todas las claves dadas tienen un número finito. */
 export function todasPresentes(e: EntradasCalc, keys: readonly string[]): boolean {
   return keys.every((k) => Number.isFinite(num(e, k)));
+}
+
+/** Una fila de un campo `lista`: un mapa de subclave → valor crudo. */
+export type FilaLista = Record<string, string>;
+
+/**
+ * Lee las filas de un campo `lista` desde las entradas. Las filas se guardan
+ * con claves compuestas: `${listaKey}.count` y `${listaKey}.${i}.${subkey}`.
+ */
+export function leerFilas(
+  e: EntradasCalc,
+  listaKey: string,
+  subkeys: readonly string[],
+): FilaLista[] {
+  const count = Math.max(0, Math.round(num(e, `${listaKey}.count`)));
+  const filas: FilaLista[] = [];
+  for (let i = 0; i < count; i += 1) {
+    const fila: FilaLista = {};
+    for (const sk of subkeys) fila[sk] = e[`${listaKey}.${i}.${sk}`] ?? '';
+    filas.push(fila);
+  }
+  return filas;
 }

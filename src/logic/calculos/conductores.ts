@@ -1,6 +1,6 @@
 // Calculadoras del grupo "Conductores": caída de tensión y corriente de diseño.
 import type { Calculadora, EntradasCalc, ResultadoCalc } from './tipos';
-import { num } from './tipos';
+import { leerFilas, num } from './tipos';
 import {
   autollenarArea, autollenarConductor, autollenarDiametro, opcionesConductor,
 } from './conductores-catalogo';
@@ -183,14 +183,14 @@ const corrienteDiseno: Calculadora = {
   },
 };
 
-/** Tamaño de ducto (conduit) por porcentaje de relleno. */
+/** Tamaño de ducto (conduit) por porcentaje de relleno, con múltiples calibres. */
 const tamanoDucto: Calculadora = {
   id: 'tamano-ducto',
   grupo: 'conductores',
   nombre: 'Tamaño de ducto (conduit)',
-  descripcion: 'Diámetro mínimo de tubería metálica (EMT) o PVC por porcentaje de relleno. Límites NEC Cap. 9, Tabla 1: 53% (1 conductor), 31% (2), 40% (3 o más).',
+  descripcion: 'Diámetro mínimo de tubería metálica (EMT) o PVC por porcentaje de relleno. Límites NEC Cap. 9, Tabla 1: 53% (1 conductor), 31% (2), 40% (3 o más). Admite grupos con calibres distintos (fases, neutro, tierra).',
   norma: 'RIC N°4 · NEC Cap. 9',
-  formula: 'Área conductores = n · área unitaria    Área interna mínima = Área conductores / %relleno',
+  formula: 'Área total = Σ (n · área por calibre)    Área interna mínima = Área total / %relleno',
   campos: [
     {
       key: 'tipo', label: 'Tipo de ducto', tipo: 'select', defecto: 'metalico',
@@ -200,14 +200,22 @@ const tamanoDucto: Calculadora = {
       ],
     },
     {
-      key: 'conductor', label: 'Conductor', tipo: 'select', defecto: '',
-      opciones: opcionesConductor(), autollenar: autollenarArea('area'),
-      ayuda: 'Autocompleta el área del conductor con aislación. Queda editable.',
+      key: 'grupos', label: 'Conductores en el ducto', tipo: 'lista',
+      filasMin: 1, filasMax: 10, etiquetaFila: 'Calibre',
+      ayuda: 'Un grupo por cada calibre distinto que va dentro del ducto.',
+      filaCampos: [
+        {
+          key: 'conductor', label: 'Conductor', tipo: 'select', defecto: '',
+          opciones: opcionesConductor(), autollenar: autollenarArea('area'),
+          ayuda: 'Autocompleta el área con aislación. Editable.',
+        },
+        { key: 'area', label: 'Área', unidad: 'mm²' },
+        { key: 'cantidad', label: 'Cantidad', unidad: '', defecto: 3 },
+      ],
     },
-    { key: 'area', label: 'Área del conductor (con aislación)', unidad: 'mm²' },
-    { key: 'cantidad', label: 'Cantidad de conductores', unidad: '', defecto: 3 },
   ],
   salidas: [
+    { key: 'totalConductores', label: 'Total de conductores', unidad: '', decimales: 0 },
     { key: 'areaTotal', label: 'Área total de conductores', unidad: 'mm²' },
     { key: 'relleno', label: 'Relleno admisible', unidad: '%', decimales: 0 },
     { key: 'areaRequerida', label: 'Área interna mínima del ducto', unidad: 'mm²' },
@@ -215,77 +223,93 @@ const tamanoDucto: Calculadora = {
     { key: 'rellenoReal', label: 'Relleno real del ducto', unidad: '%', decimales: 1 },
   ],
   calcular: (e): ResultadoCalc => {
-    const area = num(e, 'area');
-    const cantidad = num(e, 'cantidad');
     const tipo: TipoDucto = (e['tipo'] ?? 'metalico') === 'pvc' ? 'pvc' : 'metalico';
-    if (![area, cantidad].every(Number.isFinite)) {
-      return { valores: {}, error: 'Completa el área del conductor y la cantidad.' };
+    const filas = leerFilas(e, 'grupos', ['area', 'cantidad']);
+    let areaTotal = 0;
+    let totalConductores = 0;
+    for (const f of filas) {
+      const a = Number((f.area ?? '').replace(',', '.'));
+      const n = Math.round(Number((f.cantidad ?? '').replace(',', '.')));
+      if (Number.isFinite(a) && a > 0 && Number.isFinite(n) && n >= 1) {
+        areaTotal += a * n;
+        totalConductores += n;
+      }
     }
-    if (area <= 0 || cantidad < 1) {
-      return { valores: {}, error: 'El área debe ser mayor que cero y la cantidad ≥ 1.' };
+    if (totalConductores === 0) {
+      return { valores: {}, error: 'Agrega al menos un grupo con área y cantidad.' };
     }
-    const n = Math.round(cantidad);
-    const areaTotal = area * n;
-    const relleno = porcentajeRelleno(n);
+    const relleno = porcentajeRelleno(totalConductores);
     const areaRequerida = areaTotal / relleno;
     const ducto = sugerirDucto(tipo, areaRequerida);
     if (!ducto) {
       return {
-        valores: { areaTotal, relleno: relleno * 100, areaRequerida },
+        valores: { totalConductores, areaTotal, relleno: relleno * 100, areaRequerida },
         textos: { ducto: 'Supera el catálogo (4″)' },
         nota: `El área interna requerida (${areaRequerida.toFixed(0)} mm²) supera el ducto de 4″ (${areaDuctoMaxima(tipo).toFixed(0)} mm²). Divide los conductores en varios ductos.`,
       };
     }
     const rellenoReal = (areaTotal / ducto.areaInternaMm2) * 100;
     return {
-      valores: { areaTotal, relleno: relleno * 100, areaRequerida, rellenoReal },
+      valores: { totalConductores, areaTotal, relleno: relleno * 100, areaRequerida, rellenoReal },
       textos: { ducto: `${ducto.nombre} ${tipo === 'pvc' ? 'PVC' : 'EMT'}` },
     };
   },
 };
 
-/** Ancho de escalerilla portaconductores por suma de diámetros. */
+/** Ancho de escalerilla portaconductores por suma de diámetros, con múltiples calibres. */
 const anchoEscalerilla: Calculadora = {
   id: 'ancho-escalerilla',
   grupo: 'conductores',
   nombre: 'Ancho de escalerilla portaconductores',
-  descripcion: 'Ancho de bandeja portacable para conductores tendidos en una sola capa, según la suma de diámetros exteriores (NEC 392).',
+  descripcion: 'Ancho de bandeja portacable para conductores tendidos en una sola capa, según la suma de diámetros exteriores (NEC 392). Admite grupos con calibres distintos (fases, neutro, tierra).',
   norma: 'RIC N°4 · NEC 392',
-  formula: 'Ancho requerido = n · diámetro exterior del conductor',
+  formula: 'Ancho requerido = Σ (n · diámetro exterior por calibre)',
   campos: [
     {
-      key: 'conductor', label: 'Conductor', tipo: 'select', defecto: '',
-      opciones: opcionesConductor(), autollenar: autollenarDiametro('diametro'),
-      ayuda: 'Autocompleta el diámetro exterior del conductor. Queda editable.',
+      key: 'grupos', label: 'Conductores en la escalerilla', tipo: 'lista',
+      filasMin: 1, filasMax: 10, etiquetaFila: 'Calibre',
+      ayuda: 'Un grupo por cada calibre distinto en la escalerilla.',
+      filaCampos: [
+        {
+          key: 'conductor', label: 'Conductor', tipo: 'select', defecto: '',
+          opciones: opcionesConductor(), autollenar: autollenarDiametro('diametro'),
+          ayuda: 'Autocompleta el diámetro exterior. Editable.',
+        },
+        { key: 'diametro', label: 'Diámetro', unidad: 'mm' },
+        { key: 'cantidad', label: 'Cantidad', unidad: '', defecto: 3 },
+      ],
     },
-    { key: 'diametro', label: 'Diámetro exterior del conductor', unidad: 'mm' },
-    { key: 'cantidad', label: 'Cantidad de conductores', unidad: '', defecto: 3 },
   ],
   salidas: [
+    { key: 'totalConductores', label: 'Total de conductores', unidad: '', decimales: 0 },
     { key: 'anchoRequerido', label: 'Ancho requerido (suma de diámetros)', unidad: 'mm' },
     { key: 'anchoSugerido', label: 'Escalerilla sugerida', unidad: 'mm', destacado: true, decimales: 0 },
   ],
   calcular: (e): ResultadoCalc => {
-    const diametro = num(e, 'diametro');
-    const cantidad = num(e, 'cantidad');
-    if (![diametro, cantidad].every(Number.isFinite)) {
-      return { valores: {}, error: 'Completa el diámetro del conductor y la cantidad.' };
+    const filas = leerFilas(e, 'grupos', ['diametro', 'cantidad']);
+    let anchoRequerido = 0;
+    let totalConductores = 0;
+    for (const f of filas) {
+      const d = Number((f.diametro ?? '').replace(',', '.'));
+      const n = Math.round(Number((f.cantidad ?? '').replace(',', '.')));
+      if (Number.isFinite(d) && d > 0 && Number.isFinite(n) && n >= 1) {
+        anchoRequerido += d * n;
+        totalConductores += n;
+      }
     }
-    if (diametro <= 0 || cantidad < 1) {
-      return { valores: {}, error: 'El diámetro debe ser mayor que cero y la cantidad ≥ 1.' };
+    if (totalConductores === 0) {
+      return { valores: {}, error: 'Agrega al menos un grupo con diámetro y cantidad.' };
     }
-    const n = Math.round(cantidad);
-    const anchoRequerido = diametro * n;
     const anchoSugerido = sugerirAnchoEscalerilla(anchoRequerido);
     if (anchoSugerido == null) {
       return {
-        valores: { anchoRequerido },
+        valores: { totalConductores, anchoRequerido },
         nota: `El ancho requerido (${anchoRequerido.toFixed(0)} mm) supera la escalerilla más ancha del catálogo (${Math.max(...ANCHOS_ESCALERILLA)} mm). Usa varias escalerillas o conductores en más de una capa.`,
       };
     }
     return {
-      valores: { anchoRequerido, anchoSugerido },
-      nota: 'Estimación para conductores tendidos en una sola capa, uno junto a otro (NEC 392).',
+      valores: { totalConductores, anchoRequerido, anchoSugerido },
+      nota: `${totalConductores} conductores tendidos en una sola capa (NEC 392).`,
     };
   },
   visualizacion: 'escalerilla',

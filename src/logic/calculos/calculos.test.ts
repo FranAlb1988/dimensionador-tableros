@@ -150,29 +150,77 @@ describe('Catálogo de conductores', () => {
 describe('Tamaño de ducto (conduit)', () => {
   it('3 conductores → relleno 40% y elige el ducto EMT que cubre', () => {
     // 3 × 4/0 AWG (208,8 mm²) → área total 626,4 → área req 1566 mm² → 2″ EMT.
-    const r = calc('tamano-ducto').calcular({ tipo: 'metalico', area: '208.8', cantidad: '3' });
+    const r = calc('tamano-ducto').calcular({
+      tipo: 'metalico',
+      'grupos.count': '1',
+      'grupos.0.area': '208.8', 'grupos.0.cantidad': '3',
+    });
+    expect(r.valores.totalConductores).toBe(3);
     expect(r.valores.areaTotal).toBeCloseTo(626.4, 1);
     expect(r.valores.relleno).toBe(40);
     expect(r.textos?.ducto).toBe('2″ EMT');
     expect(r.valores.rellenoReal).toBeLessThanOrEqual(40);
   });
   it('un solo conductor usa el 53%', () => {
-    const r = calc('tamano-ducto').calcular({ tipo: 'pvc', area: '100', cantidad: '1' });
+    const r = calc('tamano-ducto').calcular({
+      tipo: 'pvc',
+      'grupos.count': '1',
+      'grupos.0.area': '100', 'grupos.0.cantidad': '1',
+    });
     expect(r.valores.relleno).toBe(53);
     expect(r.textos?.ducto).toMatch(/PVC/);
   });
+  it('múltiples calibres: suma áreas y cuenta total de conductores', () => {
+    // 3 × 4/0 AWG (208,8) + 1 × #4 AWG (53,16) = 626,4 + 53,16 = 679,56 mm²
+    // total 4 conductores → relleno 40%; área req 1698,9 → 2″ EMT (2165 mm²).
+    const r = calc('tamano-ducto').calcular({
+      tipo: 'metalico',
+      'grupos.count': '2',
+      'grupos.0.area': '208.8', 'grupos.0.cantidad': '3',
+      'grupos.1.area': '53.16', 'grupos.1.cantidad': '1',
+    });
+    expect(r.valores.totalConductores).toBe(4);
+    expect(r.valores.areaTotal).toBeCloseTo(679.56, 1);
+    expect(r.valores.relleno).toBe(40);
+    expect(r.textos?.ducto).toBe('2″ EMT');
+  });
   it('marca cuando supera el ducto más grande', () => {
-    const r = calc('tamano-ducto').calcular({ tipo: 'metalico', area: '5000', cantidad: '10' });
+    const r = calc('tamano-ducto').calcular({
+      tipo: 'metalico',
+      'grupos.count': '1',
+      'grupos.0.area': '5000', 'grupos.0.cantidad': '10',
+    });
     expect(r.textos?.ducto).toMatch(/Supera/);
     expect(r.nota).toMatch(/varios ductos/);
+  });
+  it('sin grupos válidos devuelve error', () => {
+    const r = calc('tamano-ducto').calcular({ tipo: 'metalico', 'grupos.count': '0' });
+    expect(r.error).toMatch(/al menos un grupo/);
   });
 });
 
 describe('Ancho de escalerilla portaconductores', () => {
-  it('ancho requerido = n · diámetro, elige el ancho normalizado', () => {
+  it('un solo calibre: ancho requerido = n · diámetro', () => {
     // 6 × 500 MCM (23,44 mm) → 140,6 mm → escalerilla 150 mm.
-    const r = calc('ancho-escalerilla').calcular({ diametro: '23.44', cantidad: '6' });
+    const r = calc('ancho-escalerilla').calcular({
+      'grupos.count': '1',
+      'grupos.0.diametro': '23.44', 'grupos.0.cantidad': '6',
+    });
+    expect(r.valores.totalConductores).toBe(6);
     expect(r.valores.anchoRequerido).toBeCloseTo(140.64, 1);
     expect(r.valores.anchoSugerido).toBe(150);
+  });
+  it('múltiples calibres: suma diámetros de todos los grupos', () => {
+    // 3 × 500 MCM (23,44) + 1 × 4/0 AWG (16,31) + 1 × #4 AWG (8,23)
+    // = 70,32 + 16,31 + 8,23 = 94,86 mm → escalerilla 100 mm.
+    const r = calc('ancho-escalerilla').calcular({
+      'grupos.count': '3',
+      'grupos.0.diametro': '23.44', 'grupos.0.cantidad': '3',
+      'grupos.1.diametro': '16.31', 'grupos.1.cantidad': '1',
+      'grupos.2.diametro': '8.23',  'grupos.2.cantidad': '1',
+    });
+    expect(r.valores.totalConductores).toBe(5);
+    expect(r.valores.anchoRequerido).toBeCloseTo(94.86, 1);
+    expect(r.valores.anchoSugerido).toBe(100);
   });
 });
