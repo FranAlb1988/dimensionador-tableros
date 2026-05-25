@@ -288,6 +288,7 @@ const anchoEscalerilla: Calculadora = {
       nota: 'Estimación para conductores tendidos en una sola capa, uno junto a otro (NEC 392).',
     };
   },
+  visualizacion: 'escalerilla',
 };
 
 export const CALCULADORAS_CONDUCTORES: readonly Calculadora[] = [

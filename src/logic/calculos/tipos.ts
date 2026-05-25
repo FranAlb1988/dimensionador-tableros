@@ -73,6 +73,12 @@ export interface Calculadora {
   campos: readonly CampoCalc[];
   salidas: readonly SalidaCalc[];
   calcular: (e: EntradasCalc) => ResultadoCalc;
+  /**
+   * Identificador opcional de una visualización gráfica. El panel mapea el
+   * identificador a un componente React (ver visualizaciones en
+   * CalculadoraPanel.tsx).
+   */
+  visualizacion?: string;
 }
 
 /** Parsea un campo numérico de las entradas. Devuelve NaN si está vacío o es inválido. */

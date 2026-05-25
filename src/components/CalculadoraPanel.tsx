@@ -1,7 +1,13 @@
-import { useState } from 'react';
-import type { Calculadora, EntradasCalc } from '../logic/calculos';
+import { useState, type ComponentType } from 'react';
+import type { Calculadora, EntradasCalc, ResultadoCalc } from '../logic/calculos';
 import { fmtCantidad } from '../util/format';
 import { ExportarMemoriaPdfBoton } from './ExportarMemoriaPdfBoton';
+import { EscalerillaVista } from './EscalerillaVista';
+
+/** Registro de visualizaciones por identificador. */
+const VISUALIZACIONES: Record<string, ComponentType<{ entradas: EntradasCalc; resultado: ResultadoCalc }>> = {
+  escalerilla: EscalerillaVista,
+};
 
 const inputCls =
   'w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded ' +
@@ -18,6 +24,7 @@ function entradasIniciales(calc: Calculadora): EntradasCalc {
 export function CalculadoraPanel({ calculadora }: { calculadora: Calculadora }) {
   const [entradas, setEntradas] = useState<EntradasCalc>(() => entradasIniciales(calculadora));
   const resultado = calculadora.calcular(entradas);
+  const Vista = calculadora.visualizacion ? VISUALIZACIONES[calculadora.visualizacion] : undefined;
 
   const set = (key: string, valor: string) => {
     const campo = calculadora.campos.find((c) => c.key === key);
@@ -141,6 +148,15 @@ export function CalculadoraPanel({ calculadora }: { calculadora: Calculadora }) 
           )}
         </div>
       </div>
+
+      {Vista && !resultado.error && (
+        <div className="border-t border-slate-200 dark:border-slate-800 p-4">
+          <div className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">
+            Visualización
+          </div>
+          <Vista entradas={entradas} resultado={resultado} />
+        </div>
+      )}
     </div>
   );
 }
