@@ -259,4 +259,19 @@ describe('Ancho de escalerilla portaconductores', () => {
     expect(r.valores.capasUsadas).toBe(3);
     expect(r.valores.anchoRequerido).toBeCloseTo(23.44, 2);
   });
+  it('reporta el % de ocupación = ancho requerido / ancho sugerido', () => {
+    // 6 × 500 MCM, 1 capa → 140,64 / 150 = 93,76%.
+    const r1 = calc('ancho-escalerilla').calcular({
+      'grupos.count': '1',
+      'grupos.0.diametro': '23.44', 'grupos.0.cantidad': '6',
+    });
+    expect(r1.valores.ocupacion).toBeCloseTo(93.76, 1);
+    // 6 × 500 MCM, 2 capas → 70,32 / 100 = 70,32%.
+    const r2 = calc('ancho-escalerilla').calcular({
+      capas: '2',
+      'grupos.count': '1',
+      'grupos.0.diametro': '23.44', 'grupos.0.cantidad': '6',
+    });
+    expect(r2.valores.ocupacion).toBeCloseTo(70.32, 1);
+  });
 });

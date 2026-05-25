@@ -289,6 +289,7 @@ const anchoEscalerilla: Calculadora = {
     { key: 'capasUsadas', label: 'Capas usadas', unidad: '', decimales: 0 },
     { key: 'anchoRequerido', label: 'Ancho requerido (máx por capa)', unidad: 'mm' },
     { key: 'anchoSugerido', label: 'Escalerilla sugerida', unidad: 'mm', destacado: true, decimales: 0 },
+    { key: 'ocupacion', label: 'Ocupación del ancho', unidad: '%', decimales: 1 },
   ],
   calcular: (e): ResultadoCalc => {
     const capasPedidas = Math.max(1, Math.round(num(e, 'capas') || 1));
@@ -316,8 +317,9 @@ const anchoEscalerilla: Calculadora = {
         nota: `El ancho requerido (${anchoRequerido.toFixed(0)} mm) supera la escalerilla más ancha del catálogo (${Math.max(...ANCHOS_ESCALERILLA)} mm). Aumenta las capas o divide los conductores en varias escalerillas.`,
       };
     }
+    const ocupacion = (anchoRequerido / anchoSugerido) * 100;
     return {
-      valores: { totalConductores, capasUsadas, anchoRequerido, anchoSugerido },
+      valores: { totalConductores, capasUsadas, anchoRequerido, anchoSugerido, ocupacion },
       nota: capasUsadas > 1
         ? `${totalConductores} conductores distribuidos en ${capasUsadas} capas (NEC 392).`
         : `${totalConductores} conductores en una sola capa (NEC 392).`,

@@ -52,6 +52,7 @@ export function EscalerillaVista({ entradas, resultado }: Props) {
 
   const anchoReq = resultado.valores.anchoRequerido;
   const anchoSug = resultado.valores.anchoSugerido;
+  const ocupacion = resultado.valores.ocupacion;
   const ancho = anchoSug ?? anchoReq;
   if (ancho == null || ancho <= 0) return null;
 
@@ -112,7 +113,9 @@ export function EscalerillaVista({ entradas, resultado }: Props) {
       <div className="text-sm text-slate-700 dark:text-slate-200 flex flex-wrap items-center gap-x-3 gap-y-1">
         <span>
           Corte transversal — <strong>{capasUsadas}</strong> {capasUsadas === 1 ? 'capa' : 'capas'} en
-          escalerilla de <strong>{ancho.toFixed(0)} mm</strong>{supera ? ' (excede catálogo)' : ''}:
+          escalerilla de <strong>{ancho.toFixed(0)} mm</strong>
+          {ocupacion != null ? <> (<strong>{fmtCantidad(ocupacion, 1)}%</strong> ocupada)</> : null}
+          {supera ? ' (excede catálogo)' : ''}:
         </span>
         {resumenGrupos.map((g, i) => (
           <span key={i} className="inline-flex items-center gap-1">
