@@ -259,19 +259,29 @@ describe('Ancho de escalerilla portaconductores', () => {
     expect(r.valores.capasUsadas).toBe(3);
     expect(r.valores.anchoRequerido).toBeCloseTo(23.44, 2);
   });
-  it('reporta el % de ocupación = ancho requerido / ancho sugerido', () => {
-    // 6 × 500 MCM, 1 capa → 140,64 / 150 = 93,76%.
-    const r1 = calc('ancho-escalerilla').calcular({
+  it('reporta el área de conductores y la ocupación NEC 392', () => {
+    // 6 × ⌀23,44: área cada uno = π·23,44²/4 ≈ 431,5; total ≈ 2589 mm².
+    // 1 capa → ancho req 140,64 → escalerilla 150 (área admisible 4200) → 61,6%.
+    const r = calc('ancho-escalerilla').calcular({
       'grupos.count': '1',
       'grupos.0.diametro': '23.44', 'grupos.0.cantidad': '6',
     });
-    expect(r1.valores.ocupacion).toBeCloseTo(93.76, 1);
-    // 6 × 500 MCM, 2 capas → 70,32 / 100 = 70,32%.
-    const r2 = calc('ancho-escalerilla').calcular({
-      capas: '2',
+    expect(r.valores.areaConductores).toBeCloseTo(2589, -1);
+    expect(r.valores.areaPermitida).toBe(4200);
+    expect(r.valores.ocupacionNec).toBeCloseTo(61.6, 0);
+  });
+  it('el criterio de área obliga a una escalerilla mayor cuando aplica', () => {
+    // 10 × ⌀28,88 (área ≈ 655 cada uno) en 4 capas:
+    //   ancho geométrico req ≈ 86,6 mm (cabría en 100 mm),
+    //   pero área total ≈ 6551 > 5600 (200 mm) → fuerza al ancho 300 (área 8400).
+    const r = calc('ancho-escalerilla').calcular({
+      capas: '4',
       'grupos.count': '1',
-      'grupos.0.diametro': '23.44', 'grupos.0.cantidad': '6',
+      'grupos.0.diametro': '28.88', 'grupos.0.cantidad': '10',
     });
-    expect(r2.valores.ocupacion).toBeCloseTo(70.32, 1);
+    expect(r.valores.areaConductores).toBeCloseTo(6551, -1);
+    expect(r.valores.anchoSugerido).toBe(300);
+    expect(r.valores.areaPermitida).toBe(8400);
+    expect(r.valores.ocupacionNec).toBeCloseTo(78, 0);
   });
 });

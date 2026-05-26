@@ -52,7 +52,7 @@ export function EscalerillaVista({ entradas, resultado }: Props) {
 
   const anchoReq = resultado.valores.anchoRequerido;
   const anchoSug = resultado.valores.anchoSugerido;
-  const ocupacion = resultado.valores.ocupacion;
+  const ocupacionNec = resultado.valores.ocupacionNec;
   const ancho = anchoSug ?? anchoReq;
   if (ancho == null || ancho <= 0) return null;
 
@@ -114,7 +114,7 @@ export function EscalerillaVista({ entradas, resultado }: Props) {
         <span>
           Corte transversal — <strong>{capasUsadas}</strong> {capasUsadas === 1 ? 'capa' : 'capas'} en
           escalerilla de <strong>{ancho.toFixed(0)} mm</strong>
-          {ocupacion != null ? <> (<strong>{fmtCantidad(ocupacion, 1)}%</strong> ocupada)</> : null}
+          {ocupacionNec != null ? <> · <strong>{fmtCantidad(ocupacionNec, 1)}%</strong> del área admisible (NEC 392)</> : null}
           {supera ? ' (excede catálogo)' : ''}:
         </span>
         {resumenGrupos.map((g, i) => (

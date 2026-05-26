@@ -43,6 +43,27 @@ export const CATALOGO_DUCTOS: readonly DuctoCatalogo[] = [
 export const ANCHOS_ESCALERILLA: readonly number[] = [100, 150, 200, 300, 450, 600, 750, 900];
 
 /**
+ * Área máxima admisible de cables en la escalerilla, según NEC 392.22(A),
+ * Tabla 1, Columna 1 — multicable en bandeja ventilada. Indexada por ancho (mm).
+ * El cumplimiento normativo exige Σ áreas de conductores ≤ área permitida.
+ */
+export const AREA_PERMITIDA_ESCALERILLA: Readonly<Record<number, number>> = {
+  100: 2800,
+  150: 4200,
+  200: 5600,
+  300: 8400,
+  450: 12600,
+  600: 16800,
+  750: 21000,
+  900: 25200,
+};
+
+/** Área admisible (mm²) para el ancho normalizado dado, o 0 si no se conoce. */
+export function areaPermitidaEscalerilla(anchoMm: number): number {
+  return AREA_PERMITIDA_ESCALERILLA[anchoMm] ?? 0;
+}
+
+/**
  * Porcentaje de relleno admisible de un ducto según NEC Cap. 9, Tabla 1:
  * 1 conductor 53%, 2 conductores 31%, 3 o más 40%.
  */
@@ -65,9 +86,23 @@ export function areaDuctoMaxima(tipo: TipoDucto): number {
   return Math.max(...CATALOGO_DUCTOS.filter((d) => d.tipo === tipo).map((d) => d.areaInternaMm2));
 }
 
-/** Ancho normalizado de escalerilla que cubre el ancho requerido. */
-export function sugerirAnchoEscalerilla(anchoRequeridoMm: number): number | undefined {
-  return [...ANCHOS_ESCALERILLA].sort((a, b) => a - b).find((w) => w >= anchoRequeridoMm);
+/**
+ * Ancho normalizado mínimo de escalerilla que cumple ambos criterios:
+ * (a) ancho geométrico ≥ suma de diámetros por capa,
+ * (b) área permitida (NEC 392.22) ≥ área total de los conductores
+ *     (cuando `areaConductoresMm2 > 0`).
+ */
+export function sugerirAnchoEscalerilla(
+  anchoRequeridoMm: number,
+  areaConductoresMm2 = 0,
+): number | undefined {
+  return [...ANCHOS_ESCALERILLA]
+    .sort((a, b) => a - b)
+    .find((w) => {
+      if (w < anchoRequeridoMm) return false;
+      if (areaConductoresMm2 > 0 && areaConductoresMm2 > areaPermitidaEscalerilla(w)) return false;
+      return true;
+    });
 }
 
 /**

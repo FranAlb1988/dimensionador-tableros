@@ -5,8 +5,8 @@ import {
   autollenarArea, autollenarConductor, autollenarDiametro, opcionesConductor,
 } from './conductores-catalogo';
 import {
-  ANCHOS_ESCALERILLA, areaDuctoMaxima, distribuirEnCapas, porcentajeRelleno,
-  sugerirAnchoEscalerilla, sugerirDucto, type TipoDucto,
+  areaDuctoMaxima, areaPermitidaEscalerilla, distribuirEnCapas,
+  porcentajeRelleno, sugerirAnchoEscalerilla, sugerirDucto, type TipoDucto,
 } from './canalizaciones-catalogo';
 import { factorDerrateoAltura, type NivelTension } from '../derrateo';
 
@@ -287,21 +287,25 @@ const anchoEscalerilla: Calculadora = {
   salidas: [
     { key: 'totalConductores', label: 'Total de conductores', unidad: '', decimales: 0 },
     { key: 'capasUsadas', label: 'Capas usadas', unidad: '', decimales: 0 },
-    { key: 'anchoRequerido', label: 'Ancho requerido (máx por capa)', unidad: 'mm' },
+    { key: 'anchoRequerido', label: 'Ancho geométrico requerido (máx por capa)', unidad: 'mm' },
+    { key: 'areaConductores', label: 'Área de los conductores', unidad: 'mm²' },
+    { key: 'areaPermitida', label: 'Área admisible NEC 392.22(A)', unidad: 'mm²' },
     { key: 'anchoSugerido', label: 'Escalerilla sugerida', unidad: 'mm', destacado: true, decimales: 0 },
-    { key: 'ocupacion', label: 'Ocupación del ancho', unidad: '%', decimales: 1 },
+    { key: 'ocupacionNec', label: 'Ocupación del área (NEC 392)', unidad: '%', decimales: 1 },
   ],
   calcular: (e): ResultadoCalc => {
     const capasPedidas = Math.max(1, Math.round(num(e, 'capas') || 1));
     const filas = leerFilas(e, 'grupos', ['diametro', 'cantidad']);
     const diametros: number[] = [];
     let totalConductores = 0;
+    let areaConductores = 0;
     for (const f of filas) {
       const d = Number((f.diametro ?? '').replace(',', '.'));
       const n = Math.round(Number((f.cantidad ?? '').replace(',', '.')));
       if (Number.isFinite(d) && d > 0 && Number.isFinite(n) && n >= 1) {
         for (let i = 0; i < n; i += 1) diametros.push(d);
         totalConductores += n;
+        areaConductores += n * (Math.PI * d * d) / 4;
       }
     }
     if (totalConductores === 0) {
@@ -310,19 +314,24 @@ const anchoEscalerilla: Calculadora = {
     const capasUsadas = Math.min(capasPedidas, totalConductores);
     const distribuidos = distribuirEnCapas(diametros, (d) => d, capasUsadas);
     const anchoRequerido = Math.max(...distribuidos.map((capa) => capa.reduce((s, d) => s + d, 0)));
-    const anchoSugerido = sugerirAnchoEscalerilla(anchoRequerido);
+    const anchoSugerido = sugerirAnchoEscalerilla(anchoRequerido, areaConductores);
     if (anchoSugerido == null) {
       return {
-        valores: { totalConductores, capasUsadas, anchoRequerido },
-        nota: `El ancho requerido (${anchoRequerido.toFixed(0)} mm) supera la escalerilla más ancha del catálogo (${Math.max(...ANCHOS_ESCALERILLA)} mm). Aumenta las capas o divide los conductores en varias escalerillas.`,
+        valores: { totalConductores, capasUsadas, anchoRequerido, areaConductores },
+        nota: `Ningún ancho del catálogo cumple los dos criterios NEC 392: ancho ≥ ${anchoRequerido.toFixed(0)} mm y área admisible ≥ ${areaConductores.toFixed(0)} mm². Divide los conductores en varias escalerillas.`,
       };
     }
-    const ocupacion = (anchoRequerido / anchoSugerido) * 100;
+    const areaPermitida = areaPermitidaEscalerilla(anchoSugerido);
+    const ocupacionNec = (areaConductores / areaPermitida) * 100;
     return {
-      valores: { totalConductores, capasUsadas, anchoRequerido, anchoSugerido, ocupacion },
+      valores: {
+        totalConductores, capasUsadas,
+        anchoRequerido, areaConductores, areaPermitida,
+        anchoSugerido, ocupacionNec,
+      },
       nota: capasUsadas > 1
-        ? `${totalConductores} conductores distribuidos en ${capasUsadas} capas (NEC 392).`
-        : `${totalConductores} conductores en una sola capa (NEC 392).`,
+        ? `${totalConductores} conductores distribuidos en ${capasUsadas} capas. Criterio normativo: NEC 392.22(A) Tabla 1, bandeja ventilada (Σ áreas ≤ área admisible).`
+        : `${totalConductores} conductores en una sola capa. Criterio normativo: NEC 392.22(A) Tabla 1, bandeja ventilada (Σ áreas ≤ área admisible).`,
     };
   },
   visualizacion: 'escalerilla',
