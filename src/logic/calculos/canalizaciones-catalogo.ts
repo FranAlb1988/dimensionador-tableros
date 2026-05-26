@@ -42,6 +42,18 @@ export const CATALOGO_DUCTOS: readonly DuctoCatalogo[] = [
 /** Anchos normalizados de escalerilla portaconductores, mm. */
 export const ANCHOS_ESCALERILLA: readonly number[] = [100, 150, 200, 300, 450, 600, 750, 900];
 
+/** Profundidad útil de la escalerilla utilizada en los proyectos del usuario (mm). */
+export const PROFUNDIDAD_ESCALERILLA_MM = 100;
+
+/**
+ * Capas máximas que caben verticalmente en la escalerilla dado el diámetro
+ * del conductor mayor. Devuelve 0 si ni siquiera una capa cabe.
+ */
+export function maxCapasEnEscalerilla(diametroMayorMm: number): number {
+  if (!(diametroMayorMm > 0)) return 0;
+  return Math.floor(PROFUNDIDAD_ESCALERILLA_MM / diametroMayorMm);
+}
+
 /**
  * Área máxima admisible de cables en la escalerilla, según NEC 392.22(A),
  * Tabla 1, Columna 1 — multicable en bandeja ventilada. Indexada por ancho (mm).

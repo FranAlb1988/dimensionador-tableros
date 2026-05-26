@@ -5,8 +5,9 @@ import {
   autollenarArea, autollenarConductor, autollenarDiametro, opcionesConductor,
 } from './conductores-catalogo';
 import {
-  areaDuctoMaxima, areaPermitidaEscalerilla, distribuirEnCapas,
-  porcentajeRelleno, sugerirAnchoEscalerilla, sugerirDucto, type TipoDucto,
+  areaDuctoMaxima, areaPermitidaEscalerilla, distribuirEnCapas, maxCapasEnEscalerilla,
+  porcentajeRelleno, PROFUNDIDAD_ESCALERILLA_MM, sugerirAnchoEscalerilla,
+  sugerirDucto, type TipoDucto,
 } from './canalizaciones-catalogo';
 import { factorDerrateoAltura, type NivelTension } from '../derrateo';
 
@@ -261,13 +262,13 @@ const anchoEscalerilla: Calculadora = {
   id: 'ancho-escalerilla',
   grupo: 'conductores',
   nombre: 'Ancho de escalerilla portaconductores',
-  descripcion: 'Ancho de bandeja portacable según la suma de diámetros exteriores por capa (NEC 392). Admite grupos con calibres distintos y apilamiento en una o más capas.',
+  descripcion: `Ancho de bandeja portacable según la suma de diámetros exteriores por capa (NEC 392). Bandeja de ${PROFUNDIDAD_ESCALERILLA_MM} mm de alto: las capas se limitan a las que caben verticalmente.`,
   norma: 'RIC N°4 · NEC 392',
-  formula: 'Ancho requerido = máx (Σ diámetros por capa)    capas ≥ 1',
+  formula: 'Ancho req. = máx (Σ Ø por capa)    Capas ≤ ⌊alto / Ø mayor⌋',
   campos: [
     {
       key: 'capas', label: 'Capas', unidad: '', defecto: 1,
-      ayuda: 'Número de capas en que se apilan los conductores. NEC 392 permite más de una.',
+      ayuda: `Capas pedidas. Se ajusta hacia abajo si exceden la altura de la bandeja (${PROFUNDIDAD_ESCALERILLA_MM} mm).`,
     },
     {
       key: 'grupos', label: 'Conductores en la escalerilla', tipo: 'lista',
@@ -290,8 +291,10 @@ const anchoEscalerilla: Calculadora = {
     { key: 'anchoRequerido', label: 'Ancho geométrico requerido (máx por capa)', unidad: 'mm' },
     { key: 'areaConductores', label: 'Área de los conductores', unidad: 'mm²' },
     { key: 'areaPermitida', label: 'Área admisible NEC 392.22(A)', unidad: 'mm²' },
+    { key: 'alturaUsada', label: `Altura ocupada (sobre ${PROFUNDIDAD_ESCALERILLA_MM} mm)`, unidad: 'mm' },
     { key: 'anchoSugerido', label: 'Escalerilla sugerida', unidad: 'mm', destacado: true, decimales: 0 },
     { key: 'ocupacionNec', label: 'Ocupación del área (NEC 392)', unidad: '%', decimales: 1 },
+    { key: 'ocupacionAltura', label: 'Ocupación del alto', unidad: '%', decimales: 1 },
   ],
   calcular: (e): ResultadoCalc => {
     const capasPedidas = Math.max(1, Math.round(num(e, 'capas') || 1));
@@ -311,27 +314,49 @@ const anchoEscalerilla: Calculadora = {
     if (totalConductores === 0) {
       return { valores: {}, error: 'Agrega al menos un grupo con diámetro y cantidad.' };
     }
-    const capasUsadas = Math.min(capasPedidas, totalConductores);
+
+    const maxDia = Math.max(...diametros);
+    const maxCapasPorAlto = maxCapasEnEscalerilla(maxDia);
+    if (maxCapasPorAlto < 1) {
+      return {
+        valores: { totalConductores, areaConductores },
+        nota: `El diámetro mayor (${maxDia.toFixed(1)} mm) supera el alto útil de la bandeja (${PROFUNDIDAD_ESCALERILLA_MM} mm). No cabe ni una sola capa.`,
+      };
+    }
+
+    const capasUsadas = Math.min(capasPedidas, maxCapasPorAlto, totalConductores);
     const distribuidos = distribuirEnCapas(diametros, (d) => d, capasUsadas);
     const anchoRequerido = Math.max(...distribuidos.map((capa) => capa.reduce((s, d) => s + d, 0)));
+    const alturaUsada = distribuidos.reduce((s, capa) => s + Math.max(0, ...capa), 0);
+    const ocupacionAltura = (alturaUsada / PROFUNDIDAD_ESCALERILLA_MM) * 100;
+
     const anchoSugerido = sugerirAnchoEscalerilla(anchoRequerido, areaConductores);
     if (anchoSugerido == null) {
       return {
-        valores: { totalConductores, capasUsadas, anchoRequerido, areaConductores },
+        valores: { totalConductores, capasUsadas, anchoRequerido, areaConductores, alturaUsada, ocupacionAltura },
         nota: `Ningún ancho del catálogo cumple los dos criterios NEC 392: ancho ≥ ${anchoRequerido.toFixed(0)} mm y área admisible ≥ ${areaConductores.toFixed(0)} mm². Divide los conductores en varias escalerillas.`,
       };
     }
     const areaPermitida = areaPermitidaEscalerilla(anchoSugerido);
     const ocupacionNec = (areaConductores / areaPermitida) * 100;
+
+    let nota: string;
+    if (capasPedidas > maxCapasPorAlto) {
+      nota = `Pediste ${capasPedidas} capas, pero en una bandeja de ${PROFUNDIDAD_ESCALERILLA_MM} mm de alto solo caben ${maxCapasPorAlto} (limitado por el conductor de ⌀${maxDia.toFixed(1)} mm). Se usaron ${capasUsadas}.`;
+    } else if (capasUsadas > 1) {
+      nota = `${totalConductores} conductores distribuidos en ${capasUsadas} capas. Criterios NEC 392.22(A) Tabla 1, bandeja ventilada de ${PROFUNDIDAD_ESCALERILLA_MM} mm (alto y área).`;
+    } else {
+      nota = `${totalConductores} conductores en una sola capa. Criterios NEC 392.22(A) Tabla 1, bandeja ventilada de ${PROFUNDIDAD_ESCALERILLA_MM} mm (alto y área).`;
+    }
+
     return {
       valores: {
         totalConductores, capasUsadas,
         anchoRequerido, areaConductores, areaPermitida,
-        anchoSugerido, ocupacionNec,
+        alturaUsada,
+        anchoSugerido, ocupacionNec, ocupacionAltura,
       },
-      nota: capasUsadas > 1
-        ? `${totalConductores} conductores distribuidos en ${capasUsadas} capas. Criterio normativo: NEC 392.22(A) Tabla 1, bandeja ventilada (Σ áreas ≤ área admisible).`
-        : `${totalConductores} conductores en una sola capa. Criterio normativo: NEC 392.22(A) Tabla 1, bandeja ventilada (Σ áreas ≤ área admisible).`,
+      nota,
     };
   },
   visualizacion: 'escalerilla',

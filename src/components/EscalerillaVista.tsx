@@ -1,6 +1,6 @@
 import type { EntradasCalc, ResultadoCalc } from '../logic/calculos';
 import { leerFilas, num } from '../logic/calculos';
-import { distribuirEnCapas } from '../logic/calculos/canalizaciones-catalogo';
+import { distribuirEnCapas, PROFUNDIDAD_ESCALERILLA_MM } from '../logic/calculos/canalizaciones-catalogo';
 import { fmtCantidad } from '../util/format';
 
 interface Props {
@@ -53,24 +53,26 @@ export function EscalerillaVista({ entradas, resultado }: Props) {
   const anchoReq = resultado.valores.anchoRequerido;
   const anchoSug = resultado.valores.anchoSugerido;
   const ocupacionNec = resultado.valores.ocupacionNec;
+  const ocupacionAltura = resultado.valores.ocupacionAltura;
   const ancho = anchoSug ?? anchoReq;
   if (ancho == null || ancho <= 0) return null;
 
   const supera = anchoSug == null;
+  const maxDia = Math.max(...conductores.map((c) => c.dia));
+  const maxCapasPorAlto = Math.max(1, Math.floor(PROFUNDIDAD_ESCALERILLA_MM / maxDia));
   const capasPedidas = Math.max(1, Math.round(num(entradas, 'capas') || 1));
-  const capasUsadas = Math.min(capasPedidas, conductores.length);
+  const capasUsadas = Math.min(capasPedidas, maxCapasPorAlto, conductores.length);
 
   // Mismo bin-packing que la calculadora.
   const capas = distribuirEnCapas(conductores, (c) => c.dia, capasUsadas);
   const alturasCapa = capas.map((capa) => Math.max(...capa.map((c) => c.dia), 0));
-  const totalAltoConductores = alturasCapa.reduce((s, h) => s + h, 0);
 
-  // Geometría en mm (viewBox).
+  // Geometría en mm (viewBox). El alto de la bandeja es fijo (100 mm).
   const margin = 14;
   const railW = 4;
-  const railH = Math.max(totalAltoConductores + 8, 50);
+  const railH = PROFUNDIDAD_ESCALERILLA_MM;
   const plateT = 4;
-  const totalW = ancho + 2 * railW + 2 * margin;
+  const totalW = ancho + 2 * railW + 2 * margin + 18; // +18 mm para la cota vertical del alto
   const totalH = margin + railH + plateT + 14; // 14: cota inferior
 
   const interiorLeftX = margin + railW;
@@ -96,6 +98,8 @@ export function EscalerillaVista({ entradas, resultado }: Props) {
   const trayColor = supera ? '#fecaca' : '#cbd5e1';
   const trayStroke = supera ? '#b91c1c' : '#64748b';
   const cotaY = bottomTopY + plateT + 5;
+  // Cota vertical del alto a la derecha de la bandeja.
+  const cotaXAlto = interiorRightX + railW + 5;
 
   // Leyenda por grupo.
   const resumenGrupos = filas
@@ -113,8 +117,9 @@ export function EscalerillaVista({ entradas, resultado }: Props) {
       <div className="text-sm text-slate-700 dark:text-slate-200 flex flex-wrap items-center gap-x-3 gap-y-1">
         <span>
           Corte transversal — <strong>{capasUsadas}</strong> {capasUsadas === 1 ? 'capa' : 'capas'} en
-          escalerilla de <strong>{ancho.toFixed(0)} mm</strong>
-          {ocupacionNec != null ? <> · <strong>{fmtCantidad(ocupacionNec, 1)}%</strong> del área admisible (NEC 392)</> : null}
+          escalerilla de <strong>{ancho.toFixed(0)} × {PROFUNDIDAD_ESCALERILLA_MM} mm</strong>
+          {ocupacionNec != null ? <> · área {fmtCantidad(ocupacionNec, 1)}%</> : null}
+          {ocupacionAltura != null ? <> · alto {fmtCantidad(ocupacionAltura, 1)}%</> : null}
           {supera ? ' (excede catálogo)' : ''}:
         </span>
         {resumenGrupos.map((g, i) => (
@@ -162,6 +167,17 @@ export function EscalerillaVista({ entradas, resultado }: Props) {
           <text x={totalW / 2} y={cotaY + 5} textAnchor="middle"
             fontSize="5" fill="#334155">
             {ancho.toFixed(0)} mm
+          </text>
+          {/* Cota vertical del alto de la bandeja */}
+          <line x1={cotaXAlto} y1={margin} x2={cotaXAlto} y2={bottomTopY}
+            stroke="#475569" strokeWidth={0.5} />
+          <line x1={cotaXAlto - 1.5} y1={margin} x2={cotaXAlto + 1.5} y2={margin}
+            stroke="#475569" strokeWidth={0.5} />
+          <line x1={cotaXAlto - 1.5} y1={bottomTopY} x2={cotaXAlto + 1.5} y2={bottomTopY}
+            stroke="#475569" strokeWidth={0.5} />
+          <text x={cotaXAlto + 2} y={margin + railH / 2 + 1.5} textAnchor="start"
+            fontSize="5" fill="#334155">
+            {PROFUNDIDAD_ESCALERILLA_MM} mm
           </text>
         </svg>
       </div>

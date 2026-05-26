@@ -259,6 +259,28 @@ describe('Ancho de escalerilla portaconductores', () => {
     expect(r.valores.capasUsadas).toBe(3);
     expect(r.valores.anchoRequerido).toBeCloseTo(23.44, 2);
   });
+  it('limita las capas por el alto de la bandeja (100 mm)', () => {
+    // ⌀23,44 → caben floor(100/23,44) = 4 capas como máximo, sin importar lo
+    // que pida el usuario.
+    const r = calc('ancho-escalerilla').calcular({
+      capas: '10',
+      'grupos.count': '1',
+      'grupos.0.diametro': '23.44', 'grupos.0.cantidad': '6',
+    });
+    expect(r.valores.capasUsadas).toBe(4);
+    expect(r.valores.anchoRequerido).toBeCloseTo(46.88, 1); // 2 cond × 23,44
+    expect(r.valores.alturaUsada).toBeCloseTo(93.76, 1);    // 4 × 23,44
+    expect(r.valores.ocupacionAltura).toBeCloseTo(93.76, 1);
+    expect(r.nota).toMatch(/solo caben 4/);
+  });
+  it('rechaza un conductor cuyo diámetro supera el alto de la bandeja', () => {
+    const r = calc('ancho-escalerilla').calcular({
+      'grupos.count': '1',
+      'grupos.0.diametro': '150', 'grupos.0.cantidad': '1',
+    });
+    expect(r.valores.anchoSugerido).toBeUndefined();
+    expect(r.nota).toMatch(/supera el alto/);
+  });
   it('reporta el área de conductores y la ocupación NEC 392', () => {
     // 6 × ⌀23,44: área cada uno = π·23,44²/4 ≈ 431,5; total ≈ 2589 mm².
     // 1 capa → ancho req 140,64 → escalerilla 150 (área admisible 4200) → 61,6%.
