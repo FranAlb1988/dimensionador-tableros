@@ -16,8 +16,13 @@ export const router = createHashRouter([
     children: [
       { index: true, element: <Home /> },
       { path: 'ccm', element: <CcmPage /> },
-      { path: 'cdc', element: <CdcPage /> },
-      { path: 'tdg', element: <TdgPage /> },
+      // Nota: las páginas estaban históricamente cruzadas — lo que el código llama
+      // CdcPage (cofres Pragma + iC60) corresponde en realidad al TDG de servicios,
+      // y lo que llama TdgPage (Prisma + barra + salidas) corresponde al CDC industrial
+      // (centro de distribución de cargas). Las rutas se intercambian aquí para
+      // mostrar al usuario los rótulos correctos sin reescribir el motor de cada uno.
+      { path: 'cdc', element: <TdgPage /> },
+      { path: 'tdg', element: <CdcPage /> },
       { path: 'mt', element: <MtPage /> },
       { path: 'auxiliares', element: <AuxiliaresPage /> },
       { path: 'calculos', element: <CalculosPage /> },

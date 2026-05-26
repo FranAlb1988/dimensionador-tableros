@@ -12,15 +12,15 @@ const cards = [
   {
     to: '/cdc',
     titulo: 'CDC',
-    sub: 'Cofre de distribución',
-    desc: 'Pragma con módulos DIN e iC60 para circuitos de iluminación, tomas y motores chicos.',
+    sub: 'Centro de Distribución de Cargas',
+    desc: 'Tablero principal BT de la sala eléctrica — Prisma con NSX/Masterpact y barras Cu. Alimenta CCMs y subcuadros.',
     activo: true,
   },
   {
     to: '/tdg',
     titulo: 'TDG',
-    sub: 'Tablero de distribución general',
-    desc: 'Prisma con NSX / Masterpact y barras Cu por corriente total.',
+    sub: 'Tablero General de servicios',
+    desc: 'Aguas abajo del CDC — Pragma con módulos DIN e iC60 para alumbrado, tomas y cargas menores.',
     activo: true,
   },
   {

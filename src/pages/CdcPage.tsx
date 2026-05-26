@@ -23,10 +23,14 @@ export function CdcPage() {
   const eliminarTablero = useCdcStore((s) => s.eliminarTablero);
   const svgRef = useRef<SVGSVGElement | null>(null);
 
-  const titulo = subtipo === 'alumbrado' ? 'CDC — Tablero de alumbrado' : 'CDC — Cofre de distribución';
+  // Nota: este archivo se llama CdcPage por historia, pero se monta en la ruta /tdg
+  // (Tablero General de servicios aguas abajo del CDC).
+  const titulo = subtipo === 'alumbrado'
+    ? 'TDG — Tablero de alumbrado'
+    : 'TDG — Tablero General de servicios';
   const descripcion = subtipo === 'alumbrado'
-    ? 'Pragma · iC60 sobre riel DIN. Circuitos de iluminación 1F / 230 V.'
-    : 'Pragma · iC60 sobre riel DIN. Módulos de 18 mm, bin-packing en filas y filas en cofres.';
+    ? 'Tablero de alumbrado aguas abajo del CDC. Pragma · iC60 sobre riel DIN. Circuitos de iluminación 1F / 230 V.'
+    : 'Tablero General de servicios (alumbrado, tomas, cargas menores) aguas abajo del CDC. Pragma · iC60 sobre riel DIN — módulos de 18 mm, bin-packing en filas y cofres.';
 
   const tablerosLite = tableros.map((t) => ({
     id: t.id,
@@ -54,12 +58,12 @@ export function CdcPage() {
       </header>
 
       <TableroSelector
-        etiqueta="CDC"
+        etiqueta="TDG"
         tableros={tablerosLite}
         activoId={activoId}
         setActivo={setActivo}
         opcionesCrear={[
-          { etiqueta: '+ CDC', sugerencia: `CDC ${tableros.length + 1}`, onCrear: (n) => crearTablero(n, 'general') },
+          { etiqueta: '+ TDG', sugerencia: `TDG ${tableros.length + 1}`, onCrear: (n) => crearTablero(n, 'general') },
           { etiqueta: '+ Alumbrado', sugerencia: `Alumbrado ${tableros.length + 1}`, onCrear: (n) => crearTablero(n, 'alumbrado') },
         ]}
         onRenombrar={renombrarTablero}

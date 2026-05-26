@@ -32,7 +32,11 @@ export function TdgPage() {
   const svgRefIec = useRef<SVGSVGElement | null>(null);
   const svgRefNema = useRef<SVGSVGElement | null>(null);
 
-  const titulo = subtipo === 'fuerza' ? 'TDG — Tablero de fuerza' : 'TDG — Tablero de distribución general';
+  // Nota: este archivo se llama TdgPage por historia, pero se monta en la ruta /cdc
+  // (centro de distribución de cargas — tablero principal BT de la sala eléctrica).
+  const titulo = subtipo === 'fuerza'
+    ? 'CDC — Centro de Distribución de Cargas (fuerza)'
+    : 'CDC — Centro de Distribución de Cargas';
 
   const tablerosLite = tableros.map((t) => ({
     id: t.id,
@@ -55,8 +59,10 @@ export function TdgPage() {
         <div>
           <h1 className="text-2xl font-semibold">{titulo}</h1>
           <p className="text-sm text-slate-600 dark:text-slate-400">
+            Nodo principal de distribución en baja tensión de la sala eléctrica: recibe del
+            transformador y deriva hacia los CCMs y subcuadros.{' '}
             {norma === 'NEMA'
-              ? 'Convención NEMA · Switchgear BT · Frames ANSI 800/2000/3200/4000/5000/6000AF · Tabla del Excel del proyecto.'
+              ? 'Convención NEMA · Switchgear BT · Frames ANSI 800/2000/3200/4000/5000/6000AF.'
               : 'Convención IEC · NSX/Masterpact y barras Cu por corriente total.'}
           </p>
         </div>
@@ -94,12 +100,12 @@ export function TdgPage() {
       </header>
 
       <TableroSelector
-        etiqueta="TDG"
+        etiqueta="CDC"
         tableros={tablerosLite}
         activoId={activoId}
         setActivo={setActivo}
         opcionesCrear={[
-          { etiqueta: '+ TDG', sugerencia: `TDG ${tableros.length + 1}`, onCrear: (n) => crearTablero(n, 'general') },
+          { etiqueta: '+ CDC', sugerencia: `CDC ${tableros.length + 1}`, onCrear: (n) => crearTablero(n, 'general') },
           { etiqueta: '+ Fuerza', sugerencia: `Fuerza ${tableros.length + 1}`, onCrear: (n) => crearTablero(n, 'fuerza') },
         ]}
         onRenombrar={renombrarTablero}

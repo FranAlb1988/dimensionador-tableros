@@ -50,7 +50,7 @@ export function Layout() {
         </div>
       </main>
       <footer className="border-t border-slate-200 dark:border-slate-800 px-4 py-3 text-xs text-slate-500 dark:text-slate-400 text-center">
-        MVP — solo CCM con datos de ejemplo. CDC y TDG en hitos posteriores.
+        Dimensionador de tableros — CCM · CDC · TDG · MT · Auxiliares · Cálculos.
       </footer>
     </div>
   );
