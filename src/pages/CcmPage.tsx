@@ -9,9 +9,13 @@ import { AsignacionesPanelNema } from '../components/AsignacionesPanelNema';
 import { VistaFrontalCcmNemaSvg } from '../components/VistaFrontalCcmNemaSvg';
 import { ResumenCcmNema } from '../components/ResumenCcmNema';
 import { ExportarPdfCcmNemaBoton } from '../components/ExportarPdfCcmNemaBoton';
+import { AsignacionesPanelMt } from '../components/AsignacionesPanelMt';
+import { VistaFrontalCcmMtSvg } from '../components/VistaFrontalCcmMtSvg';
+import { ResumenCcmMt } from '../components/ResumenCcmMt';
 import { useCcmCargas, useCcmNorma, useCcmStore } from '../store/ccm';
 import { dimensionarCcm } from '../logic/tablero';
 import { dimensionarCcmNema } from '../logic/ccm-nema';
+import { dimensionarCcmMt, UMBRAL_MT_V } from '../logic/ccm-mt';
 import { DerrateoControl } from '../components/DerrateoControl';
 import { useFactorDerrateo } from '../store/proyecto-meta';
 import type { Norma } from '../types';
@@ -24,6 +28,12 @@ export function CcmPage() {
   const norma = useCcmNorma();
   const setNorma = useCcmStore((s) => s.setNorma);
   const factorDerrateo = useFactorDerrateo('BT');
+  const factorDerrateoMt = useFactorDerrateo('MT');
+  // Detección automática del nivel de tensión del CCM.
+  const tieneMt = cargas.some((c) => c.tensionV > UMBRAL_MT_V);
+  const tieneBt = cargas.some((c) => c.tensionV > 0 && c.tensionV <= UMBRAL_MT_V);
+  const esMt = tieneMt && !tieneBt;
+  const mixto = tieneMt && tieneBt;
   const tableros = useCcmStore((s) => s.tableros);
   const activoId = useCcmStore((s) => s.activoId);
   const setActivo = useCcmStore((s) => s.setActivo);
@@ -37,12 +47,16 @@ export function CcmPage() {
   const [importAbierto, setImportAbierto] = useState(false);
 
   const resultadoIec = useMemo(
-    () => (norma === 'IEC' ? dimensionarCcm(cargas) : null),
-    [cargas, norma],
+    () => (norma === 'IEC' && !esMt ? dimensionarCcm(cargas) : null),
+    [cargas, norma, esMt],
   );
   const resultadoNema = useMemo(
-    () => (norma === 'NEMA' ? dimensionarCcmNema(cargas, factorDerrateo) : null),
-    [cargas, norma, factorDerrateo],
+    () => (norma === 'NEMA' && !esMt ? dimensionarCcmNema(cargas, factorDerrateo) : null),
+    [cargas, norma, factorDerrateo, esMt],
+  );
+  const resultadoMt = useMemo(
+    () => (esMt ? dimensionarCcmMt(cargas, factorDerrateoMt) : null),
+    [cargas, esMt, factorDerrateoMt],
   );
 
   const handleDesglosar = () => {
@@ -65,36 +79,47 @@ export function CcmPage() {
         <div>
           <h1 className="text-2xl font-semibold">CCM — Centro de control de motores</h1>
           <p className="text-sm text-slate-600 dark:text-slate-400">
-            {norma === 'NEMA'
-              ? 'Convención NEMA · Contactores 1–9 · MCP · Frames ANSI · X = 6". Tabla del Excel del proyecto.'
-              : 'Convención IEC · Schneider Compact NSX + TeSys · Gavetas Blokset.'}
+            {esMt
+              ? 'CCM MT · Allen-Bradley CENTERLINE 2500 · Contactores al vacío 200/400/720 A · Celdas 36" × 90".'
+              : norma === 'NEMA'
+                ? 'Convención NEMA · Contactores 1–9 · MCP · Frames ANSI · X = 6". Tabla del Excel del proyecto.'
+                : 'Convención IEC · Schneider Compact NSX + TeSys · Gavetas Blokset.'}
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <DerrateoControl nivel="BT" />
-          <div
-            className="inline-flex border border-slate-300 dark:border-slate-700 rounded overflow-hidden"
-            role="tablist"
-            aria-label="Norma del catálogo"
-          >
-            {NORMAS.map((n) => {
-              const activo = n === norma;
-              return (
-                <button
-                  key={n}
-                  onClick={() => setNorma(n)}
-                  className={
-                    'px-3 py-1.5 text-sm font-medium ' +
-                    (activo
-                      ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
-                      : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800')
-                  }
-                >
-                  {n}
-                </button>
-              );
-            })}
-          </div>
+          <DerrateoControl nivel={esMt ? 'MT' : 'BT'} />
+          {esMt ? (
+            <span
+              className="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200"
+              title="Catálogo de media tensión: Allen-Bradley CENTERLINE 2500"
+            >
+              MT · CENTERLINE 2500
+            </span>
+          ) : (
+            <div
+              className="inline-flex border border-slate-300 dark:border-slate-700 rounded overflow-hidden"
+              role="tablist"
+              aria-label="Norma del catálogo"
+            >
+              {NORMAS.map((n) => {
+                const activo = n === norma;
+                return (
+                  <button
+                    key={n}
+                    onClick={() => setNorma(n)}
+                    className={
+                      'px-3 py-1.5 text-sm font-medium ' +
+                      (activo
+                        ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+                        : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800')
+                    }
+                  >
+                    {n}
+                  </button>
+                );
+              })}
+            </div>
+          )}
           <button
             onClick={() => setImportAbierto(true)}
             className="px-3 py-1.5 text-sm font-medium rounded border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
@@ -127,6 +152,38 @@ export function CcmPage() {
       <section>
         <TablaCargas />
       </section>
+
+      {mixto && (
+        <div className="border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 rounded p-3 text-sm text-amber-900 dark:text-amber-100">
+          <strong>No se permite mezclar BT y MT en el mismo CCM.</strong> Los CCM se diseñan
+          para un único nivel de tensión. Separa las cargas BT y MT en dos tableros distintos
+          (usa el selector de tableros arriba).
+        </div>
+      )}
+
+      {esMt && resultadoMt && resultadoMt.tablero && (
+        <>
+          <section>
+            <AsignacionesPanelMt
+              asignaciones={resultadoMt.asignaciones}
+              cargasSinAsignar={resultadoMt.cargasSinAsignar}
+            />
+          </section>
+          <section className="space-y-2">
+            <h2 className="text-lg font-semibold">Vista frontal (MT · CENTERLINE 2500)</h2>
+            <div className="border border-slate-200 dark:border-slate-800 rounded-lg p-4 overflow-x-auto bg-white">
+              <VistaFrontalCcmMtSvg tablero={resultadoMt.tablero} />
+            </div>
+          </section>
+          <section><ResumenCcmMt resultado={resultadoMt} /></section>
+        </>
+      )}
+
+      {esMt && resultadoMt && !resultadoMt.tablero && resultadoMt.motivo && (
+        <div className="border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 rounded p-3 text-sm text-amber-900 dark:text-amber-100">
+          {resultadoMt.motivo}
+        </div>
+      )}
 
       {norma === 'IEC' && resultadoIec && resultadoIec.asignaciones.length > 0 && (
         <>

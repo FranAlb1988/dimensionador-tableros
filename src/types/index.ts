@@ -285,6 +285,61 @@ export interface TableroCcmNema {
   xMm: number;
 }
 
+// ----- CCM MT (Allen-Bradley CENTERLINE 2500 — vacuum contactors) -----
+
+export interface ContactorMtCatalogo {
+  /** Corriente nominal continua del contactor (A). */
+  frameA: number;
+  /** Texto comercial p. ej. "AB SVR 720 A (vacuum)". */
+  modelo: string;
+  /** Clases de tensión soportadas (kV). */
+  claseKv: readonly number[];
+  /**
+   * Espacios verticales que ocupa el starter en la columna estándar de la
+   * envolvente (la columna tiene `espaciosVerticales` totales — típicamente 2).
+   */
+  espaciosColumnaV: number;
+}
+
+export interface EnvolventeCcmMtCatalogo {
+  anchoColumnaMm: number;
+  altoTotalMm: number;
+  profundidadMm: number;
+  /** Espacios verticales que tiene cada columna para alojar starters. */
+  espaciosVerticales: number;
+}
+
+export interface AsignacionCcmMt {
+  carga: Carga;
+  contactor: ContactorMtCatalogo;
+  /** Espacios verticales que ocupa este starter. */
+  espaciosV: number;
+  /** Corriente de diseño usada en la asignación (A, en lado del motor). */
+  corrienteDisenoA: number;
+}
+
+export interface ColumnaCcmMt {
+  indice: number;
+  asignaciones: AsignacionCcmMt[];
+  espaciosUsados: number;
+  espaciosLibres: number;
+}
+
+export interface TableroCcmMt {
+  tipo: 'CCM';
+  norma: 'MT';
+  columnas: ColumnaCcmMt[];
+  /** FLA total (suma de corrientes de diseño en lado del motor). */
+  corrienteTotalA: number;
+  /** Factor F2 de derrateo aplicado (1 = sin derrateo). */
+  factorDerrateoAltura: number;
+  /** Corriente con que se selecciona el contactor / barra: I_diseño / F2. */
+  corrienteSeleccionBarraA: number;
+  altoTotalMm: number;
+  anchoTotalMm: number;
+  profundidadTotalMm: number;
+}
+
 // ----- TDG NEMA -----
 
 export interface SwitchgearBtBarraNema {

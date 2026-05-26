@@ -1,0 +1,29 @@
+{
+  "_descripcion": "Catálogo de contactores al vacío AB CENTERLINE 2500 (clase 5 kV / 7,2 kV). Frames continuos típicos y envolvente estándar.",
+  "contactores": [
+    {
+      "frameA": 200,
+      "modelo": "AB SVN/SVF 200 A (vacuum)",
+      "claseKv": [2.4, 4.16, 6.9],
+      "espaciosColumnaV": 1
+    },
+    {
+      "frameA": 400,
+      "modelo": "AB SVL/SVR 400 A (vacuum)",
+      "claseKv": [2.4, 4.16, 6.9],
+      "espaciosColumnaV": 1
+    },
+    {
+      "frameA": 720,
+      "modelo": "AB SVR 720 A (vacuum)",
+      "claseKv": [2.4, 4.16, 6.9],
+      "espaciosColumnaV": 2
+    }
+  ],
+  "envolvente": {
+    "anchoColumnaMm": 915,
+    "altoTotalMm": 2290,
+    "profundidadMm": 1525,
+    "espaciosVerticales": 2
+  }
+}
