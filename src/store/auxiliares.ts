@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { CategoriaAuxiliar, EquipoAuxiliar } from '../types';
@@ -137,5 +138,12 @@ export const useAuxiliaresStore = create<AuxiliaresState>()(
   ),
 );
 
-export const useAuxiliaresPorCategoria = (categoria: CategoriaAuxiliar): EquipoAuxiliar[] =>
-  useAuxiliaresStore((s) => s.equipos.filter((e) => e.categoria === categoria));
+/**
+ * Equipos filtrados por categoría. Se memoiza para evitar el loop infinito de
+ * re-renders: si el selector hiciera `.filter()` directamente, cada llamada
+ * devolvería un array nuevo y zustand detectaría un cambio en cada render.
+ */
+export function useAuxiliaresPorCategoria(categoria: CategoriaAuxiliar): EquipoAuxiliar[] {
+  const equipos = useAuxiliaresStore((s) => s.equipos);
+  return useMemo(() => equipos.filter((e) => e.categoria === categoria), [equipos, categoria]);
+}
