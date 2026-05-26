@@ -150,4 +150,19 @@ describe('dimensionarCcmNema', () => {
     );
     expect(derrateado.tablero!.barra.capacidadA).toBe(800);
   });
+
+  it('en media tensión calcula la FLA con la fórmula (no el catálogo BT)', () => {
+    // Motor 100 HP @ 6,6 kV, cosφ 0,85, η 0,9, 3F:
+    //   I = (100·0,7457·1000) / (√3 · 6600 · 0,85 · 0,9) ≈ 8,5 A
+    // El catálogo NEMA para 100 HP marca FLA ≈ 124 A (a 480 V). Sin la
+    // corrección de MT estaríamos sumando 124 A en vez de 8,5 A a la barra.
+    const cargaMt: Carga = {
+      id: 'm-mt', descripcion: 'Motor MT', tipo: 'motor',
+      potenciaKw: 100 * KW_POR_HP, unidadPotencia: 'HP',
+      tensionV: 6600, fases: '3F', factorServicio: 1, arranque: 'DOL',
+    };
+    const r = dimensionarCcmNema([cargaMt]);
+    expect(r.asignaciones).toHaveLength(1);
+    expect(r.asignaciones[0]!.corrienteDisenoA).toBeCloseTo(8.5, 0);
+  });
 });

@@ -15,7 +15,7 @@ import type {
   MotorNemaCatalogo,
   TableroCcmNema,
 } from '../types';
-import { corrienteDiseno } from './corriente';
+import { corrienteDiseno, corrienteNominal } from './corriente';
 import { KW_POR_HP } from '../util/potencia';
 
 const MOTORES: readonly MotorNemaCatalogo[] = (motoresData.filas as MotorNemaCatalogo[])
@@ -125,8 +125,11 @@ function asignarMotor(c: Carga): AsignacionCcmNema | undefined {
   if (hp == null || hp <= 0) return undefined;
   const motor = MOTORES.find((m) => m.hp >= hp);
   if (!motor) return undefined;
-  // FLA del motor del catálogo (o la corriente del usuario si la dio).
-  const corriente = c.corrienteA ?? motor.flaA ?? corrienteDiseno(c);
+  // FLA del motor: el catálogo está rateado en BT (400 V); en media tensión
+  // (>1000 V) el flaA del catálogo no aplica y se calcula con la fórmula.
+  // En BT se usa el flaA del catálogo (o la corriente del usuario si la dio).
+  const flaCatalogoMm = c.tensionV > 1000 ? null : motor.flaA;
+  const corriente = c.corrienteA ?? flaCatalogoMm ?? corrienteNominal(c);
   return {
     carga: c,
     motor,

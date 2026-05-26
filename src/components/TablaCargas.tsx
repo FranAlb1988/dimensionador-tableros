@@ -7,8 +7,20 @@ import { sugerirProteccionNsx } from '../logic/proteccion';
 import { fmtAmp } from '../util/format';
 import { aKw, desdeKw } from '../util/potencia';
 
-/** Tensiones de alimentación más comunes en CCM (V). */
-const TENSIONES_V = [110, 220, 380, 400, 415, 440, 480, 600, 660, 690] as const;
+/** Tensiones de baja tensión más comunes en CCM (V). */
+const TENSIONES_BT = [110, 220, 380, 400, 415, 440, 480, 600, 660, 690] as const;
+
+/** Tensiones de media tensión más comunes para motores y CCM MT. */
+const TENSIONES_MT: readonly { v: number; label: string }[] = [
+  { v: 2300, label: '2,3 kV' },
+  { v: 3300, label: '3,3 kV' },
+  { v: 4160, label: '4,16 kV' },
+  { v: 6600, label: '6,6 kV' },
+  { v: 11000, label: '11 kV' },
+  { v: 13800, label: '13,8 kV' },
+];
+
+const TENSIONES_TODAS: readonly number[] = [...TENSIONES_BT, ...TENSIONES_MT.map((m) => m.v)];
 
 const inputCls =
   'w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded ' +
@@ -233,15 +245,22 @@ function FilaCarga({ carga, zebra, onChange, onDuplicar, onEliminar }: FilaProps
       <td className={cellCls}>
         <select
           className={inputTexto}
-          value={TENSIONES_V.includes(carga.tensionV as typeof TENSIONES_V[number]) ? carga.tensionV : ''}
+          value={TENSIONES_TODAS.includes(carga.tensionV) ? carga.tensionV : ''}
           onChange={(e) => {
             if (e.target.value !== '') onChange({ tensionV: Number(e.target.value) });
           }}
         >
-          {TENSIONES_V.map((v) => (
-            <option key={v} value={v}>{v} V</option>
-          ))}
-          {!TENSIONES_V.includes(carga.tensionV as typeof TENSIONES_V[number]) && (
+          <optgroup label="Baja tensión">
+            {TENSIONES_BT.map((v) => (
+              <option key={v} value={v}>{v} V</option>
+            ))}
+          </optgroup>
+          <optgroup label="Media tensión">
+            {TENSIONES_MT.map(({ v, label }) => (
+              <option key={v} value={v}>{label}</option>
+            ))}
+          </optgroup>
+          {!TENSIONES_TODAS.includes(carga.tensionV) && (
             <option value={carga.tensionV}>{carga.tensionV} V</option>
           )}
         </select>
