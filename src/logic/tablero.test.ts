@@ -65,6 +65,19 @@ describe('dimensionarCcm', () => {
     expect(r.tablero.medida.lucesPiloto).toBeGreaterThan(0);
   });
 
+  it('marca ABB usa interruptores Tmax en las gavetas', () => {
+    const r = dimensionarCcm([motor('m1', 15)], 1, 'ABB');
+    const a = r.asignaciones[0]!;
+    expect(a.proteccion.marca).toBe('ABB');
+    expect(a.proteccion.familia.startsWith('Tmax')).toBe(true);
+    expect(a.arrancador?.contactor.startsWith('LC1')).toBe(true);
+  });
+
+  it('marca por defecto (Schneider) usa NSX', () => {
+    const r = dimensionarCcm([motor('m1', 15)]);
+    expect(r.asignaciones[0]!.proteccion.familia.startsWith('NSX')).toBe(true);
+  });
+
   it('IDs de gavetas y columnas son deterministas entre llamadas', () => {
     const r1 = dimensionarCcm([motor('a', 11)]);
     const r2 = dimensionarCcm([motor('a', 11)]);

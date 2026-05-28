@@ -6,6 +6,9 @@ const ORDEN_FAMILIA: readonly FamiliaProteccion[] = [
   'NSXm', 'NSX100', 'NSX160', 'NSX250', 'NSX400', 'NSX630',
   'MasterpactNT', 'MasterpactNW',
   'iC60N', 'iC60H',
+  'TmaxXT2', 'TmaxXT4', 'TmaxT4', 'TmaxT5',
+  'EmaxE1.2', 'EmaxE2.2', 'EmaxE4.2', 'EmaxE6.2',
+  'NA1-2000', 'NA1-3200', 'NA1-4000', 'NA1-6300',
 ];
 
 export function ResumenTdg({ resultado }: { resultado: ResultadoTdg }) {

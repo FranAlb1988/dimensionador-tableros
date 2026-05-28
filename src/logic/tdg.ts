@@ -1,7 +1,7 @@
 import prismaData from '../data/iec/prisma.json';
 import type { Carga, EnvolventePrismaCatalogo, MarcaProteccion, SalidaAsignada, TableroTdg } from '../types';
 import { corrienteDiseno } from './corriente';
-import { sugerirProteccionNsx } from './proteccion';
+import { sugerirProteccionFeeder } from './proteccion';
 import { sugerirInterruptorPrincipal } from './principal';
 import { sugerirBarra } from './barra';
 
@@ -38,7 +38,7 @@ export function dimensionarTdg(
   const cargasSinAsignar: Carga[] = [];
 
   for (const c of cargas) {
-    const proteccion = sugerirProteccionNsx(c);
+    const proteccion = sugerirProteccionFeeder(c, marca);
     const corrienteDisenoA = corrienteDiseno(c);
     if (!proteccion || corrienteDisenoA <= 0) {
       cargasSinAsignar.push(c);

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Carga, Fases, Norma, TipoArranque, TipoCarga } from '../types';
+import type { Carga, Fases, MarcaProteccion, Norma, TipoArranque, TipoCarga } from '../types';
 
 let idCounter = 0;
 function nuevoId(prefix: string): string {
@@ -26,6 +26,8 @@ export interface CcmTablero {
   id: string;
   nombre: string;
   norma: Norma;
+  /** Marca de los interruptores de alimentador (solo aplica al catálogo IEC). */
+  marca?: MarcaProteccion;
   cargas: Carga[];
 }
 
@@ -44,6 +46,7 @@ interface CcmState {
 
   // Operaciones sobre el tablero activo (mismos nombres que antes)
   setNorma: (n: Norma) => void;
+  setMarca: (m: MarcaProteccion) => void;
   agregar: () => void;
   duplicar: (cargaId: string) => void;
   eliminar: (cargaId: string) => void;
@@ -104,6 +107,7 @@ export const useCcmStore = create<CcmState>()(
             if (!orig) return {};
             nuevo.nombre = `${orig.nombre} (copia)`;
             nuevo.norma = orig.norma;
+            nuevo.marca = orig.marca;
             nuevo.cargas = orig.cargas.map((c) => ({ ...c, id: nuevoId('c') }));
             return { tableros: [...s.tableros, nuevo], activoId: nuevo.id };
           });
@@ -132,6 +136,7 @@ export const useCcmStore = create<CcmState>()(
             id: nuevoId('ccm'),
             nombre: nombreNuevo,
             norma: orig.norma,
+            marca: orig.marca,
             cargas: cargasNuevo,
           };
           return {
@@ -143,6 +148,7 @@ export const useCcmStore = create<CcmState>()(
         }),
 
         setNorma: (n) => set((s) => modificarActivo(s, (t) => ({ ...t, norma: n }))),
+        setMarca: (m) => set((s) => modificarActivo(s, (t) => ({ ...t, marca: m }))),
         agregar: () => set((s) => modificarActivo(s, (t) => ({
           ...t, cargas: [...t.cargas, cargaPorDefecto()],
         }))),
@@ -201,6 +207,10 @@ export const useCcmCargas = (): Carga[] =>
 /** Norma del tablero activo (NEMA por defecto). */
 export const useCcmNorma = (): Norma =>
   useCcmStore((s) => s.tableros.find((t) => t.id === s.activoId)?.norma ?? 'NEMA');
+
+/** Marca de los alimentadores del tablero activo (Schneider por defecto). */
+export const useCcmMarca = (): MarcaProteccion =>
+  useCcmStore((s) => s.tableros.find((t) => t.id === s.activoId)?.marca ?? 'Schneider');
 
 export const TIPOS_CARGA: readonly TipoCarga[] = ['motor', 'resistivo', 'iluminacion', 'tomas', 'otro'];
 export const FASES: readonly Fases[] = ['1F', '3F'];

@@ -6,11 +6,12 @@ import type {
   DefinicionColumnaCatalogo,
   DefinicionGavetaCatalogo,
   Gaveta,
+  MarcaProteccion,
   Proteccion,
   TamanoGaveta,
 } from '../types';
 import { sugerirArrancador } from './arrancador';
-import { sugerirProteccionNsx } from './proteccion';
+import { sugerirProteccionFeeder } from './proteccion';
 
 const TAMANOS: readonly DefinicionGavetaCatalogo[] = (gavetasData.tamanos as DefinicionGavetaCatalogo[])
   .toSorted((a, b) => a.altoMm - b.altoMm);
@@ -34,27 +35,27 @@ export function maxTamano(a: TamanoGaveta, b: TamanoGaveta): TamanoGaveta {
 }
 
 /**
- * Tamaño mínimo de gaveta para alojar un NSX, según la familia (frame).
- * El frame físico es el que manda el espacio:
- *   - NSXm / NSX100: cuerpo pequeño (~91 mm) → ¼ X
- *   - NSX160 / NSX250: cuerpo medio (~105 mm) → ½ X
- *   - NSX400 / NSX630: cuerpo grande (~140 mm) → 1 X
+ * Tamaño mínimo de gaveta para alojar un interruptor de alimentador (MCCB),
+ * según la corriente del frame. El cuerpo físico crece con el frame:
+ *   - ≤100 A (NSXm/NSX100, Tmax XT2 bajo): cuerpo pequeño → ¼ X
+ *   - ≤250 A (NSX160/250, Tmax XT4): cuerpo medio → ½ X
+ *   - >250 A (NSX400/630, Tmax T4/T5): cuerpo grande → 1 X
+ * Los ACB (Masterpact, Emax 2, NA1) no se alojan en gavetas Blokset CCM.
  */
+export function tamanoPorProteccion(p: Proteccion): TamanoGaveta {
+  const esAcb = p.familia.startsWith('Masterpact')
+    || p.familia.startsWith('Emax')
+    || p.familia.startsWith('NA1')
+    || p.familia.startsWith('iC60');
+  if (esAcb) return '1/4';
+  if (p.inA <= 100) return '1/4';
+  if (p.inA <= 250) return '1/2';
+  return '1';
+}
+
+/** Compatibilidad: tamaño de gaveta para un NSX (delega en tamanoPorProteccion). */
 export function tamanoPorNsx(p: Proteccion): TamanoGaveta {
-  switch (p.familia) {
-    case 'NSXm':
-    case 'NSX100':
-      return '1/4';
-    case 'NSX160':
-    case 'NSX250':
-      return '1/2';
-    case 'NSX400':
-    case 'NSX630':
-      return '1';
-    default:
-      // Familias no NSX (Masterpact, iC60) no se alojan en gavetas Blokset CCM.
-      return '1/4';
-  }
+  return tamanoPorProteccion(p);
 }
 
 let counter = 0;
@@ -67,15 +68,18 @@ function nextId(prefix: string): string {
  * Para una carga de CCM produce la asignación: protección + arrancador (opcional) + gaveta.
  * Si no es posible sugerir protección, devuelve undefined.
  */
-export function asignarCargaCcm(carga: Carga): AsignacionCarga | undefined {
-  const proteccion = sugerirProteccionNsx(carga);
+export function asignarCargaCcm(
+  carga: Carga,
+  marca: MarcaProteccion = 'Schneider',
+): AsignacionCarga | undefined {
+  const proteccion = sugerirProteccionFeeder(carga, marca);
   if (!proteccion) return undefined;
 
   const arrancador = sugerirArrancador(carga);
 
   const tamano: TamanoGaveta = arrancador
-    ? maxTamano(arrancador.tamanoGaveta, tamanoPorNsx(proteccion))
-    : tamanoPorNsx(proteccion);
+    ? maxTamano(arrancador.tamanoGaveta, tamanoPorProteccion(proteccion))
+    : tamanoPorProteccion(proteccion);
 
   const protecciones: Proteccion[] = [proteccion];
 

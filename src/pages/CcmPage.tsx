@@ -12,10 +12,11 @@ import { ExportarPdfCcmNemaBoton } from '../components/ExportarPdfCcmNemaBoton';
 import { AsignacionesPanelMt } from '../components/AsignacionesPanelMt';
 import { VistaFrontalCcmMtSvg } from '../components/VistaFrontalCcmMtSvg';
 import { ResumenCcmMt } from '../components/ResumenCcmMt';
-import { useCcmCargas, useCcmNorma, useCcmStore } from '../store/ccm';
+import { useCcmCargas, useCcmMarca, useCcmNorma, useCcmStore } from '../store/ccm';
 import { dimensionarCcm } from '../logic/tablero';
 import { dimensionarCcmNema } from '../logic/ccm-nema';
 import { dimensionarCcmMt, UMBRAL_MT_V } from '../logic/ccm-mt';
+import { MARCAS_FEEDER } from '../logic/proteccion';
 import { DerrateoControl } from '../components/DerrateoControl';
 import { useFactorDerrateo } from '../store/proyecto-meta';
 import type { Norma } from '../types';
@@ -26,7 +27,9 @@ const NORMAS: readonly Norma[] = ['NEMA', 'IEC'];
 export function CcmPage() {
   const cargas = useCcmCargas();
   const norma = useCcmNorma();
+  const marca = useCcmMarca();
   const setNorma = useCcmStore((s) => s.setNorma);
+  const setMarca = useCcmStore((s) => s.setMarca);
   const factorDerrateo = useFactorDerrateo('BT');
   const factorDerrateoMt = useFactorDerrateo('MT');
   // Detección automática del nivel de tensión del CCM.
@@ -47,8 +50,8 @@ export function CcmPage() {
   const [importAbierto, setImportAbierto] = useState(false);
 
   const resultadoIec = useMemo(
-    () => (norma === 'IEC' && !esMt ? dimensionarCcm(cargas, factorDerrateo) : null),
-    [cargas, norma, esMt, factorDerrateo],
+    () => (norma === 'IEC' && !esMt ? dimensionarCcm(cargas, factorDerrateo, marca) : null),
+    [cargas, norma, esMt, factorDerrateo, marca],
   );
   const resultadoNema = useMemo(
     () => (norma === 'NEMA' && !esMt ? dimensionarCcmNema(cargas, factorDerrateo) : null),
@@ -83,7 +86,7 @@ export function CcmPage() {
               ? 'CCM MT · Allen-Bradley CENTERLINE 2500 · Contactores al vacío 200/400/720 A · Celdas 36" × 90".'
               : norma === 'NEMA'
                 ? 'Convención NEMA · Contactores 1–9 · MCP · Frames ANSI · X = 6". Tabla del Excel del proyecto.'
-                : 'Convención IEC · Schneider Compact NSX + TeSys · Gavetas Blokset.'}
+                : `Convención IEC · ${marca === 'ABB' ? 'ABB Tmax' : 'Schneider Compact NSX'} + TeSys · Gavetas Blokset.`}
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
@@ -119,6 +122,21 @@ export function CcmPage() {
                 );
               })}
             </div>
+          )}
+          {!esMt && norma === 'IEC' && (
+            <label className="inline-flex items-center gap-2 text-sm">
+              <span className="text-slate-600 dark:text-slate-300">Marca</span>
+              <select
+                value={marca === 'Chint' ? 'Schneider' : marca}
+                onChange={(e) => setMarca(e.target.value as typeof marca)}
+                className="border border-slate-300 dark:border-slate-700 rounded px-2 py-1.5 bg-white dark:bg-slate-900 text-sm"
+                aria-label="Marca de los interruptores de alimentador"
+              >
+                {MARCAS_FEEDER.map((m) => (
+                  <option key={m} value={m}>{m}</option>
+                ))}
+              </select>
+            </label>
           )}
           <button
             onClick={() => setImportAbierto(true)}

@@ -1,4 +1,4 @@
-import type { AsignacionCarga, Carga, Tablero, TipoTablero } from '../types';
+import type { AsignacionCarga, Carga, MarcaProteccion, Tablero, TipoTablero } from '../types';
 import { distribuirEnColumnas, resetContadorColumnas } from './columna';
 import { asignarCargaCcm, COLUMNA_CATALOGO, resetContadorGavetas } from './gaveta';
 import { MEDIDA_CCM_DEFAULT } from './medida-ccm';
@@ -22,6 +22,7 @@ export interface ResultadoCcm {
 export function dimensionarCcm(
   cargas: readonly Carga[],
   factorDerrateo = 1,
+  marca: MarcaProteccion = 'Schneider',
 ): ResultadoCcm {
   resetContadorGavetas();
   resetContadorColumnas();
@@ -30,7 +31,7 @@ export function dimensionarCcm(
   const cargasSinAsignar: Carga[] = [];
 
   for (const c of cargas) {
-    const a = asignarCargaCcm(c);
+    const a = asignarCargaCcm(c, marca);
     if (a) asignaciones.push(a);
     else cargasSinAsignar.push(c);
   }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { sugerirProteccionIc60, sugerirProteccionNsx } from './proteccion';
+import { MARCAS_FEEDER, sugerirProteccionFeeder, sugerirProteccionIc60, sugerirProteccionNsx } from './proteccion';
 import type { Carga } from '../types';
 
 const motor11kW: Carga = {
@@ -49,6 +49,30 @@ describe('sugerirProteccionNsx', () => {
     const p = sugerirProteccionNsx(carga);
     expect(p).toBeDefined();
     expect(p!.familia).toBe('NSX250');
+  });
+});
+
+describe('sugerirProteccionFeeder (por marca)', () => {
+  it('Schneider devuelve NSX', () => {
+    const p = sugerirProteccionFeeder(motor11kW, 'Schneider');
+    expect(p?.familia.startsWith('NSX')).toBe(true);
+  });
+
+  it('ABB devuelve Tmax con marca ABB', () => {
+    const p = sugerirProteccionFeeder(motor11kW, 'ABB');
+    expect(p).toBeDefined();
+    expect(p!.marca).toBe('ABB');
+    expect(p!.familia.startsWith('Tmax')).toBe(true);
+    expect(p!.inA).toBeGreaterThanOrEqual(26);
+  });
+
+  it('Chint (sin MCCB) usa NSX como complemento de alimentadores', () => {
+    const p = sugerirProteccionFeeder(motor11kW, 'Chint');
+    expect(p?.familia.startsWith('NSX')).toBe(true);
+  });
+
+  it('solo Schneider y ABB tienen alimentadores propios', () => {
+    expect(MARCAS_FEEDER).toEqual(['Schneider', 'ABB']);
   });
 });
 
