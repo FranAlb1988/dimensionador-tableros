@@ -8,9 +8,10 @@ import { PanelPrincipalBarraNema } from '../components/PanelPrincipalBarraNema';
 import { VistaFrontalTdgNemaSvg } from '../components/VistaFrontalTdgNemaSvg';
 import { ResumenTdgNema } from '../components/ResumenTdgNema';
 import { ExportarPdfTdgNemaBoton } from '../components/ExportarPdfTdgNemaBoton';
-import { SUBTIPOS_TDG_LABEL, useTdgFactorSimultaneidad, useTdgNorma, useTdgSalidas, useTdgStore, useTdgSubtipo } from '../store/tdg';
+import { SUBTIPOS_TDG_LABEL, useTdgFactorSimultaneidad, useTdgMarca, useTdgNorma, useTdgSalidas, useTdgStore, useTdgSubtipo } from '../store/tdg';
 import { dimensionarTdg } from '../logic/tdg';
 import { dimensionarTdgNema } from '../logic/tdg-nema';
+import { MARCAS_PRINCIPAL } from '../logic/principal';
 import type { Norma } from '../types';
 import { TableroSelector } from '../components/TableroSelector';
 
@@ -20,8 +21,10 @@ export function TdgPage() {
   const salidas = useTdgSalidas();
   const fs = useTdgFactorSimultaneidad();
   const norma = useTdgNorma();
+  const marca = useTdgMarca();
   const subtipo = useTdgSubtipo();
   const setNorma = useTdgStore((s) => s.setNorma);
+  const setMarca = useTdgStore((s) => s.setMarca);
   const tableros = useTdgStore((s) => s.tableros);
   const activoId = useTdgStore((s) => s.activoId);
   const setActivo = useTdgStore((s) => s.setActivo);
@@ -45,8 +48,8 @@ export function TdgPage() {
   }));
 
   const resultadoIec = useMemo(
-    () => (norma === 'IEC' ? dimensionarTdg(salidas, fs) : null),
-    [salidas, fs, norma],
+    () => (norma === 'IEC' ? dimensionarTdg(salidas, fs, marca) : null),
+    [salidas, fs, norma, marca],
   );
   const resultadoNema = useMemo(
     () => (norma === 'NEMA' ? dimensionarTdgNema(salidas, fs) : null),
@@ -90,6 +93,21 @@ export function TdgPage() {
               );
             })}
           </div>
+          {norma === 'IEC' && (
+            <label className="inline-flex items-center gap-2 text-sm">
+              <span className="text-slate-600 dark:text-slate-300">Marca principal</span>
+              <select
+                value={marca}
+                onChange={(e) => setMarca(e.target.value as typeof marca)}
+                className="border border-slate-300 dark:border-slate-700 rounded px-2 py-1.5 bg-white dark:bg-slate-900 text-sm"
+                aria-label="Marca del interruptor principal"
+              >
+                {MARCAS_PRINCIPAL.map((m) => (
+                  <option key={m} value={m}>{m}</option>
+                ))}
+              </select>
+            </label>
+          )}
           {norma === 'IEC' && resultadoIec && (
             <ExportarPdfTdgBoton svgRef={svgRefIec} resultado={resultadoIec} subtipo={subtipo} />
           )}

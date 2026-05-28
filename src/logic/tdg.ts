@@ -1,5 +1,5 @@
 import prismaData from '../data/iec/prisma.json';
-import type { Carga, EnvolventePrismaCatalogo, SalidaAsignada, TableroTdg } from '../types';
+import type { Carga, EnvolventePrismaCatalogo, MarcaProteccion, SalidaAsignada, TableroTdg } from '../types';
 import { corrienteDiseno } from './corriente';
 import { sugerirProteccionNsx } from './proteccion';
 import { sugerirInterruptorPrincipal } from './principal';
@@ -31,6 +31,7 @@ const FACTOR_SIMULTANEIDAD_MAX = 1;
 export function dimensionarTdg(
   cargas: readonly Carga[],
   factorSimultaneidad: number,
+  marca: MarcaProteccion = 'Schneider',
 ): ResultadoTdg {
   const fs = clamp(factorSimultaneidad, FACTOR_SIMULTANEIDAD_MIN, FACTOR_SIMULTANEIDAD_MAX);
   const salidasAsignadas: SalidaAsignada[] = [];
@@ -53,13 +54,13 @@ export function dimensionarTdg(
   const sumaSalidasA = salidasAsignadas.reduce((acc, s) => acc + s.corrienteDisenoA, 0);
   const corrienteTotalA = sumaSalidasA * fs;
 
-  const principal = sugerirInterruptorPrincipal(corrienteTotalA);
+  const principal = sugerirInterruptorPrincipal(corrienteTotalA, marca);
   const barra = sugerirBarra(corrienteTotalA);
   if (!principal) {
     return {
       salidasAsignadas,
       cargasSinAsignar,
-      motivo: `Sin interruptor principal en catálogo para ${corrienteTotalA.toFixed(0)} A.`,
+      motivo: `Sin interruptor principal ${marca} en catálogo para ${corrienteTotalA.toFixed(0)} A.`,
     };
   }
   if (!barra) {

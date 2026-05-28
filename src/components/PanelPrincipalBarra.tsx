@@ -8,10 +8,12 @@ interface Props {
 export function PanelPrincipalBarra({ tablero }: Props) {
   const { principal, barra, corrienteTotalA, factorSimultaneidad } = tablero;
   const placeholder = principal.placeholder || barra.placeholder;
+  const marca = principal.marca ?? 'Schneider';
 
   return (
     <div className="grid sm:grid-cols-2 gap-3">
       <Tarjeta titulo="Interruptor principal" badge={principal.familia}>
+        <Linea label="Marca" value={marca} />
         <Linea label="Referencia" value={principal.referencia} mono />
         <Linea label="In nominal" value={fmtAmp(principal.inA)} />
         <Linea label="Icu" value={`${principal.icuKA} kA`} />
@@ -39,7 +41,7 @@ export function PanelPrincipalBarra({ tablero }: Props) {
         />
         {placeholder && (
           <span className="text-amber-700 dark:text-amber-300 ml-auto">
-            ⚠ Datos placeholder — verificar SKU contra catálogo Schneider vigente.
+            ⚠ Datos placeholder — verificar SKU contra catálogo {marca} vigente.
           </span>
         )}
       </div>

@@ -91,7 +91,11 @@ export interface Gaveta {
   protecciones: Proteccion[];
 }
 
+/** Marca/fabricante del interruptor. */
+export type MarcaProteccion = 'Schneider' | 'ABB' | 'Chint';
+
 export type FamiliaProteccion =
+  // Schneider
   | 'NSXm'
   | 'NSX100'
   | 'NSX160'
@@ -101,12 +105,28 @@ export type FamiliaProteccion =
   | 'MasterpactNT'
   | 'MasterpactNW'
   | 'iC60N'
-  | 'iC60H';
+  | 'iC60H'
+  // ABB Tmax (MCCB) y Emax 2 (ACB)
+  | 'TmaxXT2'
+  | 'TmaxXT4'
+  | 'TmaxT4'
+  | 'TmaxT5'
+  | 'EmaxE1.2'
+  | 'EmaxE2.2'
+  | 'EmaxE4.2'
+  | 'EmaxE6.2'
+  // Chint NA1 (ACB)
+  | 'NA1-2000'
+  | 'NA1-3200'
+  | 'NA1-4000'
+  | 'NA1-6300';
 
 export interface Proteccion {
   id: string;
   familia: FamiliaProteccion;
-  /** Referencia comercial Schneider. */
+  /** Marca del interruptor (por defecto Schneider si se omite). */
+  marca?: MarcaProteccion;
+  /** Referencia comercial. */
   referencia: string;
   /** Corriente nominal en A. */
   inA: number;

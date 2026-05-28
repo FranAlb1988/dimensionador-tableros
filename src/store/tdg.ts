@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Carga, Norma } from '../types';
+import type { Carga, MarcaProteccion, Norma } from '../types';
 
 let idCounter = 0;
 function nuevoId(prefix: string): string {
@@ -35,6 +35,8 @@ export interface TdgTablero {
   nombre: string;
   subtipo: SubtipoTdg;
   norma: Norma;
+  /** Marca del interruptor principal (solo aplica al catálogo IEC). */
+  marca?: MarcaProteccion;
   factorSimultaneidad: number;
   salidas: Carga[];
 }
@@ -55,6 +57,7 @@ interface TdgState {
   setActivo: (id: string) => void;
 
   setNorma: (n: Norma) => void;
+  setMarca: (m: MarcaProteccion) => void;
   setFactorSimultaneidad: (v: number) => void;
   agregar: () => void;
   duplicar: (id: string) => void;
@@ -114,6 +117,7 @@ export const useTdgStore = create<TdgState>()(
             nuevo.nombre = `${orig.nombre} (copia)`;
             nuevo.subtipo = orig.subtipo;
             nuevo.norma = orig.norma;
+            nuevo.marca = orig.marca;
             nuevo.factorSimultaneidad = orig.factorSimultaneidad;
             nuevo.salidas = orig.salidas.map((c) => ({ ...c, id: nuevoId('s') }));
             return { tableros: [...s.tableros, nuevo], activoId: nuevo.id };
@@ -132,6 +136,7 @@ export const useTdgStore = create<TdgState>()(
         setActivo: (id) => set({ activoId: id }),
 
         setNorma: (n) => set((s) => modificarActivo(s, (t) => ({ ...t, norma: n }))),
+        setMarca: (m) => set((s) => modificarActivo(s, (t) => ({ ...t, marca: m }))),
         setFactorSimultaneidad: (v) => set((s) => modificarActivo(s, (t) => ({
           ...t,
           factorSimultaneidad: Math.max(0.1, Math.min(1, Number.isFinite(v) ? v : 0.8)),
@@ -195,6 +200,9 @@ export const useTdgSalidas = (): Carga[] =>
 
 export const useTdgNorma = (): Norma =>
   useTdgStore((s) => s.tableros.find((t) => t.id === s.activoId)?.norma ?? 'NEMA');
+
+export const useTdgMarca = (): MarcaProteccion =>
+  useTdgStore((s) => s.tableros.find((t) => t.id === s.activoId)?.marca ?? 'Schneider');
 
 export const useTdgFactorSimultaneidad = (): number =>
   useTdgStore((s) => s.tableros.find((t) => t.id === s.activoId)?.factorSimultaneidad ?? 0.8);

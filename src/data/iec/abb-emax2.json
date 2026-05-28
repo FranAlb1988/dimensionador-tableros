@@ -1,0 +1,15 @@
+{
+  "_comment": "ABB Emax 2 — interruptores de corte en aire (ACB), 3 polos, 800-6300 A para principal del CDC/TDG (alternativa a Masterpact). Icu @415 V depende de la versión (B/N/H/V); se usa un valor conservador por familia. Referencias e Icu deben verificarse contra la Lista de Precios ABB Chile vigente.",
+  "interruptores": [
+    { "id": "abb-e12-800",  "marca": "ABB", "familia": "EmaxE1.2", "referencia": "Emax 2 E1.2 B 800 Ekip 3P",   "inA": 800,  "icuKA": 42, "polos": 3, "placeholder": true, "notas": "E1.2 630-1600 A; Icu B=42 kA @415 V" },
+    { "id": "abb-e12-1000", "marca": "ABB", "familia": "EmaxE1.2", "referencia": "Emax 2 E1.2 B 1000 Ekip 3P",  "inA": 1000, "icuKA": 42, "polos": 3, "placeholder": true },
+    { "id": "abb-e12-1250", "marca": "ABB", "familia": "EmaxE1.2", "referencia": "Emax 2 E1.2 B 1250 Ekip 3P",  "inA": 1250, "icuKA": 42, "polos": 3, "placeholder": true },
+    { "id": "abb-e12-1600", "marca": "ABB", "familia": "EmaxE1.2", "referencia": "Emax 2 E1.2 B 1600 Ekip 3P",  "inA": 1600, "icuKA": 42, "polos": 3, "placeholder": true },
+    { "id": "abb-e22-2000", "marca": "ABB", "familia": "EmaxE2.2", "referencia": "Emax 2 E2.2 N 2000 Ekip 3P",  "inA": 2000, "icuKA": 66, "polos": 3, "placeholder": true, "notas": "E2.2 800-2500 A; Icu N=66 kA @415 V" },
+    { "id": "abb-e22-2500", "marca": "ABB", "familia": "EmaxE2.2", "referencia": "Emax 2 E2.2 N 2500 Ekip 3P",  "inA": 2500, "icuKA": 66, "polos": 3, "placeholder": true },
+    { "id": "abb-e42-3200", "marca": "ABB", "familia": "EmaxE4.2", "referencia": "Emax 2 E4.2 N 3200 Ekip 3P",  "inA": 3200, "icuKA": 66, "polos": 3, "placeholder": true, "notas": "E4.2 2000-4000 A; Icu N=66 kA @415 V" },
+    { "id": "abb-e42-4000", "marca": "ABB", "familia": "EmaxE4.2", "referencia": "Emax 2 E4.2 N 4000 Ekip 3P",  "inA": 4000, "icuKA": 66, "polos": 3, "placeholder": true },
+    { "id": "abb-e62-5000", "marca": "ABB", "familia": "EmaxE6.2", "referencia": "Emax 2 E6.2 H 5000 Ekip 3P",  "inA": 5000, "icuKA": 100, "polos": 3, "placeholder": true, "notas": "E6.2 4000-6300 A; Icu H=100 kA @415 V" },
+    { "id": "abb-e62-6300", "marca": "ABB", "familia": "EmaxE6.2", "referencia": "Emax 2 E6.2 H 6300 Ekip 3P",  "inA": 6300, "icuKA": 100, "polos": 3, "placeholder": true }
+  ]
+}

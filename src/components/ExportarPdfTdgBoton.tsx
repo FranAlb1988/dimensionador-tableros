@@ -72,7 +72,7 @@ export function ExportarPdfTdgBoton({ svgRef, resultado, subtipo = 'general' }: 
       doc.text('Lista de salidas y referencias', 14, 14);
       doc.setFontSize(9);
       doc.text(
-        `Principal: ${t.principal.referencia} (${fmtAmp(t.principal.inA)}, Icu ${t.principal.icuKA} kA)`,
+        `Principal: ${t.principal.marca ?? 'Schneider'} ${t.principal.referencia} (${fmtAmp(t.principal.inA)}, Icu ${t.principal.icuKA} kA)`,
         14, 21,
       );
       doc.text(

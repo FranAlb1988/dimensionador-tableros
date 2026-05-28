@@ -1,0 +1,14 @@
+{
+  "_comment": "Chint NA1 — interruptores de corte al aire (ACB), 3 polos, 1000-6300 A para principal del CDC/TDG (alternativa a Masterpact). Catálogo Chint 2021 'Soluciones para la industria'. Relé electrónico estándar (M) o avanzado (H), regulación 0,4...1xIn, montaje fijo o extraíble, UNE-EN 60947-2. Icu (poder de corte) por talla; verificar contra catálogo Chint vigente. Chint NA1 no cubre el rango MCCB (<1000 A): para corrientes menores usar la serie NM (no incluida).",
+  "interruptores": [
+    { "id": "chint-na1-2000-1000", "marca": "Chint", "familia": "NA1-2000", "referencia": "NA1-2000/1000 3P (T1)", "inA": 1000, "icuKA": 80,  "polos": 3, "placeholder": true, "notas": "Talla T1 (hasta 2000 A); Icu 80 kA" },
+    { "id": "chint-na1-2000-1250", "marca": "Chint", "familia": "NA1-2000", "referencia": "NA1-2000/1250 3P (T1)", "inA": 1250, "icuKA": 80,  "polos": 3, "placeholder": true },
+    { "id": "chint-na1-2000-1600", "marca": "Chint", "familia": "NA1-2000", "referencia": "NA1-2000/1600 3P (T1)", "inA": 1600, "icuKA": 80,  "polos": 3, "placeholder": true },
+    { "id": "chint-na1-2000-2000", "marca": "Chint", "familia": "NA1-2000", "referencia": "NA1-2000/2000 3P (T1)", "inA": 2000, "icuKA": 80,  "polos": 3, "placeholder": true },
+    { "id": "chint-na1-3200-2500", "marca": "Chint", "familia": "NA1-3200", "referencia": "NA1-3200/2500 3P (T2)", "inA": 2500, "icuKA": 100, "polos": 3, "placeholder": true, "notas": "Talla T2 (hasta 3200 A); Icu 100 kA" },
+    { "id": "chint-na1-3200-3200", "marca": "Chint", "familia": "NA1-3200", "referencia": "NA1-3200/3200 3P (T2)", "inA": 3200, "icuKA": 100, "polos": 3, "placeholder": true },
+    { "id": "chint-na1-4000-4000", "marca": "Chint", "familia": "NA1-4000", "referencia": "NA1-4000/4000 3P (T3)", "inA": 4000, "icuKA": 100, "polos": 3, "placeholder": true, "notas": "Talla T3 (hasta 4000 A); Icu 100 kA" },
+    { "id": "chint-na1-6300-5000", "marca": "Chint", "familia": "NA1-6300", "referencia": "NA1-6300/5000 3P (T4)", "inA": 5000, "icuKA": 120, "polos": 3, "placeholder": true, "notas": "Talla T4 (hasta 6300 A); Icu 120 kA" },
+    { "id": "chint-na1-6300-6300", "marca": "Chint", "familia": "NA1-6300", "referencia": "NA1-6300/6300 3P (T4)", "inA": 6300, "icuKA": 120, "polos": 3, "placeholder": true }
+  ]
+}
