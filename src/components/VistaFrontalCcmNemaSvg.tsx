@@ -14,12 +14,19 @@ const COLOR_GAVETA_BORDE = '#94a3b8';
 const COLOR_TEXTO = '#0f172a';
 const COLOR_MEDIDA_BG = '#e0e7ff';
 const COLOR_MEDIDA_BORDE = '#6366f1';
+const MEDIDA_ALTO_MM = 440;
 
 export const VistaFrontalCcmNemaSvg = forwardRef<SVGSVGElement, Props>(function VistaFrontalCcmNemaSvg(
   { tablero }, ref,
 ) {
   const { columnas, xMm, altoTotalMm, anchoTotalMm } = tablero;
   if (columnas.length === 0) return null;
+
+  // El compartimento de medida va arriba, en la columna con más espacios libres.
+  const idxMedida = columnas.reduce(
+    (best, c, i, arr) => (c.espaciosLibres > (arr[best]?.espaciosLibres ?? -1) ? i : best),
+    0,
+  );
 
   const margen = 50;
   const anchoCol = anchoTotalMm / columnas.length;
@@ -62,6 +69,8 @@ export const VistaFrontalCcmNemaSvg = forwardRef<SVGSVGElement, Props>(function 
       {columnas.map((col, idx) => {
         const x0 = margen + idx * anchoCol;
         const yTopColumna = margen + reservaCabezalMm;
+        const conMedida = idx === idxMedida && col.espaciosLibres * xMm >= MEDIDA_ALTO_MM + 100;
+        const offsetMedidaMm = conMedida ? MEDIDA_ALTO_MM : 0;
 
         return (
           <g key={col.indice}>
@@ -77,8 +86,43 @@ export const VistaFrontalCcmNemaSvg = forwardRef<SVGSVGElement, Props>(function 
               {`Col ${col.indice} · ${col.espaciosUsados}X / ${col.altoUtilXEspacios}X`}
             </text>
 
+            {/* Compartimento de medida (arriba, bajo la barra) */}
+            {conMedida && (() => {
+              const m = tablero.medida;
+              return (
+                <g>
+                  <rect
+                    x={x0 + 12} y={yTopColumna}
+                    width={anchoCol - 24} height={MEDIDA_ALTO_MM}
+                    fill={COLOR_MEDIDA_BG} stroke={COLOR_MEDIDA_BORDE} strokeWidth={2}
+                  />
+                  <text
+                    x={x0 + anchoCol / 2} y={yTopColumna + 44}
+                    textAnchor="middle" fontSize={34} fontWeight={700} fill={COLOR_TEXTO}
+                    fontFamily="system-ui, sans-serif"
+                  >
+                    Compartimento de medida
+                  </text>
+                  <text
+                    x={x0 + anchoCol / 2} y={yTopColumna + 90}
+                    textAnchor="middle" fontSize={28} fill="#475569"
+                    fontFamily="system-ui, sans-serif"
+                  >
+                    {`${m.transformadoresTension} PT · ${m.transformadoresCorriente} CT · ${m.lucesPiloto} luces piloto`}
+                  </text>
+                  <text
+                    x={x0 + anchoCol / 2} y={yTopColumna + 128}
+                    textAnchor="middle" fontSize={26} fill="#64748b"
+                    fontFamily="system-ui, sans-serif"
+                  >
+                    {truncate(m.instrumento, 30)}
+                  </text>
+                </g>
+              );
+            })()}
+
             {(() => {
-              let yCursor = yTopColumna;
+              let yCursor = yTopColumna + offsetMedidaMm;
               return col.asignaciones.map((a) => {
                 const altoCelda = a.espaciosX * xMm;
                 const y = yCursor;
@@ -122,71 +166,32 @@ export const VistaFrontalCcmNemaSvg = forwardRef<SVGSVGElement, Props>(function 
               });
             })()}
 
-            {col.espaciosLibres > 0 && (
-              <g>
-                <rect
-                  x={x0 + 12} y={yTopColumna + col.espaciosUsados * xMm}
-                  width={anchoCol - 24} height={col.espaciosLibres * xMm}
-                  fill="#f8fafc" stroke={COLOR_GAVETA_BORDE} strokeDasharray="6 6" strokeWidth={2}
-                />
-                <text
-                  x={x0 + anchoCol / 2}
-                  y={yTopColumna + (col.espaciosUsados + col.espaciosLibres / 2) * xMm}
-                  textAnchor="middle" dominantBaseline="middle"
-                  fontSize={32} fill="#94a3b8"
-                  fontFamily="system-ui, sans-serif"
-                >
-                  {`Libre · ${col.espaciosLibres}X`}
-                </text>
-              </g>
-            )}
+            {(() => {
+              const libreH = col.espaciosLibres * xMm - offsetMedidaMm;
+              if (libreH <= 0) return null;
+              const yLibreTop = yTopColumna + offsetMedidaMm + col.espaciosUsados * xMm;
+              return (
+                <g>
+                  <rect
+                    x={x0 + 12} y={yLibreTop}
+                    width={anchoCol - 24} height={libreH}
+                    fill="#f8fafc" stroke={COLOR_GAVETA_BORDE} strokeDasharray="6 6" strokeWidth={2}
+                  />
+                  <text
+                    x={x0 + anchoCol / 2}
+                    y={yLibreTop + libreH / 2}
+                    textAnchor="middle" dominantBaseline="middle"
+                    fontSize={32} fill="#94a3b8"
+                    fontFamily="system-ui, sans-serif"
+                  >
+                    {`Libre · ${col.espaciosLibres}X`}
+                  </text>
+                </g>
+              );
+            })()}
           </g>
         );
       })}
-
-      {/* Compartimento de medida (PT/CT + luces piloto), al pie de la última columna */}
-      {(() => {
-        const idx = columnas.length - 1;
-        const col = columnas[idx];
-        if (!col) return null;
-        const x0 = margen + idx * anchoCol;
-        const yUtilBottom = margen + reservaCabezalMm + col.altoUtilXEspacios * xMm;
-        const yBottom = margen + altoTotalMm;
-        const bandH = Math.min(440, yBottom - yUtilBottom - 20);
-        if (bandH < 220) return null;
-        const y = yBottom - bandH - 10;
-        const m = tablero.medida;
-        return (
-          <g>
-            <rect
-              x={x0 + 12} y={y}
-              width={anchoCol - 24} height={bandH}
-              fill={COLOR_MEDIDA_BG} stroke={COLOR_MEDIDA_BORDE} strokeWidth={2}
-            />
-            <text
-              x={x0 + anchoCol / 2} y={y + 44}
-              textAnchor="middle" fontSize={34} fontWeight={700} fill={COLOR_TEXTO}
-              fontFamily="system-ui, sans-serif"
-            >
-              Compartimento de medida
-            </text>
-            <text
-              x={x0 + anchoCol / 2} y={y + 90}
-              textAnchor="middle" fontSize={28} fill="#475569"
-              fontFamily="system-ui, sans-serif"
-            >
-              {`${m.transformadoresTension} PT · ${m.transformadoresCorriente} CT · ${m.lucesPiloto} luces piloto`}
-            </text>
-            <text
-              x={x0 + anchoCol / 2} y={y + 128}
-              textAnchor="middle" fontSize={26} fill="#64748b"
-              fontFamily="system-ui, sans-serif"
-            >
-              {truncate(m.instrumento, 30)}
-            </text>
-          </g>
-        );
-      })()}
     </svg>
   );
 });

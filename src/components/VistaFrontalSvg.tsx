@@ -74,6 +74,10 @@ export const VistaFrontalSvg = forwardRef<SVGSVGElement, Props>(function VistaFr
         const xTotalCol = altoUtilColumnaEnX();
         const xUsadoCol = col.gavetas.reduce((acc, g) => acc + tamanoEnX(g.tamano), 0);
         const xLibreCol = Math.max(0, xTotalCol - xUsadoCol);
+        // El compartimento de medida va arriba (bajo el cabezal), en la columna
+        // con más espacio libre. Las gavetas de esa columna bajan ese alto.
+        const conMedida = idx === idxMedida && col.espacioRemanenteMm >= MEDIDA_ALTO_MM + 100;
+        const offsetMedidaMm = conMedida ? MEDIDA_ALTO_MM : 0;
 
         return (
           <g key={col.id}>
@@ -99,9 +103,58 @@ export const VistaFrontalSvg = forwardRef<SVGSVGElement, Props>(function VistaFr
               Cabezal de barras
             </text>
 
-            {/* Gavetas, apiladas desde el tope hacia abajo */}
+            {/* Compartimento de medida (arriba, bajo el cabezal) */}
+            {conMedida && (() => {
+              const m = tablero.medida;
+              return (
+                <g>
+                  <rect
+                    x={x0 + 10}
+                    y={yGavetasTop}
+                    width={anchoCol - 20}
+                    height={MEDIDA_ALTO_MM}
+                    fill={COLOR_MEDIDA_BG}
+                    stroke={COLOR_MEDIDA_BORDE}
+                    strokeWidth={2}
+                  />
+                  <text
+                    x={x0 + anchoCol / 2}
+                    y={yGavetasTop + 44}
+                    textAnchor="middle"
+                    fontSize={34}
+                    fontWeight={700}
+                    fill={COLOR_TEXTO}
+                    fontFamily="system-ui, sans-serif"
+                  >
+                    Compartimento de medida
+                  </text>
+                  <text
+                    x={x0 + anchoCol / 2}
+                    y={yGavetasTop + 90}
+                    textAnchor="middle"
+                    fontSize={28}
+                    fill="#475569"
+                    fontFamily="system-ui, sans-serif"
+                  >
+                    {`${m.transformadoresTension} PT · ${m.transformadoresCorriente} CT · ${m.lucesPiloto} luces piloto`}
+                  </text>
+                  <text
+                    x={x0 + anchoCol / 2}
+                    y={yGavetasTop + 128}
+                    textAnchor="middle"
+                    fontSize={26}
+                    fill="#64748b"
+                    fontFamily="system-ui, sans-serif"
+                  >
+                    {truncate(m.instrumento, 32)}
+                  </text>
+                </g>
+              );
+            })()}
+
+            {/* Gavetas, apiladas desde el tope hacia abajo (bajo la medida si aplica) */}
             {(() => {
-              let yCursor = yGavetasTop;
+              let yCursor = yGavetasTop + offsetMedidaMm;
               return col.gavetas.map((g) => {
                 const y = yCursor;
                 yCursor += g.altoMm;
@@ -154,87 +207,35 @@ export const VistaFrontalSvg = forwardRef<SVGSVGElement, Props>(function VistaFr
               });
             })()}
 
-            {/* Espacio remanente en la columna y compartimento de medida */}
+            {/* Espacio libre (al pie, descontando la medida si está arriba) */}
             {(() => {
-              const remanente = col.espacioRemanenteMm;
-              if (remanente <= 0) return null;
-              const conMedida = idx === idxMedida && remanente >= MEDIDA_ALTO_MM + 100;
-              const medidaH = conMedida ? MEDIDA_ALTO_MM : 0;
-              const libreH = remanente - medidaH;
-              const yLibreTop = yZocaloTop - remanente;
-              const m = tablero.medida;
+              const libreH = col.espacioRemanenteMm - offsetMedidaMm;
+              if (libreH <= 0) return null;
+              const yLibreTop = yZocaloTop - libreH;
               return (
-                <>
-                  {libreH > 0 && (
-                    <g>
-                      <rect
-                        x={x0 + 10}
-                        y={yLibreTop}
-                        width={anchoCol - 20}
-                        height={libreH}
-                        fill="#f8fafc"
-                        stroke={COLOR_GAVETA_BORDE}
-                        strokeDasharray="6 6"
-                        strokeWidth={2}
-                      />
-                      <text
-                        x={x0 + anchoCol / 2}
-                        y={yLibreTop + libreH / 2}
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                        fontSize={32}
-                        fill="#94a3b8"
-                        fontFamily="system-ui, sans-serif"
-                      >
-                        {`Libre · ${fmtMm(libreH)} · ${fmtX(xLibreCol)}`}
-                      </text>
-                    </g>
-                  )}
-                  {conMedida && (
-                    <g>
-                      <rect
-                        x={x0 + 10}
-                        y={yZocaloTop - medidaH}
-                        width={anchoCol - 20}
-                        height={medidaH}
-                        fill={COLOR_MEDIDA_BG}
-                        stroke={COLOR_MEDIDA_BORDE}
-                        strokeWidth={2}
-                      />
-                      <text
-                        x={x0 + anchoCol / 2}
-                        y={yZocaloTop - medidaH + 44}
-                        textAnchor="middle"
-                        fontSize={34}
-                        fontWeight={700}
-                        fill={COLOR_TEXTO}
-                        fontFamily="system-ui, sans-serif"
-                      >
-                        Compartimento de medida
-                      </text>
-                      <text
-                        x={x0 + anchoCol / 2}
-                        y={yZocaloTop - medidaH + 90}
-                        textAnchor="middle"
-                        fontSize={28}
-                        fill="#475569"
-                        fontFamily="system-ui, sans-serif"
-                      >
-                        {`${m.transformadoresTension} PT · ${m.transformadoresCorriente} CT · ${m.lucesPiloto} luces piloto`}
-                      </text>
-                      <text
-                        x={x0 + anchoCol / 2}
-                        y={yZocaloTop - medidaH + 128}
-                        textAnchor="middle"
-                        fontSize={26}
-                        fill="#64748b"
-                        fontFamily="system-ui, sans-serif"
-                      >
-                        {truncate(m.instrumento, 32)}
-                      </text>
-                    </g>
-                  )}
-                </>
+                <g>
+                  <rect
+                    x={x0 + 10}
+                    y={yLibreTop}
+                    width={anchoCol - 20}
+                    height={libreH}
+                    fill="#f8fafc"
+                    stroke={COLOR_GAVETA_BORDE}
+                    strokeDasharray="6 6"
+                    strokeWidth={2}
+                  />
+                  <text
+                    x={x0 + anchoCol / 2}
+                    y={yLibreTop + libreH / 2}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    fontSize={32}
+                    fill="#94a3b8"
+                    fontFamily="system-ui, sans-serif"
+                  >
+                    {`Libre · ${fmtMm(libreH)} · ${fmtX(xLibreCol)}`}
+                  </text>
+                </g>
               );
             })()}
 
