@@ -13,6 +13,9 @@ const COLOR_GAVETA_BG = '#f1f5f9'; // slate-100
 const COLOR_GAVETA_BORDE = '#94a3b8'; // slate-400
 const COLOR_TEXTO = '#0f172a'; // slate-900
 const COLOR_RESERVA = '#fde68a'; // amber-200
+const COLOR_MEDIDA_BG = '#e0e7ff'; // indigo-100
+const COLOR_MEDIDA_BORDE = '#6366f1'; // indigo-500
+const MEDIDA_ALTO_MM = 420; // alto del compartimento de medida en la vista
 
 /**
  * Vista frontal del tablero CCM — cada columna como rectángulo dividido en
@@ -25,6 +28,12 @@ export const VistaFrontalSvg = forwardRef<SVGSVGElement, Props>(function VistaFr
 ) {
   const { columnas, altoTotalMm, reservaCabezalMm, reservaZocaloMm } = tablero;
   if (columnas.length === 0) return null;
+
+  // Columna donde se dibuja el compartimento de medida: la de mayor espacio libre.
+  const idxMedida = columnas.reduce(
+    (best, c, i, arr) => (c.espacioRemanenteMm > (arr[best]?.espacioRemanenteMm ?? -1) ? i : best),
+    0,
+  );
 
   const anchoCol = columnas[0]?.anchoMm ?? 600;
   const margen = 40; // mm de margen total
@@ -145,32 +154,89 @@ export const VistaFrontalSvg = forwardRef<SVGSVGElement, Props>(function VistaFr
               });
             })()}
 
-            {/* Espacio remanente en la columna */}
-            {col.espacioRemanenteMm > 0 && (
-              <g>
-                <rect
-                  x={x0 + 10}
-                  y={yZocaloTop - col.espacioRemanenteMm}
-                  width={anchoCol - 20}
-                  height={col.espacioRemanenteMm}
-                  fill="#f8fafc"
-                  stroke={COLOR_GAVETA_BORDE}
-                  strokeDasharray="6 6"
-                  strokeWidth={2}
-                />
-                <text
-                  x={x0 + anchoCol / 2}
-                  y={yZocaloTop - col.espacioRemanenteMm / 2}
-                  textAnchor="middle"
-                  dominantBaseline="middle"
-                  fontSize={32}
-                  fill="#94a3b8"
-                  fontFamily="system-ui, sans-serif"
-                >
-                  {`Libre · ${fmtMm(col.espacioRemanenteMm)} · ${fmtX(xLibreCol)}`}
-                </text>
-              </g>
-            )}
+            {/* Espacio remanente en la columna y compartimento de medida */}
+            {(() => {
+              const remanente = col.espacioRemanenteMm;
+              if (remanente <= 0) return null;
+              const conMedida = idx === idxMedida && remanente >= MEDIDA_ALTO_MM + 100;
+              const medidaH = conMedida ? MEDIDA_ALTO_MM : 0;
+              const libreH = remanente - medidaH;
+              const yLibreTop = yZocaloTop - remanente;
+              const m = tablero.medida;
+              return (
+                <>
+                  {libreH > 0 && (
+                    <g>
+                      <rect
+                        x={x0 + 10}
+                        y={yLibreTop}
+                        width={anchoCol - 20}
+                        height={libreH}
+                        fill="#f8fafc"
+                        stroke={COLOR_GAVETA_BORDE}
+                        strokeDasharray="6 6"
+                        strokeWidth={2}
+                      />
+                      <text
+                        x={x0 + anchoCol / 2}
+                        y={yLibreTop + libreH / 2}
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        fontSize={32}
+                        fill="#94a3b8"
+                        fontFamily="system-ui, sans-serif"
+                      >
+                        {`Libre · ${fmtMm(libreH)} · ${fmtX(xLibreCol)}`}
+                      </text>
+                    </g>
+                  )}
+                  {conMedida && (
+                    <g>
+                      <rect
+                        x={x0 + 10}
+                        y={yZocaloTop - medidaH}
+                        width={anchoCol - 20}
+                        height={medidaH}
+                        fill={COLOR_MEDIDA_BG}
+                        stroke={COLOR_MEDIDA_BORDE}
+                        strokeWidth={2}
+                      />
+                      <text
+                        x={x0 + anchoCol / 2}
+                        y={yZocaloTop - medidaH + 44}
+                        textAnchor="middle"
+                        fontSize={34}
+                        fontWeight={700}
+                        fill={COLOR_TEXTO}
+                        fontFamily="system-ui, sans-serif"
+                      >
+                        Compartimento de medida
+                      </text>
+                      <text
+                        x={x0 + anchoCol / 2}
+                        y={yZocaloTop - medidaH + 90}
+                        textAnchor="middle"
+                        fontSize={28}
+                        fill="#475569"
+                        fontFamily="system-ui, sans-serif"
+                      >
+                        {`${m.transformadoresTension} PT · ${m.transformadoresCorriente} CT · ${m.lucesPiloto} luces piloto`}
+                      </text>
+                      <text
+                        x={x0 + anchoCol / 2}
+                        y={yZocaloTop - medidaH + 128}
+                        textAnchor="middle"
+                        fontSize={26}
+                        fill="#64748b"
+                        fontFamily="system-ui, sans-serif"
+                      >
+                        {truncate(m.instrumento, 32)}
+                      </text>
+                    </g>
+                  )}
+                </>
+              );
+            })()}
 
             {/* Zócalo */}
             {reservaZocaloMm > 0 && (

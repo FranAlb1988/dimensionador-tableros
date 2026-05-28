@@ -12,6 +12,8 @@ const COLOR_BARRA_BORDE = '#b45309';
 const COLOR_GAVETA_BG = '#f1f5f9';
 const COLOR_GAVETA_BORDE = '#94a3b8';
 const COLOR_TEXTO = '#0f172a';
+const COLOR_MEDIDA_BG = '#e0e7ff';
+const COLOR_MEDIDA_BORDE = '#6366f1';
 
 export const VistaFrontalCcmNemaSvg = forwardRef<SVGSVGElement, Props>(function VistaFrontalCcmNemaSvg(
   { tablero }, ref,
@@ -141,6 +143,50 @@ export const VistaFrontalCcmNemaSvg = forwardRef<SVGSVGElement, Props>(function 
           </g>
         );
       })}
+
+      {/* Compartimento de medida (PT/CT + luces piloto), al pie de la última columna */}
+      {(() => {
+        const idx = columnas.length - 1;
+        const col = columnas[idx];
+        if (!col) return null;
+        const x0 = margen + idx * anchoCol;
+        const yUtilBottom = margen + reservaCabezalMm + col.altoUtilXEspacios * xMm;
+        const yBottom = margen + altoTotalMm;
+        const bandH = Math.min(440, yBottom - yUtilBottom - 20);
+        if (bandH < 220) return null;
+        const y = yBottom - bandH - 10;
+        const m = tablero.medida;
+        return (
+          <g>
+            <rect
+              x={x0 + 12} y={y}
+              width={anchoCol - 24} height={bandH}
+              fill={COLOR_MEDIDA_BG} stroke={COLOR_MEDIDA_BORDE} strokeWidth={2}
+            />
+            <text
+              x={x0 + anchoCol / 2} y={y + 44}
+              textAnchor="middle" fontSize={34} fontWeight={700} fill={COLOR_TEXTO}
+              fontFamily="system-ui, sans-serif"
+            >
+              Compartimento de medida
+            </text>
+            <text
+              x={x0 + anchoCol / 2} y={y + 90}
+              textAnchor="middle" fontSize={28} fill="#475569"
+              fontFamily="system-ui, sans-serif"
+            >
+              {`${m.transformadoresTension} PT · ${m.transformadoresCorriente} CT · ${m.lucesPiloto} luces piloto`}
+            </text>
+            <text
+              x={x0 + anchoCol / 2} y={y + 128}
+              textAnchor="middle" fontSize={26} fill="#64748b"
+              fontFamily="system-ui, sans-serif"
+            >
+              {truncate(m.instrumento, 30)}
+            </text>
+          </g>
+        );
+      })()}
     </svg>
   );
 });
