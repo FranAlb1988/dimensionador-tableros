@@ -26,6 +26,16 @@
     { "frameA": 2000, "modelo": "Interruptor al vacío 2000 A" },
     { "frameA": 3150, "modelo": "Interruptor al vacío 3150 A" }
   ],
+  "protecciones": {
+    "motor": {
+      "modelo": "Relé multifunción de motor (p. ej. SEL-710 / AB 857)",
+      "ansi": ["49", "50", "51", "46", "37", "48", "66", "50G", "27", "59"]
+    },
+    "entrada": {
+      "modelo": "Relé de alimentador (p. ej. SEL-751 / AB 865)",
+      "ansi": ["50", "51", "50N", "51N", "27", "59"]
+    }
+  },
   "envolvente": {
     "anchoColumnaMm": 915,
     "altoTotalMm": 2290,

@@ -8,7 +8,7 @@
 import centerlineData from '../data/nema-mt/centerline-2500.json';
 import type {
   AsignacionCcmMt, Carga, ColumnaCcmMt, ContactorMtCatalogo,
-  EnvolventeCcmMtCatalogo, PrincipalMtCatalogo, TableroCcmMt,
+  EnvolventeCcmMtCatalogo, PrincipalMtCatalogo, ProteccionMtCatalogo, TableroCcmMt,
 } from '../types';
 import { corrienteNominal } from './corriente';
 
@@ -22,6 +22,13 @@ const PRINCIPALES_MT: readonly PrincipalMtCatalogo[] = (centerlineData.principal
 
 export const ENVOLVENTE_CCM_MT: EnvolventeCcmMtCatalogo =
   centerlineData.envolvente as EnvolventeCcmMtCatalogo;
+
+const PROTECCIONES = centerlineData.protecciones as {
+  motor: ProteccionMtCatalogo;
+  entrada: ProteccionMtCatalogo;
+};
+export const PROTECCION_MOTOR_MT: ProteccionMtCatalogo = PROTECCIONES.motor;
+export const PROTECCION_ENTRADA_MT: ProteccionMtCatalogo = PROTECCIONES.entrada;
 
 /** Celdas fijas del lineup además de las de starters: entrada + medida. */
 export const COLUMNAS_FIJAS_MT = 2;
@@ -86,6 +93,7 @@ export function dimensionarCcmMt(
     asignaciones.push({
       carga: c,
       contactor,
+      proteccion: PROTECCION_MOTOR_MT,
       espaciosV: contactor.espaciosColumnaV,
       corrienteDisenoA,
     });
@@ -125,6 +133,7 @@ export function dimensionarCcmMt(
     corrienteSeleccionBarraA,
     barraA,
     principal,
+    proteccionEntrada: PROTECCION_ENTRADA_MT,
     incluyeMedida: true,
     altoTotalMm: ENVOLVENTE_CCM_MT.altoTotalMm,
     anchoTotalMm: totalColumnas * ENVOLVENTE_CCM_MT.anchoColumnaMm,

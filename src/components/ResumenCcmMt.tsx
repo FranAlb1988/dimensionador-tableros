@@ -23,6 +23,8 @@ export function ResumenCcmMt({ resultado }: { resultado: ResultadoCcmMt }) {
           <dd className="font-medium tabular-nums">{t.principal.frameA} A</dd>
           <dt className="text-slate-500">Barra principal</dt>
           <dd className="font-medium tabular-nums">{t.barraA} A</dd>
+          <dt className="text-slate-500">Relé de entrada</dt>
+          <dd className="font-mono text-xs">{t.proteccionEntrada.ansi.join(' · ')}</dd>
           <dt className="text-slate-500">Celda de medida</dt>
           <dd className="font-medium">{t.incluyeMedida ? 'PT / CT' : '—'}</dd>
           <dt className="text-slate-500">Alto</dt>

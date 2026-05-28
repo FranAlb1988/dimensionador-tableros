@@ -309,9 +309,18 @@ export interface EnvolventeCcmMtCatalogo {
   espaciosVerticales: number;
 }
 
+export interface ProteccionMtCatalogo {
+  /** Modelo del relé multifunción. */
+  modelo: string;
+  /** Funciones ANSI que cubre (49, 50, 51, 46, …). */
+  ansi: readonly string[];
+}
+
 export interface AsignacionCcmMt {
   carga: Carga;
   contactor: ContactorMtCatalogo;
+  /** Relé de protección de la celda del starter. */
+  proteccion: ProteccionMtCatalogo;
   /** Espacios verticales que ocupa este starter. */
   espaciosV: number;
   /** Corriente de diseño usada en la asignación (A, en lado del motor). */
@@ -345,6 +354,8 @@ export interface TableroCcmMt {
   barraA: number;
   /** Interruptor general de la celda de entrada. */
   principal: PrincipalMtCatalogo;
+  /** Relé de protección de la celda de entrada (alimentador). */
+  proteccionEntrada: ProteccionMtCatalogo;
   /** Si el lineup incluye una celda de medida (PT/CT). */
   incluyeMedida: boolean;
   altoTotalMm: number;

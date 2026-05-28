@@ -98,6 +98,17 @@ describe('dimensionarCcmMt', () => {
     expect(r.tablero!.principal.frameA).toBe(2000);
   });
 
+  it('cada starter lleva relé de motor y la entrada lleva relé de alimentador', () => {
+    const r = dimensionarCcmMt([motorMt('1', 200, 6600)]);
+    const rele = r.asignaciones[0]!.proteccion;
+    expect(rele.ansi).toContain('49'); // sobrecarga térmica
+    expect(rele.ansi).toContain('50'); // sobrecorriente instantánea
+    expect(rele.ansi).toContain('46'); // desbalance / pérdida de fase
+    const entrada = r.tablero!.proteccionEntrada;
+    expect(entrada.ansi).toContain('51');
+    expect(entrada.ansi).toContain('50N'); // falla a tierra del alimentador
+  });
+
   it('aplica derrateo F2 al elegir el contactor', () => {
     // Motor 2000 HP @ 4,16 kV: Imin = 270 × 1,25 = 337 → 400 A.
     // Con F2 = 0,5: Imin/F2 = 674 → debería saltar a 720 A.
