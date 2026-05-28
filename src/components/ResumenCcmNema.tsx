@@ -1,6 +1,7 @@
 import type { ResultadoCcmNema } from '../logic/ccm-nema';
 import { fmtAmp, fmtFactor, fmtMm, fmtNumero } from '../util/format';
 import { useMetaStore } from '../store/proyecto-meta';
+import { MedidaCard } from './MedidaCard';
 
 export function ResumenCcmNema({ resultado }: { resultado: ResultadoCcmNema }) {
   const t = resultado.tablero;
@@ -89,6 +90,8 @@ export function ResumenCcmNema({ resultado }: { resultado: ResultadoCcmNema }) {
           <span className="font-semibold tabular-nums">{resultado.asignaciones.length}</span>
         </div>
       </div>
+
+      <MedidaCard medida={t.medida} />
 
       {derrateo.activo && (
         <p className="sm:col-span-2 text-xs text-slate-500 dark:text-slate-400 leading-relaxed">

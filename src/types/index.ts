@@ -167,12 +167,29 @@ export interface Columna {
   espacioRemanenteMm: number;
 }
 
+/**
+ * Equipos de medida del CCM: transformadores de tensión (PT) y de corriente
+ * (CT), luces piloto e instrumento de medida. Van en un compartimento de medida.
+ */
+export interface MedidaCcm {
+  /** Transformadores de tensión (PT). */
+  transformadoresTension: number;
+  /** Transformadores de corriente (CT). */
+  transformadoresCorriente: number;
+  /** Luces piloto (presencia de fase). */
+  lucesPiloto: number;
+  /** Instrumento de medida. */
+  instrumento: string;
+}
+
 export interface Tablero {
   tipo: TipoTablero;
   columnas: Columna[];
   /** Reservas verticales por columna (cabezal de barras + zócalo) en mm. */
   reservaCabezalMm: number;
   reservaZocaloMm: number;
+  /** Equipos de medida del CCM. */
+  medida: MedidaCcm;
   /** Dimensiones totales en mm. */
   altoTotalMm: number;
   anchoTotalMm: number;
@@ -274,6 +291,8 @@ export interface TableroCcmNema {
   columnas: ColumnaCcmNema[];
   /** FLC sumada (corriente real de las cargas, sin derrateo). */
   corrienteTotalA: number;
+  /** Equipos de medida del CCM. */
+  medida: MedidaCcm;
   /** Factor F2 de derrateo por altura aplicado (1 = sin derrateo). */
   factorDerrateoAltura: number;
   /** Corriente con que se seleccionó la barra: corrienteTotalA / F2. */

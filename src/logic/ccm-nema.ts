@@ -16,6 +16,7 @@ import type {
   TableroCcmNema,
 } from '../types';
 import { corrienteDiseno, corrienteNominal } from './corriente';
+import { MEDIDA_CCM_DEFAULT } from './medida-ccm';
 import { KW_POR_HP } from '../util/potencia';
 
 const MOTORES: readonly MotorNemaCatalogo[] = (motoresData.filas as MotorNemaCatalogo[])
@@ -103,6 +104,7 @@ export function dimensionarCcmNema(
     norma: 'NEMA', tipo: 'CCM',
     columnas,
     corrienteTotalA,
+    medida: MEDIDA_CCM_DEFAULT,
     factorDerrateoAltura: f,
     corrienteSeleccionBarraA,
     barra,

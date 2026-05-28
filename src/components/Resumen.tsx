@@ -2,6 +2,7 @@ import type { ResultadoCcm } from '../logic/tablero';
 import { fmtMm } from '../util/format';
 import type { TamanoGaveta } from '../types';
 import { altoUtilColumnaEnX, fmtX, tamanoEnX, tamanoEnXTexto } from '../util/x-blokset';
+import { MedidaCard } from './MedidaCard';
 
 const ORDEN_TAMANO: readonly TamanoGaveta[] = ['1/4', '1/2', '1', '1+1/2', '2'];
 
@@ -61,6 +62,8 @@ export function Resumen({ resultado }: { resultado: ResultadoCcm }) {
           </li>
         </ul>
       </div>
+
+      <MedidaCard medida={tablero.medida} />
     </div>
   );
 }

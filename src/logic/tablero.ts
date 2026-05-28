@@ -1,6 +1,7 @@
 import type { AsignacionCarga, Carga, Tablero, TipoTablero } from '../types';
 import { distribuirEnColumnas, resetContadorColumnas } from './columna';
 import { asignarCargaCcm, COLUMNA_CATALOGO, resetContadorGavetas } from './gaveta';
+import { MEDIDA_CCM_DEFAULT } from './medida-ccm';
 
 export interface ResultadoCcm {
   asignaciones: AsignacionCarga[];
@@ -37,6 +38,7 @@ export function dimensionarCcm(cargas: readonly Carga[]): ResultadoCcm {
     columnas,
     reservaCabezalMm: COLUMNA_CATALOGO.reservaCabezalMm,
     reservaZocaloMm: COLUMNA_CATALOGO.reservaZocaloMm,
+    medida: MEDIDA_CCM_DEFAULT,
     altoTotalMm: COLUMNA_CATALOGO.altoTotalMm,
     anchoTotalMm: columnas.length * COLUMNA_CATALOGO.anchoMm,
     profundidadTotalMm: COLUMNA_CATALOGO.profundidadMm,

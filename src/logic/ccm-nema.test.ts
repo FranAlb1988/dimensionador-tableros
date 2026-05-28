@@ -151,6 +151,14 @@ describe('dimensionarCcmNema', () => {
     expect(derrateado.tablero!.barra.capacidadA).toBe(800);
   });
 
+  it('incluye el compartimento de medida (PT, CT, luces piloto)', () => {
+    const r = dimensionarCcmNema([motor('1', 50)]);
+    expect(r.tablero!.medida.transformadoresTension).toBeGreaterThan(0);
+    expect(r.tablero!.medida.transformadoresCorriente).toBeGreaterThan(0);
+    expect(r.tablero!.medida.lucesPiloto).toBeGreaterThan(0);
+    expect(r.tablero!.medida.instrumento).toBeTruthy();
+  });
+
   it('en media tensión calcula la FLA con la fórmula (no el catálogo BT)', () => {
     // Motor 100 HP @ 6,6 kV, cosφ 0,85, η 0,9, 3F:
     //   I = (100·0,7457·1000) / (√3 · 6600 · 0,85 · 0,9) ≈ 8,5 A
