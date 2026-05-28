@@ -14,7 +14,6 @@ const COLOR_GAVETA_BORDE = '#94a3b8';
 const COLOR_TEXTO = '#0f172a';
 const COLOR_MEDIDA_BG = '#e0e7ff';
 const COLOR_MEDIDA_BORDE = '#6366f1';
-const MEDIDA_ALTO_MM = 440;
 
 export const VistaFrontalCcmNemaSvg = forwardRef<SVGSVGElement, Props>(function VistaFrontalCcmNemaSvg(
   { tablero }, ref,
@@ -22,11 +21,13 @@ export const VistaFrontalCcmNemaSvg = forwardRef<SVGSVGElement, Props>(function 
   const { columnas, xMm, altoTotalMm, anchoTotalMm } = tablero;
   if (columnas.length === 0) return null;
 
-  // El compartimento de medida va arriba, en la columna con más espacios libres.
+  // El compartimento de medida va arriba, en la columna con más espacios libres,
+  // y ocupa 2X (X = xMm del tablero).
   const idxMedida = columnas.reduce(
     (best, c, i, arr) => (c.espaciosLibres > (arr[best]?.espaciosLibres ?? -1) ? i : best),
     0,
   );
+  const medidaAltoMm = 2 * xMm;
 
   const margen = 50;
   const anchoCol = anchoTotalMm / columnas.length;
@@ -69,8 +70,8 @@ export const VistaFrontalCcmNemaSvg = forwardRef<SVGSVGElement, Props>(function 
       {columnas.map((col, idx) => {
         const x0 = margen + idx * anchoCol;
         const yTopColumna = margen + reservaCabezalMm;
-        const conMedida = idx === idxMedida && col.espaciosLibres * xMm >= MEDIDA_ALTO_MM + 100;
-        const offsetMedidaMm = conMedida ? MEDIDA_ALTO_MM : 0;
+        const conMedida = idx === idxMedida && col.espaciosLibres >= 2;
+        const offsetMedidaMm = conMedida ? medidaAltoMm : 0;
 
         return (
           <g key={col.indice}>
@@ -93,7 +94,7 @@ export const VistaFrontalCcmNemaSvg = forwardRef<SVGSVGElement, Props>(function 
                 <g>
                   <rect
                     x={x0 + 12} y={yTopColumna}
-                    width={anchoCol - 24} height={MEDIDA_ALTO_MM}
+                    width={anchoCol - 24} height={medidaAltoMm}
                     fill={COLOR_MEDIDA_BG} stroke={COLOR_MEDIDA_BORDE} strokeWidth={2}
                   />
                   <text
@@ -101,7 +102,7 @@ export const VistaFrontalCcmNemaSvg = forwardRef<SVGSVGElement, Props>(function 
                     textAnchor="middle" fontSize={34} fontWeight={700} fill={COLOR_TEXTO}
                     fontFamily="system-ui, sans-serif"
                   >
-                    Compartimento de medida
+                    Compartimento de medida · 2X
                   </text>
                   <text
                     x={x0 + anchoCol / 2} y={yTopColumna + 90}
@@ -184,7 +185,7 @@ export const VistaFrontalCcmNemaSvg = forwardRef<SVGSVGElement, Props>(function 
                     fontSize={32} fill="#94a3b8"
                     fontFamily="system-ui, sans-serif"
                   >
-                    {`Libre · ${col.espaciosLibres}X`}
+                    {`Libre · ${col.espaciosLibres - (conMedida ? 2 : 0)}X`}
                   </text>
                 </g>
               );

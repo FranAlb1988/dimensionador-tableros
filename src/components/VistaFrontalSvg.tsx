@@ -2,6 +2,7 @@ import { forwardRef } from 'react';
 import type { Tablero } from '../types';
 import { fmtMm } from '../util/format';
 import { altoUtilColumnaEnX, fmtX, tamanoEnX, tamanoEnXTexto } from '../util/x-blokset';
+import { altoDeGaveta } from '../logic/gaveta';
 
 interface Props {
   tablero: Tablero;
@@ -15,7 +16,8 @@ const COLOR_TEXTO = '#0f172a'; // slate-900
 const COLOR_RESERVA = '#fde68a'; // amber-200
 const COLOR_MEDIDA_BG = '#e0e7ff'; // indigo-100
 const COLOR_MEDIDA_BORDE = '#6366f1'; // indigo-500
-const MEDIDA_ALTO_MM = 420; // alto del compartimento de medida en la vista
+// El compartimento de medida ocupa 2X (1X = alto de la gaveta tamaño "1").
+const MEDIDA_ALTO_MM = 2 * altoDeGaveta('1');
 
 /**
  * Vista frontal del tablero CCM — cada columna como rectángulo dividido en
@@ -126,7 +128,7 @@ export const VistaFrontalSvg = forwardRef<SVGSVGElement, Props>(function VistaFr
                     fill={COLOR_TEXTO}
                     fontFamily="system-ui, sans-serif"
                   >
-                    Compartimento de medida
+                    Compartimento de medida · 2X
                   </text>
                   <text
                     x={x0 + anchoCol / 2}
@@ -233,7 +235,7 @@ export const VistaFrontalSvg = forwardRef<SVGSVGElement, Props>(function VistaFr
                     fill="#94a3b8"
                     fontFamily="system-ui, sans-serif"
                   >
-                    {`Libre · ${fmtMm(libreH)} · ${fmtX(xLibreCol)}`}
+                    {`Libre · ${fmtMm(libreH)} · ${fmtX(Math.max(0, xLibreCol - (conMedida ? 2 : 0)))}`}
                   </text>
                 </g>
               );
