@@ -39,6 +39,32 @@ describe('dimensionarCcm', () => {
     expect(escala.indexOf(suave)).toBeGreaterThan(escala.indexOf(dol));
   });
 
+  it('calcula FLC total y selecciona barra principal', () => {
+    const cargas: Carga[] = [motor('1', 30), motor('2', 22)];
+    const r = dimensionarCcm(cargas);
+    expect(r.tablero.corrienteTotalA).toBeGreaterThan(0);
+    expect(r.tablero.barra).toBeDefined();
+    expect(r.tablero.barra!.inA).toBeGreaterThanOrEqual(r.tablero.corrienteTotalA);
+  });
+
+  it('el derrateo por altura sube la barra (selección contra FLC/F2)', () => {
+    const cargas: Carga[] = [motor('1', 110)];
+    const base = dimensionarCcm(cargas).tablero.barra!.inA;
+    const conDerrateo = dimensionarCcm(cargas, 0.7);
+    expect(conDerrateo.tablero.factorDerrateoAltura).toBe(0.7);
+    expect(conDerrateo.tablero.corrienteSeleccionBarraA).toBeCloseTo(
+      conDerrateo.tablero.corrienteTotalA / 0.7,
+      1,
+    );
+    expect(conDerrateo.tablero.barra!.inA).toBeGreaterThanOrEqual(base);
+  });
+
+  it('incluye el compartimento de medida', () => {
+    const r = dimensionarCcm([motor('1', 11)]);
+    expect(r.tablero.medida.transformadoresCorriente).toBeGreaterThan(0);
+    expect(r.tablero.medida.lucesPiloto).toBeGreaterThan(0);
+  });
+
   it('IDs de gavetas y columnas son deterministas entre llamadas', () => {
     const r1 = dimensionarCcm([motor('a', 11)]);
     const r2 = dimensionarCcm([motor('a', 11)]);

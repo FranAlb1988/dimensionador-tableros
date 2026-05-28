@@ -190,6 +190,14 @@ export interface Tablero {
   reservaZocaloMm: number;
   /** Equipos de medida del CCM. */
   medida: MedidaCcm;
+  /** FLC total sumada (corriente de diseño de las cargas). */
+  corrienteTotalA: number;
+  /** Factor F2 de derrateo por altura aplicado (1 = sin derrateo). */
+  factorDerrateoAltura: number;
+  /** Corriente con que se selecciona la barra: FLC / F2. */
+  corrienteSeleccionBarraA: number;
+  /** Barra principal sugerida (undefined si la corriente excede el catálogo). */
+  barra?: Barra;
   /** Dimensiones totales en mm. */
   altoTotalMm: number;
   anchoTotalMm: number;

@@ -1,5 +1,5 @@
 import type { ResultadoCcm } from '../logic/tablero';
-import { fmtMm } from '../util/format';
+import { fmtAmp, fmtFactor, fmtMm } from '../util/format';
 import type { TamanoGaveta } from '../types';
 import { altoUtilColumnaEnX, fmtX, tamanoEnX, tamanoEnXTexto } from '../util/x-blokset';
 import { MedidaCard } from './MedidaCard';
@@ -37,6 +37,20 @@ export function Resumen({ resultado }: { resultado: ResultadoCcm }) {
           <dd className="tabular-nums text-slate-600">{fmtMm(tablero.reservaZocaloMm)}</dd>
           <dt className="text-slate-500">X usado</dt>
           <dd className="font-medium tabular-nums">{fmtX(xUsadoTotal)} / {fmtX(xTotalDisponible)}</dd>
+          <dt className="text-slate-500">FLC total</dt>
+          <dd className="font-medium tabular-nums">{fmtAmp(tablero.corrienteTotalA)}</dd>
+          {tablero.factorDerrateoAltura < 1 && (
+            <>
+              <dt className="text-slate-500">Factor F2 (BT)</dt>
+              <dd className="font-medium tabular-nums">{fmtFactor(tablero.factorDerrateoAltura)}</dd>
+              <dt className="text-slate-500">Corriente selección barra</dt>
+              <dd className="font-medium tabular-nums">{fmtAmp(tablero.corrienteSeleccionBarraA)}</dd>
+            </>
+          )}
+          <dt className="text-slate-500">Barra principal</dt>
+          <dd className="font-medium tabular-nums">
+            {tablero.barra ? `${tablero.barra.inA} A` : 'Excede catálogo'}
+          </dd>
         </dl>
       </div>
 

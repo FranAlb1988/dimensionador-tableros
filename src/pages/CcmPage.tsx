@@ -47,8 +47,8 @@ export function CcmPage() {
   const [importAbierto, setImportAbierto] = useState(false);
 
   const resultadoIec = useMemo(
-    () => (norma === 'IEC' && !esMt ? dimensionarCcm(cargas) : null),
-    [cargas, norma, esMt],
+    () => (norma === 'IEC' && !esMt ? dimensionarCcm(cargas, factorDerrateo) : null),
+    [cargas, norma, esMt, factorDerrateo],
   );
   const resultadoNema = useMemo(
     () => (norma === 'NEMA' && !esMt ? dimensionarCcmNema(cargas, factorDerrateo) : null),
