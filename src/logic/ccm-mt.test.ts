@@ -64,10 +64,11 @@ describe('dimensionarCcmMt', () => {
     expect(r.cargasSinAsignar).toHaveLength(2);
   });
 
-  it('bin-pack: dos contactores half-height caben en una columna', () => {
+  it('bin-pack: dos contactores half-height caben en una columna de starters', () => {
     const r = dimensionarCcmMt([motorMt('1', 100, 6600), motorMt('2', 200, 6600)]);
     expect(r.tablero!.columnas).toHaveLength(1);
-    expect(r.tablero!.anchoTotalMm).toBe(915);
+    // 1 columna de starters + entrada + medida = 3 celdas.
+    expect(r.tablero!.anchoTotalMm).toBe(3 * 915);
   });
 
   it('bin-pack: un full-height (720 A) ocupa toda la columna', () => {
@@ -76,7 +77,25 @@ describe('dimensionarCcmMt', () => {
       motorMt('chico', 100, 6600), // 200 A half-height
     ]);
     expect(r.tablero!.columnas).toHaveLength(2);
-    expect(r.tablero!.anchoTotalMm).toBe(2 * 915);
+    // 2 columnas de starters + entrada + medida = 4 celdas.
+    expect(r.tablero!.anchoTotalMm).toBe(4 * 915);
+  });
+
+  it('incluye barra principal, interruptor de entrada y celda de medida', () => {
+    const r = dimensionarCcmMt([motorMt('1', 200, 6600)]);
+    expect(r.tablero!.barraA).toBe(1250);
+    expect(r.tablero!.principal.frameA).toBe(1250);
+    expect(r.tablero!.incluyeMedida).toBe(true);
+  });
+
+  it('barra e interruptor crecen con la corriente total', () => {
+    // 3 × 4000 HP @ 4,16 kV ≈ 3 × 541 A = 1623 A → barra/interruptor 2000 A.
+    const r = dimensionarCcmMt([
+      motorMt('1', 4000, 4160), motorMt('2', 4000, 4160), motorMt('3', 4000, 4160),
+    ]);
+    expect(r.tablero!.corrienteTotalA).toBeCloseTo(1623, -1);
+    expect(r.tablero!.barraA).toBe(2000);
+    expect(r.tablero!.principal.frameA).toBe(2000);
   });
 
   it('aplica derrateo F2 al elegir el contactor', () => {

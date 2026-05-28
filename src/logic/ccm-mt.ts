@@ -8,18 +8,36 @@
 import centerlineData from '../data/nema-mt/centerline-2500.json';
 import type {
   AsignacionCcmMt, Carga, ColumnaCcmMt, ContactorMtCatalogo,
-  EnvolventeCcmMtCatalogo, TableroCcmMt,
+  EnvolventeCcmMtCatalogo, PrincipalMtCatalogo, TableroCcmMt,
 } from '../types';
 import { corrienteNominal } from './corriente';
 
 const CONTACTORES: readonly ContactorMtCatalogo[] = (centerlineData.contactores as ContactorMtCatalogo[])
   .toSorted((a, b) => a.frameA - b.frameA);
 
+const BARRAS_MT: readonly number[] = (centerlineData.barras as number[]).toSorted((a, b) => a - b);
+
+const PRINCIPALES_MT: readonly PrincipalMtCatalogo[] = (centerlineData.principales as PrincipalMtCatalogo[])
+  .toSorted((a, b) => a.frameA - b.frameA);
+
 export const ENVOLVENTE_CCM_MT: EnvolventeCcmMtCatalogo =
   centerlineData.envolvente as EnvolventeCcmMtCatalogo;
 
+/** Celdas fijas del lineup además de las de starters: entrada + medida. */
+export const COLUMNAS_FIJAS_MT = 2;
+
 /** Margen sobre la FLA para elegir el contactor (motor régimen permanente). */
 const MARGEN_CONTACTOR_MT = 1.25;
+
+/** Barra principal mínima del catálogo que cubre la corriente dada. */
+export function sugerirBarraMt(corrienteA: number): number | undefined {
+  return BARRAS_MT.find((b) => b >= corrienteA);
+}
+
+/** Interruptor de entrada mínimo del catálogo que cubre la corriente dada. */
+export function sugerirPrincipalMt(corrienteA: number): PrincipalMtCatalogo | undefined {
+  return PRINCIPALES_MT.find((p) => p.frameA >= corrienteA);
+}
 
 export interface ResultadoCcmMt {
   asignaciones: AsignacionCcmMt[];
@@ -84,6 +102,20 @@ export function dimensionarCcmMt(
   const corrienteTotalA = asignaciones.reduce((s, a) => s + a.corrienteDisenoA, 0);
   const corrienteSeleccionBarraA = corrienteTotalA / f;
 
+  // Barra principal e interruptor de entrada por la corriente (derrateada).
+  const barraA = sugerirBarraMt(corrienteSeleccionBarraA);
+  const principal = sugerirPrincipalMt(corrienteSeleccionBarraA);
+  if (barraA == null || principal == null) {
+    const max = Math.max(...BARRAS_MT);
+    return {
+      asignaciones, cargasSinAsignar,
+      motivo: `La corriente total (${corrienteSeleccionBarraA.toFixed(0)} A) supera la barra/interruptor de entrada máximo del catálogo MT (${max} A). Divide las cargas en otro CCM.`,
+    };
+  }
+
+  // El lineup suma 2 celdas fijas: entrada (interruptor general) y medida (PT/CT).
+  const totalColumnas = columnas.length + COLUMNAS_FIJAS_MT;
+
   const tablero: TableroCcmMt = {
     tipo: 'CCM',
     norma: 'MT',
@@ -91,8 +123,11 @@ export function dimensionarCcmMt(
     corrienteTotalA,
     factorDerrateoAltura: f,
     corrienteSeleccionBarraA,
+    barraA,
+    principal,
+    incluyeMedida: true,
     altoTotalMm: ENVOLVENTE_CCM_MT.altoTotalMm,
-    anchoTotalMm: columnas.length * ENVOLVENTE_CCM_MT.anchoColumnaMm,
+    anchoTotalMm: totalColumnas * ENVOLVENTE_CCM_MT.anchoColumnaMm,
     profundidadTotalMm: ENVOLVENTE_CCM_MT.profundidadMm,
   };
 

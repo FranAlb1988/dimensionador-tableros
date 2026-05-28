@@ -1,5 +1,5 @@
 {
-  "_descripcion": "Catálogo de contactores al vacío AB CENTERLINE 2500 (clase 5 kV / 7,2 kV). Frames continuos típicos y envolvente estándar.",
+  "_descripcion": "Catálogo de CCM de media tensión AB CENTERLINE 2500 (clase 5 kV / 7,2 kV). Contactores al vacío, barras principales, interruptores de entrada y envolvente estándar.",
   "contactores": [
     {
       "frameA": 200,
@@ -19,6 +19,12 @@
       "claseKv": [2.4, 4.16, 6.9],
       "espaciosColumnaV": 2
     }
+  ],
+  "barras": [1250, 2000, 3150],
+  "principales": [
+    { "frameA": 1250, "modelo": "Interruptor al vacío 1250 A" },
+    { "frameA": 2000, "modelo": "Interruptor al vacío 2000 A" },
+    { "frameA": 3150, "modelo": "Interruptor al vacío 3150 A" }
   ],
   "envolvente": {
     "anchoColumnaMm": 915,

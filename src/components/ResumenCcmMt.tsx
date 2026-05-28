@@ -15,10 +15,16 @@ export function ResumenCcmMt({ resultado }: { resultado: ResultadoCcmMt }) {
   return (
     <div className="grid sm:grid-cols-2 gap-4">
       <div className="border border-slate-200 dark:border-slate-800 rounded-lg p-4">
-        <div className="text-sm font-medium text-slate-500 mb-2">Dimensiones del tablero</div>
+        <div className="text-sm font-medium text-slate-500 mb-2">Tablero y celdas principales</div>
         <dl className="grid grid-cols-2 gap-y-1 text-sm">
-          <dt className="text-slate-500">Columnas</dt>
-          <dd className="font-medium tabular-nums">{t.columnas.length}</dd>
+          <dt className="text-slate-500">Columnas (con entrada y medida)</dt>
+          <dd className="font-medium tabular-nums">{t.columnas.length + 2}</dd>
+          <dt className="text-slate-500">Interruptor de entrada</dt>
+          <dd className="font-medium tabular-nums">{t.principal.frameA} A</dd>
+          <dt className="text-slate-500">Barra principal</dt>
+          <dd className="font-medium tabular-nums">{t.barraA} A</dd>
+          <dt className="text-slate-500">Celda de medida</dt>
+          <dd className="font-medium">{t.incluyeMedida ? 'PT / CT' : '—'}</dd>
           <dt className="text-slate-500">Alto</dt>
           <dd className="font-medium tabular-nums">{fmtMm(t.altoTotalMm)}</dd>
           <dt className="text-slate-500">Ancho</dt>

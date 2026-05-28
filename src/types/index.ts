@@ -325,6 +325,12 @@ export interface ColumnaCcmMt {
   espaciosLibres: number;
 }
 
+export interface PrincipalMtCatalogo {
+  /** Corriente nominal del interruptor de entrada (A). */
+  frameA: number;
+  modelo: string;
+}
+
 export interface TableroCcmMt {
   tipo: 'CCM';
   norma: 'MT';
@@ -335,6 +341,12 @@ export interface TableroCcmMt {
   factorDerrateoAltura: number;
   /** Corriente con que se selecciona el contactor / barra: I_diseño / F2. */
   corrienteSeleccionBarraA: number;
+  /** Capacidad de la barra principal seleccionada (A). */
+  barraA: number;
+  /** Interruptor general de la celda de entrada. */
+  principal: PrincipalMtCatalogo;
+  /** Si el lineup incluye una celda de medida (PT/CT). */
+  incluyeMedida: boolean;
   altoTotalMm: number;
   anchoTotalMm: number;
   profundidadTotalMm: number;
