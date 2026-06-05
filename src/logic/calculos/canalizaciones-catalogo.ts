@@ -46,12 +46,33 @@ export const ANCHOS_ESCALERILLA: readonly number[] = [100, 150, 200, 300, 450, 6
 export const PROFUNDIDAD_ESCALERILLA_MM = 100;
 
 /**
- * Capas máximas que caben verticalmente en la escalerilla dado el diámetro
- * del conductor mayor. Devuelve 0 si ni siquiera una capa cabe.
+ * Máximo de capas admisible en una escalerilla ventilada por criterio normativo
+ * y práctica ingenieril:
+ *  - NEC 392.22(B): conductores monopolares ≥1/0 AWG en una sola capa.
+ *  - NEC 392.80 / Tabla 310.15(B)(3)(a): la ampacidad cae fuertemente con cada
+ *    capa adicional → >2 capas es inviable térmicamente.
+ *  - RIC N°4 (Chile) y práctica industrial: 2 capas como tope práctico.
  */
-export function maxCapasEnEscalerilla(diametroMayorMm: number): number {
+export const MAX_CAPAS_NORMATIVAS = 2;
+
+/**
+ * Capas que caben verticalmente solo por geometría (alto útil / Ø mayor).
+ * No aplica el tope normativo. Útil para mensajes.
+ */
+export function maxCapasGeometrico(diametroMayorMm: number): number {
   if (!(diametroMayorMm > 0)) return 0;
   return Math.floor(PROFUNDIDAD_ESCALERILLA_MM / diametroMayorMm);
+}
+
+/**
+ * Capas máximas admisibles en la escalerilla — el mínimo entre el límite
+ * geométrico (alto útil) y el normativo (2 capas). Devuelve 0 si ni siquiera
+ * una capa cabe físicamente.
+ */
+export function maxCapasEnEscalerilla(diametroMayorMm: number): number {
+  const geom = maxCapasGeometrico(diametroMayorMm);
+  if (geom <= 0) return 0;
+  return Math.min(geom, MAX_CAPAS_NORMATIVAS);
 }
 
 /**

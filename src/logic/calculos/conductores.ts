@@ -5,7 +5,8 @@ import {
   autollenarArea, autollenarConductor, autollenarDiametro, opcionesConductor,
 } from './conductores-catalogo';
 import {
-  areaDuctoMaxima, areaPermitidaEscalerilla, distribuirEnCapas, maxCapasEnEscalerilla,
+  areaDuctoMaxima, areaPermitidaEscalerilla, distribuirEnCapas, MAX_CAPAS_NORMATIVAS,
+  maxCapasEnEscalerilla, maxCapasGeometrico,
   porcentajeRelleno, PROFUNDIDAD_ESCALERILLA_MM, sugerirAnchoEscalerilla,
   sugerirDucto, type TipoDucto,
 } from './canalizaciones-catalogo';
@@ -262,13 +263,13 @@ const anchoEscalerilla: Calculadora = {
   id: 'ancho-escalerilla',
   grupo: 'conductores',
   nombre: 'Ancho de escalerilla portaconductores',
-  descripcion: `Ancho de bandeja portacable según la suma de diámetros exteriores por capa (NEC 392). Bandeja de ${PROFUNDIDAD_ESCALERILLA_MM} mm de alto: las capas se limitan a las que caben verticalmente.`,
+  descripcion: `Ancho de bandeja portacable según la suma de diámetros exteriores por capa (NEC 392). Bandeja de ${PROFUNDIDAD_ESCALERILLA_MM} mm de alto: las capas se limitan a ${MAX_CAPAS_NORMATIVAS} por criterio normativo (NEC 392.80 / RIC N°4 — derrateo de ampacidad), y al máximo geométrico cuando los conductores son grandes.`,
   norma: 'RIC N°4 · NEC 392',
-  formula: 'Ancho req. = máx (Σ Ø por capa)    Capas ≤ ⌊alto / Ø mayor⌋',
+  formula: `Ancho req. = máx (Σ Ø por capa)    Capas ≤ mín(${MAX_CAPAS_NORMATIVAS}, ⌊alto / Ø mayor⌋)`,
   campos: [
     {
       key: 'capas', label: 'Capas', unidad: '', defecto: 1,
-      ayuda: `Capas pedidas. Se ajusta hacia abajo si exceden la altura de la bandeja (${PROFUNDIDAD_ESCALERILLA_MM} mm).`,
+      ayuda: `Capas pedidas (1 o ${MAX_CAPAS_NORMATIVAS}). Se ajusta hacia abajo si exceden el alto útil de la bandeja (${PROFUNDIDAD_ESCALERILLA_MM} mm) o el tope normativo de ${MAX_CAPAS_NORMATIVAS} capas.`,
     },
     {
       key: 'grupos', label: 'Conductores en la escalerilla', tipo: 'lista',
@@ -342,9 +343,13 @@ const anchoEscalerilla: Calculadora = {
 
     let nota: string;
     if (capasPedidas > maxCapasPorAlto) {
-      nota = `Pediste ${capasPedidas} capas, pero en una bandeja de ${PROFUNDIDAD_ESCALERILLA_MM} mm de alto solo caben ${maxCapasPorAlto} (limitado por el conductor de ⌀${maxDia.toFixed(1)} mm). Se usaron ${capasUsadas}.`;
+      const geom = maxCapasGeometrico(maxDia);
+      const motivo = maxCapasPorAlto < geom
+        ? `el tope normativo es ${MAX_CAPAS_NORMATIVAS} capas (NEC 392.80 / RIC N°4 — derrateo de ampacidad por apilamiento)`
+        : `en una bandeja de ${PROFUNDIDAD_ESCALERILLA_MM} mm de alto solo caben ${maxCapasPorAlto} (limitado por el conductor de ⌀${maxDia.toFixed(1)} mm)`;
+      nota = `Pediste ${capasPedidas} capas, pero ${motivo}. Se usaron ${capasUsadas}.`;
     } else if (capasUsadas > 1) {
-      nota = `${totalConductores} conductores distribuidos en ${capasUsadas} capas. Criterios NEC 392.22(A) Tabla 1, bandeja ventilada de ${PROFUNDIDAD_ESCALERILLA_MM} mm (alto y área).`;
+      nota = `${totalConductores} conductores distribuidos en ${capasUsadas} capas. Criterios NEC 392.22(A) Tabla 1 (área) y tope de ${MAX_CAPAS_NORMATIVAS} capas (NEC 392.80) en bandeja ventilada de ${PROFUNDIDAD_ESCALERILLA_MM} mm.`;
     } else {
       nota = `${totalConductores} conductores en una sola capa. Criterios NEC 392.22(A) Tabla 1, bandeja ventilada de ${PROFUNDIDAD_ESCALERILLA_MM} mm (alto y área).`;
     }

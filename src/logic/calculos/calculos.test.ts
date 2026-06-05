@@ -250,28 +250,39 @@ describe('Ancho de escalerilla portaconductores', () => {
     expect(r.valores.anchoRequerido).toBeCloseTo(46.88, 1);
     expect(r.valores.anchoSugerido).toBe(100);
   });
-  it('capas no puede ser mayor que el total de conductores', () => {
-    const r = calc('ancho-escalerilla').calcular({
-      capas: '10',
-      'grupos.count': '1',
-      'grupos.0.diametro': '23.44', 'grupos.0.cantidad': '3',
-    });
-    expect(r.valores.capasUsadas).toBe(3);
-    expect(r.valores.anchoRequerido).toBeCloseTo(23.44, 2);
-  });
-  it('limita las capas por el alto de la bandeja (100 mm)', () => {
-    // ⌀23,44 → caben floor(100/23,44) = 4 capas como máximo, sin importar lo
-    // que pida el usuario.
+  it('el tope normativo de 2 capas limita aunque el alto admita más', () => {
+    // ⌀23,44 → geométricamente caben floor(100/23,44) = 4 capas, pero el tope
+    // normativo (NEC 392.80 / RIC N°4) es 2 capas por derrateo de ampacidad.
     const r = calc('ancho-escalerilla').calcular({
       capas: '10',
       'grupos.count': '1',
       'grupos.0.diametro': '23.44', 'grupos.0.cantidad': '6',
     });
-    expect(r.valores.capasUsadas).toBe(4);
-    expect(r.valores.anchoRequerido).toBeCloseTo(46.88, 1); // 2 cond × 23,44
-    expect(r.valores.alturaUsada).toBeCloseTo(93.76, 1);    // 4 × 23,44
-    expect(r.valores.ocupacionAltura).toBeCloseTo(93.76, 1);
-    expect(r.nota).toMatch(/solo caben 4/);
+    expect(r.valores.capasUsadas).toBe(2);
+    expect(r.valores.anchoRequerido).toBeCloseTo(70.32, 1); // 3 cond × 23,44 por capa
+    expect(r.valores.alturaUsada).toBeCloseTo(46.88, 1);    // 2 × 23,44
+    expect(r.valores.ocupacionAltura).toBeCloseTo(46.88, 1);
+    expect(r.nota).toMatch(/tope normativo es 2 capas/);
+  });
+  it('capas no puede ser mayor que el total de conductores (con tope normativo)', () => {
+    const r = calc('ancho-escalerilla').calcular({
+      capas: '10',
+      'grupos.count': '1',
+      'grupos.0.diametro': '23.44', 'grupos.0.cantidad': '3',
+    });
+    // min(10 pedidas, 2 normativo, 3 conductores) = 2
+    expect(r.valores.capasUsadas).toBe(2);
+    expect(r.valores.anchoRequerido).toBeCloseTo(46.88, 1); // 2 cond por capa máxima
+  });
+  it('si el conductor es muy grande, el alto manda sobre el tope normativo', () => {
+    // ⌀60 mm → solo cabe 1 capa por geometría (floor(100/60)=1) < 2 normativo.
+    const r = calc('ancho-escalerilla').calcular({
+      capas: '2',
+      'grupos.count': '1',
+      'grupos.0.diametro': '60', 'grupos.0.cantidad': '4',
+    });
+    expect(r.valores.capasUsadas).toBe(1);
+    expect(r.nota).toMatch(/solo caben 1/);
   });
   it('rechaza un conductor cuyo diámetro supera el alto de la bandeja', () => {
     const r = calc('ancho-escalerilla').calcular({
@@ -293,9 +304,9 @@ describe('Ancho de escalerilla portaconductores', () => {
     expect(r.valores.ocupacionNec).toBeCloseTo(61.6, 0);
   });
   it('el criterio de área obliga a una escalerilla mayor cuando aplica', () => {
-    // 10 × ⌀28,88 (área ≈ 655 cada uno) en 4 capas:
-    //   ancho geométrico req ≈ 86,6 mm (cabría en 100 mm),
-    //   pero área total ≈ 6551 > 5600 (200 mm) → fuerza al ancho 300 (área 8400).
+    // 10 × ⌀28,88 (área ≈ 655 cada uno). Capas pedidas 4 → topadas a 2 por
+    // norma. Ancho geométrico req ≈ 5·28,88 = 144 mm (cabría en 150 mm), pero
+    // el área total ≈ 6551 mm² > 5600 (200) → fuerza al ancho 300 (área 8400).
     const r = calc('ancho-escalerilla').calcular({
       capas: '4',
       'grupos.count': '1',

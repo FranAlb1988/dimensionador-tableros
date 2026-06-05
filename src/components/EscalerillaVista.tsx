@@ -1,6 +1,6 @@
 import type { EntradasCalc, ResultadoCalc } from '../logic/calculos';
 import { leerFilas, num } from '../logic/calculos';
-import { distribuirEnCapas, PROFUNDIDAD_ESCALERILLA_MM } from '../logic/calculos/canalizaciones-catalogo';
+import { distribuirEnCapas, maxCapasEnEscalerilla, PROFUNDIDAD_ESCALERILLA_MM } from '../logic/calculos/canalizaciones-catalogo';
 import { fmtCantidad } from '../util/format';
 
 interface Props {
@@ -59,9 +59,10 @@ export function EscalerillaVista({ entradas, resultado }: Props) {
 
   const supera = anchoSug == null;
   const maxDia = Math.max(...conductores.map((c) => c.dia));
-  const maxCapasPorAlto = Math.max(1, Math.floor(PROFUNDIDAD_ESCALERILLA_MM / maxDia));
+  // Tope efectivo: el mínimo entre el geométrico (alto/Ø) y el normativo (2 capas).
+  const maxCapasEfectivo = Math.max(1, maxCapasEnEscalerilla(maxDia));
   const capasPedidas = Math.max(1, Math.round(num(entradas, 'capas') || 1));
-  const capasUsadas = Math.min(capasPedidas, maxCapasPorAlto, conductores.length);
+  const capasUsadas = Math.min(capasPedidas, maxCapasEfectivo, conductores.length);
 
   // Mismo bin-packing que la calculadora.
   const capas = distribuirEnCapas(conductores, (c) => c.dia, capasUsadas);
