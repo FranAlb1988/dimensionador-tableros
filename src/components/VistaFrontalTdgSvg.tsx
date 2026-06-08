@@ -1,6 +1,6 @@
 import { forwardRef } from 'react';
 import { ALTO_CELDA_SALIDA_MM, ENVOLVENTE_PRISMA, salidasPorColumna } from '../logic/tdg';
-import type { SalidaAsignada, TableroTdg } from '../types';
+import type { MedidaCcm, SalidaAsignada, TableroTdg } from '../types';
 
 interface Props {
   tablero: TableroTdg;
@@ -15,6 +15,8 @@ const COLOR_PRINCIPAL_BORDE = '#b91c1c';
 const COLOR_CELDA_BG = '#f1f5f9';
 const COLOR_CELDA_BORDE = '#94a3b8';
 const COLOR_TEXTO = '#0f172a';
+const COLOR_MEDIDA_BG = '#e0e7ff'; // indigo-100
+const COLOR_MEDIDA_BORDE = '#6366f1'; // indigo-500
 
 export const VistaFrontalTdgSvg = forwardRef<SVGSVGElement, Props>(function VistaFrontalTdgSvg(
   { tablero },
@@ -107,7 +109,7 @@ export const VistaFrontalTdgSvg = forwardRef<SVGSVGElement, Props>(function Vist
               fill={COLOR_TEXTO}
               fontFamily="system-ui, sans-serif"
             >
-              {esColPrincipal ? 'Principal' : `Salidas ${idx}`}
+              {esColPrincipal ? 'Principal · Incoming' : `Salidas ${idx}`}
             </text>
 
             {/* Contenido bajo barras */}
@@ -121,6 +123,7 @@ export const VistaFrontalTdgSvg = forwardRef<SVGSVGElement, Props>(function Vist
                 inA={tablero.principal.inA}
                 familia={tablero.principal.familia}
                 corrienteTotalA={tablero.corrienteTotalA}
+                medida={tablero.medida}
               />
             ) : (
               <ColumnaSalidas
@@ -159,14 +162,26 @@ interface ColPrincipalProps {
   inA: number;
   familia: string;
   corrienteTotalA: number;
+  medida: MedidaCcm;
 }
 
-function ColumnaPrincipal({ x0, colW, yTop, yBot, principalRef, inA, familia, corrienteTotalA }: ColPrincipalProps) {
+function ColumnaPrincipal({
+  x0, colW, yTop, yBot, principalRef, inA, familia, corrienteTotalA, medida,
+}: ColPrincipalProps) {
   const altoBloque = ENVOLVENTE_PRISMA.reservaPrincipalMm;
   const yPB = yTop;
   const yPBfin = yPB + altoBloque;
+  // Compartimento de medida ocupa la mitad superior de la zona libre;
+  // el resto queda como "Acometida" (entrada de cables, SPD, control).
+  const totalLibre = yBot - yPBfin;
+  const yMedidaTop = yPBfin;
+  const medidaH = Math.max(0, totalLibre * 0.55);
+  const yMedidaBot = yMedidaTop + medidaH;
+  const yAcometidaTop = yMedidaBot;
+  const acometidaH = yBot - yAcometidaTop;
   return (
     <>
+      {/* Interruptor principal */}
       <rect
         x={x0 + 10}
         y={yPB}
@@ -191,20 +206,54 @@ function ColumnaPrincipal({ x0, colW, yTop, yBot, principalRef, inA, familia, co
       <text x={x0 + colW / 2} y={yPB + 240} textAnchor="middle" fontSize={26} fill="#64748b" fontFamily="system-ui, sans-serif">
         {`Itotal ≈ ${corrienteTotalA.toFixed(0)} A`}
       </text>
-      {/* Espacio reservado bajo principal */}
-      <rect
-        x={x0 + 10}
-        y={yPBfin}
-        width={colW - 20}
-        height={yBot - yPBfin}
-        fill="#f8fafc"
-        stroke={COLOR_CELDA_BORDE}
-        strokeDasharray="6 6"
-        strokeWidth={2}
-      />
-      <text x={x0 + colW / 2} y={(yPBfin + yBot) / 2} textAnchor="middle" dominantBaseline="middle" fontSize={28} fill="#94a3b8" fontFamily="system-ui, sans-serif">
-        Reserva mando / medida
-      </text>
+
+      {/* Compartimento de medida */}
+      {medidaH > 100 && (
+        <>
+          <rect
+            x={x0 + 10}
+            y={yMedidaTop}
+            width={colW - 20}
+            height={medidaH}
+            fill={COLOR_MEDIDA_BG}
+            stroke={COLOR_MEDIDA_BORDE}
+            strokeWidth={2}
+          />
+          <text x={x0 + colW / 2} y={yMedidaTop + 50} textAnchor="middle" fontSize={32} fontWeight={700} fill={COLOR_TEXTO} fontFamily="system-ui, sans-serif">
+            Compartimento de medida
+          </text>
+          <text x={x0 + colW / 2} y={yMedidaTop + 100} textAnchor="middle" fontSize={26} fill="#475569" fontFamily="system-ui, sans-serif">
+            {`${medida.transformadoresTension} PT · ${medida.transformadoresCorriente} CT · ${medida.lucesPiloto} luces piloto`}
+          </text>
+          <text x={x0 + colW / 2} y={yMedidaTop + 138} textAnchor="middle" fontSize={24} fill="#64748b" fontFamily="system-ui, sans-serif">
+            {medida.instrumento}
+          </text>
+        </>
+      )}
+
+      {/* Bloque de acometida (entrada de cables / SPD / control) */}
+      {acometidaH > 100 && (
+        <>
+          <rect
+            x={x0 + 10}
+            y={yAcometidaTop}
+            width={colW - 20}
+            height={acometidaH}
+            fill="#fef3c7"
+            stroke="#b45309"
+            strokeWidth={2}
+          />
+          <text x={x0 + colW / 2} y={yAcometidaTop + 50} textAnchor="middle" fontSize={32} fontWeight={700} fill={COLOR_TEXTO} fontFamily="system-ui, sans-serif">
+            Acometida
+          </text>
+          <text x={x0 + colW / 2} y={yAcometidaTop + 90} textAnchor="middle" fontSize={24} fill="#475569" fontFamily="system-ui, sans-serif">
+            Entrada de cables · SPD
+          </text>
+          <text x={x0 + colW / 2} y={yAcometidaTop + 122} textAnchor="middle" fontSize={24} fill="#64748b" fontFamily="system-ui, sans-serif">
+            Trafo de control · regletería
+          </text>
+        </>
+      )}
     </>
   );
 }

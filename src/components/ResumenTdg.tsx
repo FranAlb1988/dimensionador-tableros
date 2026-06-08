@@ -1,6 +1,7 @@
 import type { ResultadoTdg } from '../logic/tdg';
 import { fmtAmp, fmtMm } from '../util/format';
 import type { FamiliaProteccion } from '../types';
+import { MedidaCard } from './MedidaCard';
 
 const ORDEN_FAMILIA: readonly FamiliaProteccion[] = [
   'NSXm', 'NSX100', 'NSX160', 'NSX250', 'NSX400', 'NSX630',
@@ -55,6 +56,8 @@ export function ResumenTdg({ resultado }: { resultado: ResultadoTdg }) {
           </li>
         </ul>
       </div>
+
+      <MedidaCard medida={t.medida} />
     </div>
   );
 }

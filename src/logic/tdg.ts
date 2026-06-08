@@ -4,6 +4,7 @@ import { corrienteDiseno } from './corriente';
 import { sugerirProteccionFeeder } from './proteccion';
 import { sugerirInterruptorPrincipal } from './principal';
 import { sugerirBarra } from './barra';
+import { MEDIDA_TDG_DEFAULT } from './medida-tdg';
 
 export const ENVOLVENTE_PRISMA: EnvolventePrismaCatalogo = prismaData.envolvente as EnvolventePrismaCatalogo;
 export const ALTO_CELDA_SALIDA_MM: number = (prismaData.salida as { altoCeldaMm: number }).altoCeldaMm;
@@ -82,6 +83,7 @@ export function dimensionarTdg(
     principal,
     barra,
     salidas: salidasAsignadas,
+    medida: MEDIDA_TDG_DEFAULT,
     corrienteTotalA,
     factorSimultaneidad: fs,
     columnas,

@@ -15,6 +15,8 @@ const COLOR_PRINCIPAL_BORDE = '#b91c1c';
 const COLOR_CELDA_BG = '#f1f5f9';
 const COLOR_CELDA_BORDE = '#94a3b8';
 const COLOR_TEXTO = '#0f172a';
+const COLOR_MEDIDA_BG = '#e0e7ff';
+const COLOR_MEDIDA_BORDE = '#6366f1';
 
 export const VistaFrontalTdgNemaSvg = forwardRef<SVGSVGElement, Props>(function VistaFrontalTdgNemaSvg(
   { tablero }, ref,
@@ -80,7 +82,7 @@ export const VistaFrontalTdgNemaSvg = forwardRef<SVGSVGElement, Props>(function 
               textAnchor="middle" fontSize={36} fontWeight={700} fill={COLOR_TEXTO}
               fontFamily="system-ui, sans-serif"
             >
-              {esColPrincipal ? 'Principal' : `Salidas ${idx}`}
+              {esColPrincipal ? 'Principal · Incoming' : `Salidas ${idx}`}
             </text>
 
             {esColPrincipal ? (
@@ -121,8 +123,17 @@ function ColumnaPrincipal({ x0, colW, yTop, yBot, tablero }: ColPrincipalProps) 
   const altoBloque = ENVOLVENTE_TDG_NEMA.reservaPrincipalMm;
   const yPB = yTop;
   const yPBfin = yPB + altoBloque;
+  // Compartimento de medida ocupa ~55% del libre; el resto es acometida.
+  const totalLibre = yBot - yPBfin;
+  const yMedidaTop = yPBfin;
+  const medidaH = Math.max(0, totalLibre * 0.55);
+  const yMedidaBot = yMedidaTop + medidaH;
+  const yAcometidaTop = yMedidaBot;
+  const acometidaH = yBot - yAcometidaTop;
+  const m = tablero.medida;
   return (
     <>
+      {/* Interruptor principal */}
       <rect
         x={x0 + 12} y={yPB}
         width={colW - 24} height={altoBloque}
@@ -140,15 +151,46 @@ function ColumnaPrincipal({ x0, colW, yTop, yBot, tablero }: ColPrincipalProps) 
       <text x={x0 + colW / 2} y={yPB + 220} textAnchor="middle" fontSize={28} fill="#64748b" fontFamily="system-ui, sans-serif">
         {`FLC total ≈ ${tablero.corrienteTotalA.toFixed(0)} A`}
       </text>
-      {/* Reserva mando / medida */}
-      <rect
-        x={x0 + 12} y={yPBfin}
-        width={colW - 24} height={yBot - yPBfin}
-        fill="#f8fafc" stroke={COLOR_CELDA_BORDE} strokeDasharray="6 6" strokeWidth={2}
-      />
-      <text x={x0 + colW / 2} y={(yPBfin + yBot) / 2} textAnchor="middle" dominantBaseline="middle" fontSize={28} fill="#94a3b8" fontFamily="system-ui, sans-serif">
-        Reserva mando / medida
-      </text>
+
+      {/* Compartimento de medida */}
+      {medidaH > 100 && (
+        <>
+          <rect
+            x={x0 + 12} y={yMedidaTop}
+            width={colW - 24} height={medidaH}
+            fill={COLOR_MEDIDA_BG} stroke={COLOR_MEDIDA_BORDE} strokeWidth={2}
+          />
+          <text x={x0 + colW / 2} y={yMedidaTop + 50} textAnchor="middle" fontSize={36} fontWeight={700} fill={COLOR_TEXTO} fontFamily="system-ui, sans-serif">
+            Compartimento de medida
+          </text>
+          <text x={x0 + colW / 2} y={yMedidaTop + 100} textAnchor="middle" fontSize={28} fill="#475569" fontFamily="system-ui, sans-serif">
+            {`${m.transformadoresTension} PT · ${m.transformadoresCorriente} CT · ${m.lucesPiloto} luces piloto`}
+          </text>
+          <text x={x0 + colW / 2} y={yMedidaTop + 138} textAnchor="middle" fontSize={26} fill="#64748b" fontFamily="system-ui, sans-serif">
+            {m.instrumento}
+          </text>
+        </>
+      )}
+
+      {/* Bloque de acometida */}
+      {acometidaH > 100 && (
+        <>
+          <rect
+            x={x0 + 12} y={yAcometidaTop}
+            width={colW - 24} height={acometidaH}
+            fill="#fef3c7" stroke="#b45309" strokeWidth={2}
+          />
+          <text x={x0 + colW / 2} y={yAcometidaTop + 50} textAnchor="middle" fontSize={36} fontWeight={700} fill={COLOR_TEXTO} fontFamily="system-ui, sans-serif">
+            Acometida
+          </text>
+          <text x={x0 + colW / 2} y={yAcometidaTop + 90} textAnchor="middle" fontSize={26} fill="#475569" fontFamily="system-ui, sans-serif">
+            Entrada de cables · SPD
+          </text>
+          <text x={x0 + colW / 2} y={yAcometidaTop + 124} textAnchor="middle" fontSize={26} fill="#64748b" fontFamily="system-ui, sans-serif">
+            Trafo de control · regletería
+          </text>
+        </>
+      )}
     </>
   );
 }

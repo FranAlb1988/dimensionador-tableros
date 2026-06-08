@@ -11,6 +11,7 @@ import type {
 } from '../types';
 import { corrienteDiseno } from './corriente';
 import { sugerirBreakerNema } from './ccm-nema';
+import { MEDIDA_TDG_DEFAULT } from './medida-tdg';
 
 const BARRAS: readonly SwitchgearBtBarraNema[] = (barrasData.barras as SwitchgearBtBarraNema[])
   .toSorted((a, b) => a.flcMin - b.flcMin);
@@ -87,6 +88,7 @@ export function dimensionarTdgNema(
     principal,
     barra,
     salidas,
+    medida: MEDIDA_TDG_DEFAULT,
     corrienteTotalA,
     factorSimultaneidad: fs,
     columnas,

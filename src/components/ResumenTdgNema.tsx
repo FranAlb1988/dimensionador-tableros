@@ -1,5 +1,6 @@
 import type { ResultadoTdgNema } from '../logic/tdg-nema';
 import { fmtAmp, fmtMm } from '../util/format';
+import { MedidaCard } from './MedidaCard';
 
 export function ResumenTdgNema({ resultado }: { resultado: ResultadoTdgNema }) {
   const t = resultado.tablero;
@@ -45,6 +46,8 @@ export function ResumenTdgNema({ resultado }: { resultado: ResultadoTdgNema }) {
           </li>
         </ul>
       </div>
+
+      <MedidaCard medida={t.medida} />
     </div>
   );
 }

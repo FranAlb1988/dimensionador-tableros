@@ -460,6 +460,8 @@ export interface TableroTdgNema {
   principal: SwitchgearBtMainNema;
   barra: SwitchgearBtBarraNema;
   salidas: SalidaAsignadaNema[];
+  /** Equipos de medida del CDC (PT/CT + luces piloto + analizador). */
+  medida: MedidaCcm;
   /** FLC total (suma × factor de simultaneidad). */
   corrienteTotalA: number;
   factorSimultaneidad: number;
@@ -562,6 +564,8 @@ export interface TableroTdg {
   principal: Proteccion;
   barra: Barra;
   salidas: SalidaAsignada[];
+  /** Equipos de medida del CDC (PT/CT + luces piloto + analizador). */
+  medida: MedidaCcm;
   /** Suma de corrientes de diseño afectada por simultaneidad (A). */
   corrienteTotalA: number;
   factorSimultaneidad: number;
