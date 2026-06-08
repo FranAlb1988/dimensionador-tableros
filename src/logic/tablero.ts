@@ -1,5 +1,7 @@
 import type { AsignacionCarga, Carga, MarcaProteccion, Tablero, TipoTablero } from '../types';
-import { distribuirEnColumnas, resetContadorColumnas } from './columna';
+import {
+  distribuirEnColumnas, necesitaColumnaIncoming, nuevaColumnaIncoming, resetContadorColumnas,
+} from './columna';
 import { asignarCargaCcm, COLUMNA_CATALOGO, resetContadorGavetas } from './gaveta';
 import { MEDIDA_CCM_DEFAULT } from './medida-ccm';
 import { corrienteDiseno } from './corriente';
@@ -37,7 +39,7 @@ export function dimensionarCcm(
   }
 
   const gavetas = asignaciones.map((a) => a.gaveta);
-  const columnas = distribuirEnColumnas(gavetas);
+  const columnasFeeders = distribuirEnColumnas(gavetas);
 
   // Barra principal por la FLC total. El derrateo por altura reduce la
   // capacidad útil: la barra se selecciona contra FLC / F2.
@@ -45,6 +47,11 @@ export function dimensionarCcm(
   const corrienteTotalA = asignaciones.reduce((s, a) => s + corrienteDiseno(a.carga), 0);
   const corrienteSeleccionBarraA = corrienteTotalA / f;
   const barra = sugerirBarra(corrienteSeleccionBarraA);
+
+  // Incoming/acometida dedicada cuando hay ≥4 gavetas o I ≥ 250 A.
+  const columnas = necesitaColumnaIncoming(asignaciones.length, corrienteTotalA)
+    ? [nuevaColumnaIncoming(), ...columnasFeeders]
+    : columnasFeeders;
 
   const tablero: Tablero = {
     tipo: 'CCM' satisfies TipoTablero,

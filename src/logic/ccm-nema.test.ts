@@ -116,10 +116,22 @@ describe('dimensionarCcmNema', () => {
   });
 
   it('ancho del tablero crece con número de columnas (12X por columna, AB CENTERLINE)', () => {
-    // 4 motores de 250 HP (6X cada uno) → 24X total → 2 columnas (caben 2 motores de 6X en cada una)
+    // 4 motores de 250 HP (6X cada uno) → 24X total → 2 columnas de salidas
+    // + 1 columna de incoming/acometida (≥4 gavetas) = 3 columnas en total.
     const cargas = [motor('a', 250), motor('b', 250), motor('c', 250), motor('d', 250)];
     const r = dimensionarCcmNema(cargas);
-    expect(r.tablero!.columnas).toHaveLength(2);
+    const feeders = r.tablero!.columnas.filter((c) => !c.esIncoming);
+    expect(feeders).toHaveLength(2);
+    expect(r.tablero!.columnas).toHaveLength(3);
+  });
+
+  it('agrega columna de incoming cuando hay ≥4 gavetas o I ≥ 250 A', () => {
+    // 1 motor de 250 HP (FLA ≈ 302 A) → I ≥ 250 → incoming.
+    const r = dimensionarCcmNema([motor('a', 250)]);
+    expect(r.tablero!.columnas[0]!.esIncoming).toBe(true);
+    // CCM chico (1 motor pequeño) → sin incoming.
+    const r2 = dimensionarCcmNema([motor('b', 5)]);
+    expect(r2.tablero!.columnas[0]!.esIncoming).toBeFalsy();
   });
 
   it('FLC total selecciona barra correcta', () => {

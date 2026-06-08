@@ -29,6 +29,41 @@ function nuevaColumna(altoUtil: number, ancho: number, profundidad: number): Col
 }
 
 /**
+ * Umbral para incluir una columna de incoming/acometida dedicada:
+ * 4 o más gavetas, o corriente total ≥ 250 A. Bajo eso, el incoming se
+ * integra al primer compartimento y no se modela aparte.
+ */
+const UMBRAL_INCOMING_GAVETAS = 4;
+const UMBRAL_INCOMING_A = 250;
+
+export function necesitaColumnaIncoming(
+  gavetas: number,
+  corrienteTotalA: number,
+): boolean {
+  return gavetas >= UMBRAL_INCOMING_GAVETAS || corrienteTotalA >= UMBRAL_INCOMING_A;
+}
+
+/**
+ * Construye una columna de incoming/acometida (sin gavetas) para anteponerla
+ * al lineup del CCM. Hospeda entrada de cables, lugs, conexión a barras y el
+ * compartimento de medida.
+ */
+export function nuevaColumnaIncoming(opts: OpcionesColumna = {}): Columna {
+  const altoUtil = opts.altoUtilMm ?? COLUMNA_CATALOGO.altoUtilMm;
+  const ancho = opts.anchoMm ?? COLUMNA_CATALOGO.anchoMm;
+  const profundidad = opts.profundidadMm ?? COLUMNA_CATALOGO.profundidadMm;
+  return {
+    id: nextColumnaId(),
+    altoUtilMm: altoUtil,
+    anchoMm: ancho,
+    profundidadMm: profundidad,
+    gavetas: [],
+    espacioRemanenteMm: altoUtil,
+    esIncoming: true,
+  };
+}
+
+/**
  * Distribuye gavetas en columnas usando First-Fit Decreasing por altura.
  * Es un bin-packing 1D: cada columna es un bin de capacidad `altoUtilMm`,
  * cada gaveta es un ítem de tamaño `altoMm`. FFD da soluciones cercanas al óptimo

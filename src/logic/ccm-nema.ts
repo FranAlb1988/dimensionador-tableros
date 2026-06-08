@@ -17,6 +17,7 @@ import type {
 } from '../types';
 import { corrienteDiseno, corrienteNominal } from './corriente';
 import { MEDIDA_CCM_DEFAULT } from './medida-ccm';
+import { necesitaColumnaIncoming } from './columna';
 import { KW_POR_HP } from '../util/potencia';
 
 const MOTORES: readonly MotorNemaCatalogo[] = (motoresData.filas as MotorNemaCatalogo[])
@@ -81,8 +82,22 @@ export function dimensionarCcmNema(
     return { asignaciones, cargasSinAsignar, motivo: 'Sin asignaciones válidas para NEMA.' };
   }
 
-  const columnas = empaquetarEnColumnas(asignaciones, ENVOLVENTE_CCM_NEMA.altoUtilXEspacios);
+  const columnasFeeders = empaquetarEnColumnas(asignaciones, ENVOLVENTE_CCM_NEMA.altoUtilXEspacios);
   const corrienteTotalA = asignaciones.reduce((s, a) => s + a.corrienteDisenoA, 0);
+  // Incoming/acometida dedicada cuando hay ≥4 gavetas o I ≥ 250 A.
+  const columnas: ColumnaCcmNema[] = necesitaColumnaIncoming(asignaciones.length, corrienteTotalA)
+    ? [
+        {
+          indice: 1,
+          altoUtilXEspacios: ENVOLVENTE_CCM_NEMA.altoUtilXEspacios,
+          asignaciones: [],
+          espaciosUsados: 0,
+          espaciosLibres: ENVOLVENTE_CCM_NEMA.altoUtilXEspacios,
+          esIncoming: true,
+        },
+        ...columnasFeeders.map((c, i) => ({ ...c, indice: i + 2 })),
+      ]
+    : columnasFeeders;
   const corrienteSeleccionBarraA = corrienteTotalA / f;
   const barra = sugerirBarraNema(corrienteSeleccionBarraA);
   if (!barra) {

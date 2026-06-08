@@ -31,11 +31,15 @@ export const VistaFrontalSvg = forwardRef<SVGSVGElement, Props>(function VistaFr
   const { columnas, altoTotalMm, reservaCabezalMm, reservaZocaloMm } = tablero;
   if (columnas.length === 0) return null;
 
-  // Columna donde se dibuja el compartimento de medida: la de mayor espacio libre.
-  const idxMedida = columnas.reduce(
-    (best, c, i, arr) => (c.espacioRemanenteMm > (arr[best]?.espacioRemanenteMm ?? -1) ? i : best),
-    0,
-  );
+  // Columna donde se dibuja el compartimento de medida: la de incoming si
+  // existe; en su defecto, la de mayor espacio libre.
+  const idxIncoming = columnas.findIndex((c) => c.esIncoming);
+  const idxMedida = idxIncoming >= 0
+    ? idxIncoming
+    : columnas.reduce(
+        (best, c, i, arr) => (c.espacioRemanenteMm > (arr[best]?.espacioRemanenteMm ?? -1) ? i : best),
+        0,
+      );
 
   const anchoCol = columnas[0]?.anchoMm ?? 600;
   const margen = 40; // mm de margen total
@@ -209,11 +213,43 @@ export const VistaFrontalSvg = forwardRef<SVGSVGElement, Props>(function VistaFr
               });
             })()}
 
-            {/* Espacio libre (al pie, descontando la medida si está arriba) */}
+            {/* Bloque de acometida (incoming) o espacio libre al pie */}
             {(() => {
               const libreH = col.espacioRemanenteMm - offsetMedidaMm;
               if (libreH <= 0) return null;
               const yLibreTop = yZocaloTop - libreH;
+              if (col.esIncoming) {
+                return (
+                  <g>
+                    <rect
+                      x={x0 + 10} y={yLibreTop}
+                      width={anchoCol - 20} height={libreH}
+                      fill="#fef3c7" stroke="#b45309" strokeWidth={2}
+                    />
+                    <text
+                      x={x0 + anchoCol / 2} y={yLibreTop + 44}
+                      textAnchor="middle" fontSize={34} fontWeight={700}
+                      fill={COLOR_TEXTO} fontFamily="system-ui, sans-serif"
+                    >
+                      Acometida
+                    </text>
+                    <text
+                      x={x0 + anchoCol / 2} y={yLibreTop + 88}
+                      textAnchor="middle" fontSize={26} fill="#475569"
+                      fontFamily="system-ui, sans-serif"
+                    >
+                      Entrada de cables · lugs
+                    </text>
+                    <text
+                      x={x0 + anchoCol / 2} y={yLibreTop + 122}
+                      textAnchor="middle" fontSize={26} fill="#64748b"
+                      fontFamily="system-ui, sans-serif"
+                    >
+                      Conexión a barras · SPD
+                    </text>
+                  </g>
+                );
+              }
               return (
                 <g>
                   <rect
@@ -277,7 +313,9 @@ export const VistaFrontalSvg = forwardRef<SVGSVGElement, Props>(function VistaFr
               fill={COLOR_TEXTO}
               fontFamily="system-ui, sans-serif"
             >
-              {`Col ${idx + 1} · ${fmtX(xUsadoCol)} / ${fmtX(xTotalCol)}`}
+              {col.esIncoming
+                ? `Col ${idx + 1} · Incoming`
+                : `Col ${idx + 1} · ${fmtX(xUsadoCol)} / ${fmtX(xTotalCol)}`}
             </text>
           </g>
         );

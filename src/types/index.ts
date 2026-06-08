@@ -185,6 +185,11 @@ export interface Columna {
   gavetas: Gaveta[];
   /** Espacio sobrante en mm tras alojar las gavetas. */
   espacioRemanenteMm: number;
+  /**
+   * Columna de incoming/acometida: entrada de cables, lugs, conexión a barras
+   * y compartimento de medida. Sin gavetas de salida.
+   */
+  esIncoming?: boolean;
 }
 
 /**
@@ -311,6 +316,11 @@ export interface ColumnaCcmNema {
   asignaciones: AsignacionCcmNema[];
   espaciosUsados: number;
   espaciosLibres: number;
+  /**
+   * Columna de incoming/acometida: entrada de cables, lugs, conexión a barras
+   * y compartimento de medida. Sin gavetas/asignaciones de salida.
+   */
+  esIncoming?: boolean;
 }
 
 export interface TableroCcmNema {

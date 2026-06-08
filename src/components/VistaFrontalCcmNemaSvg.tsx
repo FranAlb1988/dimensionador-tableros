@@ -21,12 +21,15 @@ export const VistaFrontalCcmNemaSvg = forwardRef<SVGSVGElement, Props>(function 
   const { columnas, xMm, altoTotalMm, anchoTotalMm } = tablero;
   if (columnas.length === 0) return null;
 
-  // El compartimento de medida va arriba, en la columna con más espacios libres,
-  // y ocupa 2X (X = xMm del tablero).
-  const idxMedida = columnas.reduce(
-    (best, c, i, arr) => (c.espaciosLibres > (arr[best]?.espaciosLibres ?? -1) ? i : best),
-    0,
-  );
+  // El compartimento de medida va arriba: en la columna de incoming si existe,
+  // si no, en la columna con más espacios libres. Ocupa 2X (X = xMm).
+  const idxIncoming = columnas.findIndex((c) => c.esIncoming);
+  const idxMedida = idxIncoming >= 0
+    ? idxIncoming
+    : columnas.reduce(
+        (best, c, i, arr) => (c.espaciosLibres > (arr[best]?.espaciosLibres ?? -1) ? i : best),
+        0,
+      );
   const medidaAltoMm = 2 * xMm;
 
   const margen = 50;
@@ -84,7 +87,9 @@ export const VistaFrontalCcmNemaSvg = forwardRef<SVGSVGElement, Props>(function 
               textAnchor="middle" fontSize={36} fontWeight={700} fill={COLOR_TEXTO}
               fontFamily="system-ui, sans-serif"
             >
-              {`Col ${col.indice} · ${col.espaciosUsados}X / ${col.altoUtilXEspacios}X`}
+              {col.esIncoming
+                ? `Col ${col.indice} · Incoming`
+                : `Col ${col.indice} · ${col.espaciosUsados}X / ${col.altoUtilXEspacios}X`}
             </text>
 
             {/* Compartimento de medida (arriba, bajo la barra) */}
@@ -171,6 +176,38 @@ export const VistaFrontalCcmNemaSvg = forwardRef<SVGSVGElement, Props>(function 
               const libreH = col.espaciosLibres * xMm - offsetMedidaMm;
               if (libreH <= 0) return null;
               const yLibreTop = yTopColumna + offsetMedidaMm + col.espaciosUsados * xMm;
+              if (col.esIncoming) {
+                return (
+                  <g>
+                    <rect
+                      x={x0 + 12} y={yLibreTop}
+                      width={anchoCol - 24} height={libreH}
+                      fill="#fef3c7" stroke="#b45309" strokeWidth={2}
+                    />
+                    <text
+                      x={x0 + anchoCol / 2} y={yLibreTop + 44}
+                      textAnchor="middle" fontSize={36} fontWeight={700} fill={COLOR_TEXTO}
+                      fontFamily="system-ui, sans-serif"
+                    >
+                      Acometida
+                    </text>
+                    <text
+                      x={x0 + anchoCol / 2} y={yLibreTop + 92}
+                      textAnchor="middle" fontSize={28} fill="#475569"
+                      fontFamily="system-ui, sans-serif"
+                    >
+                      Entrada de cables · lugs
+                    </text>
+                    <text
+                      x={x0 + anchoCol / 2} y={yLibreTop + 128}
+                      textAnchor="middle" fontSize={28} fill="#64748b"
+                      fontFamily="system-ui, sans-serif"
+                    >
+                      Conexión a barras · SPD
+                    </text>
+                  </g>
+                );
+              }
               return (
                 <g>
                   <rect
