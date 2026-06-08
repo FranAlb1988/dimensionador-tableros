@@ -4,7 +4,7 @@ import type {
   Carga,
   Cofre,
   CofreCatalogo,
-  DiferencialCabecera,
+  DiferencialCircuito,
   FilaDin,
   TableroCdc,
 } from '../types';
@@ -18,13 +18,15 @@ export const COFRES_DISPONIBLES = COFRES;
 export interface OpcionesCdc {
   /** Módulos por fila preferidos (12, 18 o 24). El cofre elegido respeta este ancho. */
   modulosPorFila: number;
-  /** Módulos reservados libres al inicio de cada fila (adicionales al diferencial). */
+  /** Módulos reservados libres al inicio de cada fila. */
   reservaPorFila: number;
   /**
-   * Si está activo, agrega un diferencial (RCD) de cabecera a cada fila DIN
-   * — exigido por RIC N°06 para todos los circuitos de servicio.
+   * Si está activo, asigna un diferencial individual (Vigi/RCBO) a cada
+   * circuito — el modelo más estricto, exigido por RIC N°06 y preferido en
+   * proyectos industriales por su selectividad (una falla solo aísla su
+   * propio circuito). Cada circuito ocupa 1 módulo extra (bloque Vigi).
    */
-  diferencialPorFila: boolean;
+  diferencialPorCircuito: boolean;
   /** Sensibilidad del diferencial en mA (RIC N°06 estándar: 30 mA). */
   sensibilidadDiferencialMa: number;
   /** Tipo de RCD: AC (default) o A (cargas con DC). */
@@ -34,25 +36,13 @@ export interface OpcionesCdc {
 export const OPCIONES_CDC_DEFAULT: OpcionesCdc = {
   modulosPorFila: 18,
   reservaPorFila: 0,
-  diferencialPorFila: true,
+  diferencialPorCircuito: true,
   sensibilidadDiferencialMa: 30,
   tipoDiferencial: 'AC',
 };
 
-/** Módulos DIN que ocupa un RCD según polaridad (Schneider iID estándar). */
-function modulosRcd(polos: 2 | 4): number {
-  return polos === 2 ? 2 : 4;
-}
-
-/**
- * In nominal del RCD por fila — se elige la primera escala estándar
- * (25/40/63/100 A) que cubra la suma de In de los circuitos protegidos.
- */
-const ESCALA_RCD_A = [25, 40, 63, 80, 100, 125];
-function inRcdParaCircuitos(asignaciones: readonly AsignacionCdc[]): number {
-  const sumaIn = asignaciones.reduce((s, a) => s + a.proteccion.inA, 0);
-  return ESCALA_RCD_A.find((x) => x >= sumaIn) ?? ESCALA_RCD_A[ESCALA_RCD_A.length - 1]!;
-}
+/** Módulos extra (bloque Vigi) que añade el RCD individual al breaker. */
+const MODULOS_VIGI_EXTRA = 1;
 
 export interface ResultadoCdc {
   asignaciones: AsignacionCdc[];
@@ -75,19 +65,23 @@ export function dimensionarCdc(
 ): ResultadoCdc {
   const modPorFila = opts.modulosPorFila;
   const reserva = clampInt(opts.reservaPorFila, 0, modPorFila - 1);
-  // Si el diferencial está activo, reservamos 4 módulos al packear (4P, el caso
-  // más conservador). Si la fila resulta solo con cargas 1F, lo bajamos a 2P (2
-  // módulos) en una segunda pasada.
-  const diActivo = opts.diferencialPorFila;
-  const modDiReserva = diActivo ? 4 : 0;
-  const utilPorFila = modPorFila - reserva - modDiReserva;
+  const utilPorFila = modPorFila - reserva;
   if (utilPorFila <= 0) {
     return {
       asignaciones: [],
       cargasSinAsignar: [...cargas],
-      motivo: 'Reserva + diferencial por fila superan el ancho de la fila.',
+      motivo: 'Reserva por fila supera el ancho de la fila.',
     };
   }
+
+  const diActivo = opts.diferencialPorCircuito;
+  const diferencialBase: DiferencialCircuito | undefined = diActivo
+    ? {
+        sensibilidadMa: opts.sensibilidadDiferencialMa,
+        tipo: opts.tipoDiferencial,
+        modulosExtra: MODULOS_VIGI_EXTRA,
+      }
+    : undefined;
 
   const asignaciones: AsignacionCdc[] = [];
   const cargasSinAsignar: Carga[] = [];
@@ -99,22 +93,28 @@ export function dimensionarCdc(
       cargasSinAsignar.push(c);
       continue;
     }
-    const modulosDin = proteccion.modulosDin ?? (proteccion.polos === 3 ? 3 : 1);
+    const modulosBreaker = proteccion.modulosDin ?? (proteccion.polos === 3 ? 3 : 1);
+    // RIC N°06: cada circuito lleva su propio RCD (Vigi/RCBO) → +1 módulo
+    // del bloque Vigi.
+    const modulosDin = modulosBreaker + (diActivo ? MODULOS_VIGI_EXTRA : 0);
     if (modulosDin > utilPorFila) {
       cargasSinAsignar.push(c);
       continue;
     }
-    asignaciones.push({ carga: c, proteccion, modulosDin, corrienteDisenoA: I });
+    asignaciones.push({
+      carga: c,
+      proteccion,
+      modulosDin,
+      corrienteDisenoA: I,
+      ...(diferencialBase ? { diferencial: { ...diferencialBase } } : {}),
+    });
   }
 
   if (asignaciones.length === 0) {
     return { asignaciones, cargasSinAsignar, motivo: 'Sin asignaciones válidas.' };
   }
 
-  let filas = empaquetarEnFilas(asignaciones, modPorFila, reserva, modDiReserva);
-  if (diActivo) {
-    filas = asignarDiferencialPorFila(filas, opts);
-  }
+  const filas = empaquetarEnFilas(asignaciones, modPorFila, reserva);
   const cofres = empaquetarEnCofres(filas, modPorFila);
 
   if (cofres.length === 0) {
@@ -148,10 +148,9 @@ export function dimensionarCdc(
 function empaquetarEnFilas(
   asignaciones: readonly AsignacionCdc[],
   modulosPorFila: number,
-  reservaUsuario: number,
-  modDiferencialReservado: number,
+  reserva: number,
 ): FilaDin[] {
-  const utilPorFila = modulosPorFila - reservaUsuario - modDiferencialReservado;
+  const utilPorFila = modulosPorFila - reserva;
   const orden = [...asignaciones].sort((a, b) => b.modulosDin - a.modulosDin);
   const filas: FilaDin[] = [];
 
@@ -163,7 +162,7 @@ function empaquetarEnFilas(
         indice: idx,
         modulosTotales: modulosPorFila,
         modulos: [],
-        reserva: reservaUsuario,
+        reserva,
         modulosLibres: utilPorFila,
       };
       filas.push(destino);
@@ -173,34 +172,6 @@ function empaquetarEnFilas(
   }
 
   return filas;
-}
-
-/**
- * Para cada fila ya empaquetada, asigna el diferencial de cabecera. Si la
- * fila no tiene cargas 3F, baja la polaridad a 2P (2 módulos en lugar de 4)
- * y libera 2 módulos extra (suma a `modulosLibres`).
- */
-function asignarDiferencialPorFila(filas: FilaDin[], opts: OpcionesCdc): FilaDin[] {
-  return filas.map((f) => {
-    const tiene3F = f.modulos.some((a) => a.proteccion.polos === 3);
-    const polos: 2 | 4 = tiene3F ? 4 : 2;
-    const modDi = modulosRcd(polos);
-    // Cuando packeamos asumimos 4P (4 mód). Si finalmente es 2P, devolvemos 2
-    // módulos al espacio libre.
-    const liberados = 4 - modDi;
-    const diferencial: DiferencialCabecera = {
-      polos,
-      modulosDin: modDi,
-      sensibilidadMa: opts.sensibilidadDiferencialMa,
-      tipo: opts.tipoDiferencial,
-      inA: inRcdParaCircuitos(f.modulos),
-    };
-    return {
-      ...f,
-      diferencial,
-      modulosLibres: f.modulosLibres + liberados,
-    };
-  });
 }
 
 function empaquetarEnCofres(filas: FilaDin[], modulosPorFila: number): Cofre[] {

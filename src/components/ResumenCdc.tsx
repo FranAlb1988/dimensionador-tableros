@@ -10,16 +10,18 @@ export function ResumenCdc({ resultado }: { resultado: ResultadoCdc }) {
     const ref = c.catalogo.referencia;
     conteoCofres.set(ref, (conteoCofres.get(ref) ?? 0) + 1);
   }
-  // Conteo de diferenciales de cabecera por (sensibilidad, tipo, polos).
-  const conteoDif = new Map<string, { sens: number; tipo: 'AC' | 'A'; polos: 2 | 4; n: number }>();
+  // Conteo de diferenciales individuales por (sensibilidad, tipo) — RIC N°06.
+  const conteoDif = new Map<string, { sens: number; tipo: 'AC' | 'A'; n: number }>();
   for (const c of t.cofres) {
     for (const f of c.filas) {
-      if (!f.diferencial) continue;
-      const d = f.diferencial;
-      const k = `${d.sensibilidadMa}-${d.tipo}-${d.polos}`;
-      const prev = conteoDif.get(k);
-      if (prev) prev.n += 1;
-      else conteoDif.set(k, { sens: d.sensibilidadMa, tipo: d.tipo, polos: d.polos, n: 1 });
+      for (const a of f.modulos) {
+        if (!a.diferencial) continue;
+        const d = a.diferencial;
+        const k = `${d.sensibilidadMa}-${d.tipo}`;
+        const prev = conteoDif.get(k);
+        if (prev) prev.n += 1;
+        else conteoDif.set(k, { sens: d.sensibilidadMa, tipo: d.tipo, n: 1 });
+      }
     }
   }
   const totalDif = [...conteoDif.values()].reduce((s, x) => s + x.n, 0);
@@ -68,11 +70,11 @@ export function ResumenCdc({ resultado }: { resultado: ResultadoCdc }) {
         </dl>
         {totalDif > 0 && (
           <div className="mt-2 text-xs text-slate-500 border-t border-slate-200 dark:border-slate-800 pt-2">
-            <div className="font-medium mb-1">Detalle RCDs (RIC N°06):</div>
+            <div className="font-medium mb-1">Detalle RCDs (RIC N°06 — 1 por circuito):</div>
             <ul className="space-y-0.5">
               {[...conteoDif.values()].map((d) => (
-                <li key={`${d.sens}-${d.tipo}-${d.polos}`} className="flex justify-between">
-                  <span>{`iD ${d.polos}P · ${d.sens} mA · Tipo ${d.tipo}`}</span>
+                <li key={`${d.sens}-${d.tipo}`} className="flex justify-between">
+                  <span>{`Vigi ${d.sens} mA · Tipo ${d.tipo}`}</span>
                   <span className="tabular-nums">{d.n}</span>
                 </li>
               ))}

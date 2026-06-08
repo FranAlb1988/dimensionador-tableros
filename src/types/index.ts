@@ -526,14 +526,15 @@ export interface CofreCatalogo {
 }
 
 /**
- * Diferencial (RCD) de cabecera de fila DIN. RIC N°06 (Chile): obligatorio
- * en todos los circuitos terminales de servicio.
+ * Diferencial individual (RCD/RCBO) por circuito. RIC N°06 (Chile):
+ * obligatorio en todos los circuitos terminales de servicio. Modelo
+ * preferido en proyectos industriales: 1 RCD por circuito (selectividad
+ * total — una falla solo aísla su propio circuito).
+ *
+ * Realizado típicamente como iC60N + bloque Vigi, o como RCBO combinado
+ * (iDPN Vigi). El bloque Vigi añade 1 módulo al ancho del breaker.
  */
-export interface DiferencialCabecera {
-  /** Polaridad del RCD: 2P (1F+N) o 4P (3F+N). */
-  polos: 2 | 4;
-  /** Módulos DIN que ocupa. */
-  modulosDin: number;
+export interface DiferencialCircuito {
   /** Sensibilidad (corriente diferencial residual nominal) en mA. */
   sensibilidadMa: number;
   /**
@@ -542,8 +543,8 @@ export interface DiferencialCabecera {
    *  - 'A'  — cuando hay equipos con componentes DC (variadores, UPS).
    */
   tipo: 'AC' | 'A';
-  /** Capacidad nominal en A. */
-  inA: number;
+  /** Módulos DIN adicionales que aporta el bloque Vigi al breaker. */
+  modulosExtra: number;
 }
 
 /** Una fila DIN dentro de un cofre, ocupada por interruptores. */
@@ -551,23 +552,29 @@ export interface FilaDin {
   /** Posición 1..N dentro del cofre. */
   indice: number;
   modulosTotales: number;
-  /** Diferencial de cabecera de la fila (RCD obligatorio según RIC). */
-  diferencial?: DiferencialCabecera;
   /** Lista de interruptores en orden, con la carga asociada. */
   modulos: AsignacionCdc[];
-  /** Módulos reservados libres (sin uso) tras el diferencial. */
+  /** Módulos reservados libres (sin uso). */
   reserva: number;
-  /** Módulos libres tras diferencial + reserva + circuitos. */
+  /** Módulos libres tras reserva + circuitos. */
   modulosLibres: number;
 }
 
 export interface AsignacionCdc {
   carga: Carga;
   proteccion: Proteccion;
-  /** Módulos DIN que ocupa esta protección (1..4). */
+  /**
+   * Módulos DIN totales que ocupa esta protección. Incluye el bloque Vigi
+   * (1 módulo) cuando lleva diferencial individual.
+   */
   modulosDin: number;
   /** Corriente de diseño (A) usada para la asignación. */
   corrienteDisenoA: number;
+  /**
+   * RCD individual del circuito (RIC N°06). undefined si el diferencial está
+   * desactivado en las opciones del tablero.
+   */
+  diferencial?: DiferencialCircuito;
 }
 
 export interface Cofre {

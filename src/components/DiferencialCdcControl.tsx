@@ -14,17 +14,17 @@ export function DiferencialCdcControl() {
     <div className="inline-flex items-center gap-2 border border-slate-300 dark:border-slate-700 rounded px-2.5 py-1">
       <label
         className="flex items-center gap-1.5 text-sm font-medium cursor-pointer select-none"
-        title="Agrega un RCD (diferencial) de cabecera por fila DIN. Exigido por RIC N°06."
+        title="Agrega un RCD (Vigi/RCBO) individual a cada circuito. Exigido por RIC N°06."
       >
         <input
           type="checkbox"
-          checked={opciones.diferencialPorFila}
-          onChange={(e) => setOpciones({ diferencialPorFila: e.target.checked })}
+          checked={opciones.diferencialPorCircuito}
+          onChange={(e) => setOpciones({ diferencialPorCircuito: e.target.checked })}
           className="accent-slate-900 dark:accent-slate-100"
         />
         Diferencial RIC
       </label>
-      {opciones.diferencialPorFila && (
+      {opciones.diferencialPorCircuito && (
         <span className="flex items-center gap-1.5 text-sm">
           <select
             value={opciones.sensibilidadDiferencialMa}

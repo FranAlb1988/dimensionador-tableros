@@ -11,7 +11,7 @@ function ilum(id: string, kW: number, fases: '1F' | '3F' = '1F'): Carga {
 }
 
 /** Opciones sin diferencial — para tests que no quieren el RCD obligatorio. */
-const OPC_SIN_DIF = { ...OPCIONES_CDC_DEFAULT, diferencialPorFila: false };
+const OPC_SIN_DIF = { ...OPCIONES_CDC_DEFAULT, diferencialPorCircuito: false };
 
 describe('dimensionarCdc', () => {
   it('dimensiona 5 circuitos en un solo cofre Pragma 18×1', () => {
@@ -71,24 +71,30 @@ describe('dimensionarCdc', () => {
     expect(r.tablero!.cofres.length).toBeGreaterThanOrEqual(2);
   });
 
-  it('diferencial por fila (RIC): agrega RCD de cabecera a cada fila DIN', () => {
-    const cargas = Array.from({ length: 10 }, (_, i) => ilum(String(i + 1), 1.5));
+  it('diferencial por circuito (RIC): cada circuito lleva su RCD único', () => {
+    const cargas = Array.from({ length: 3 }, (_, i) => ilum(String(i + 1), 1.5));
     const r = dimensionarCdc(cargas, OPCIONES_CDC_DEFAULT);
-    const fila = r.tablero!.cofres[0]!.filas[0]!;
-    expect(fila.diferencial).toBeDefined();
-    expect(fila.diferencial!.sensibilidadMa).toBe(30);
-    expect(fila.diferencial!.tipo).toBe('AC');
-    // Filas con solo cargas 1F → diferencial 2P (2 módulos).
-    expect(fila.diferencial!.polos).toBe(2);
-    expect(fila.diferencial!.modulosDin).toBe(2);
+    // Cada AsignacionCdc tiene su propio diferencial.
+    expect(r.asignaciones).toHaveLength(3);
+    expect(r.asignaciones.every((a) => a.diferencial != null)).toBe(true);
+    expect(r.asignaciones[0]!.diferencial!.sensibilidadMa).toBe(30);
+    expect(r.asignaciones[0]!.diferencial!.tipo).toBe('AC');
   });
 
-  it('diferencial 4P (4 módulos) cuando la fila tiene una carga 3F', () => {
-    const r = dimensionarCdc([ilum('1', 5, '3F')], OPCIONES_CDC_DEFAULT);
-    const fila = r.tablero!.cofres[0]!.filas[0]!;
-    expect(fila.diferencial!.polos).toBe(4);
-    expect(fila.diferencial!.modulosDin).toBe(4);
-    // 18 mod − 4 (di) − 3 (circuito 3F) = 11 libres.
-    expect(fila.modulosLibres).toBe(11);
+  it('el bloque Vigi suma 1 módulo a cada circuito (1F → 2 mód., 3F → 4 mód.)', () => {
+    const r = dimensionarCdc([ilum('1', 1.5, '1F'), ilum('2', 5, '3F')], OPCIONES_CDC_DEFAULT);
+    const por1F = r.asignaciones.find((a) => a.proteccion.polos === 1)!;
+    const por3F = r.asignaciones.find((a) => a.proteccion.polos === 3)!;
+    expect(por1F.modulosDin).toBe(2); // 1 breaker + 1 Vigi
+    expect(por3F.modulosDin).toBe(4); // 3 breaker + 1 Vigi
+  });
+
+  it('sin diferencial, el circuito ocupa solo los módulos del breaker', () => {
+    const r = dimensionarCdc([ilum('1', 1.5, '1F'), ilum('2', 5, '3F')], OPC_SIN_DIF);
+    const por1F = r.asignaciones.find((a) => a.proteccion.polos === 1)!;
+    const por3F = r.asignaciones.find((a) => a.proteccion.polos === 3)!;
+    expect(por1F.modulosDin).toBe(1);
+    expect(por3F.modulosDin).toBe(3);
+    expect(por1F.diferencial).toBeUndefined();
   });
 });

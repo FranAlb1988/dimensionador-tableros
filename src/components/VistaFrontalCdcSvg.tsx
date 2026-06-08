@@ -117,40 +117,6 @@ function FilaSvg({ x0, y0, ancho, alto, fila, modulosPorFila }: FilaSvgProps) {
     </text>,
   );
 
-  // Diferencial de cabecera (RCD) al inicio
-  if (fila.diferencial) {
-    const d = fila.diferencial;
-    const w = d.modulosDin * modW;
-    const x = x0 + modCursor * modW;
-    elementos.push(
-      <g key="dif">
-        <rect x={x} y={y0} width={w} height={alto}
-          fill={COLOR_DIF_BG} stroke={COLOR_DIF_BORDE} strokeWidth={1.5} />
-        <text x={x + w / 2} y={y0 + 18}
-          textAnchor="middle" fontSize={11} fontWeight={700} fill={COLOR_TEXTO}
-          fontFamily="system-ui, sans-serif">
-          {`${d.inA}A`}
-        </text>
-        <text x={x + w / 2} y={y0 + 34}
-          textAnchor="middle" fontSize={9} fontWeight={600} fill={COLOR_DIF_BORDE}
-          fontFamily="system-ui, sans-serif">
-          {`iD ${d.sensibilidadMa}mA`}
-        </text>
-        <text x={x + w / 2} y={y0 + 50}
-          textAnchor="middle" fontSize={9} fill="#1e3a8a"
-          fontFamily="system-ui, sans-serif">
-          {`${d.polos}P · ${d.tipo}`}
-        </text>
-        <text x={x + w / 2} y={y0 + alto - 8}
-          textAnchor="middle" fontSize={8} fill="#1e3a8a"
-          fontFamily="system-ui, sans-serif">
-          RCD
-        </text>
-      </g>,
-    );
-    modCursor += d.modulosDin;
-  }
-
   // Reserva al inicio (si la hay)
   if (fila.reserva > 0) {
     const w = fila.reserva * modW;
@@ -169,36 +135,72 @@ function FilaSvg({ x0, y0, ancho, alto, fila, modulosPorFila }: FilaSvgProps) {
     modCursor += fila.reserva;
   }
 
-  // Cada protección como bloque de N módulos
+  // Cada protección como bloque de N módulos. Si lleva diferencial, los
+  // últimos `modulosExtra` módulos se rotulan como Vigi (RCD).
   fila.modulos.forEach((a, i) => {
-    const w = a.modulosDin * modW;
-    const x = x0 + modCursor * modW;
+    const tieneVigi = a.diferencial != null;
+    const modBreaker = tieneVigi
+      ? Math.max(1, a.modulosDin - a.diferencial!.modulosExtra)
+      : a.modulosDin;
+    const modVigi = tieneVigi ? a.diferencial!.modulosExtra : 0;
+    const wBreaker = modBreaker * modW;
+    const wVigi = modVigi * modW;
+    const xBreaker = x0 + modCursor * modW;
+    const xVigi = xBreaker + wBreaker;
     elementos.push(
       <g key={`m-${i}`}>
-        <rect x={x} y={y0} width={w} height={alto}
+        {/* Bloque del breaker */}
+        <rect x={xBreaker} y={y0} width={wBreaker} height={alto}
           fill={COLOR_MOD_BG} stroke={COLOR_MOD_BORDE} strokeWidth={1} />
-        {/* Líneas verticales separando módulos */}
-        {Array.from({ length: a.modulosDin - 1 }).map((_, k) => (
-          <line key={k}
-            x1={x + (k + 1) * modW} y1={y0}
-            x2={x + (k + 1) * modW} y2={y0 + alto}
+        {Array.from({ length: modBreaker - 1 }).map((_, k) => (
+          <line key={`b-${k}`}
+            x1={xBreaker + (k + 1) * modW} y1={y0}
+            x2={xBreaker + (k + 1) * modW} y2={y0 + alto}
             stroke={COLOR_MOD_BORDE} strokeDasharray="2 2" strokeWidth={0.5} />
         ))}
-        <text x={x + w / 2} y={y0 + 18}
+        <text x={xBreaker + wBreaker / 2} y={y0 + 18}
           textAnchor="middle" fontSize={11} fontWeight={700} fill={COLOR_TEXTO}
           fontFamily="system-ui, sans-serif">
           {`${a.proteccion.inA}A`}
         </text>
-        <text x={x + w / 2} y={y0 + 36}
+        <text x={xBreaker + wBreaker / 2} y={y0 + 36}
           textAnchor="middle" fontSize={9} fill="#475569"
           fontFamily="system-ui, sans-serif">
           {a.proteccion.polos}P · C
         </text>
-        <text x={x + w / 2} y={y0 + alto - 8}
+        <text x={xBreaker + wBreaker / 2} y={y0 + alto - 8}
           textAnchor="middle" fontSize={9} fill="#64748b"
           fontFamily="system-ui, sans-serif">
-          {truncate(a.carga.descripcion || a.carga.id, 14 * a.modulosDin)}
+          {truncate(a.carga.descripcion || a.carga.id, Math.max(8, 14 * modBreaker))}
         </text>
+
+        {/* Bloque del Vigi (RCD) — si aplica */}
+        {tieneVigi && (
+          <g>
+            <rect x={xVigi} y={y0} width={wVigi} height={alto}
+              fill={COLOR_DIF_BG} stroke={COLOR_DIF_BORDE} strokeWidth={1} />
+            <text x={xVigi + wVigi / 2} y={y0 + 16}
+              textAnchor="middle" fontSize={8} fontWeight={700} fill={COLOR_DIF_BORDE}
+              fontFamily="system-ui, sans-serif">
+              Vigi
+            </text>
+            <text x={xVigi + wVigi / 2} y={y0 + 30}
+              textAnchor="middle" fontSize={8} fontWeight={600} fill={COLOR_DIF_BORDE}
+              fontFamily="system-ui, sans-serif">
+              {`${a.diferencial!.sensibilidadMa}mA`}
+            </text>
+            <text x={xVigi + wVigi / 2} y={y0 + 44}
+              textAnchor="middle" fontSize={8} fill="#1e3a8a"
+              fontFamily="system-ui, sans-serif">
+              {a.diferencial!.tipo}
+            </text>
+            <text x={xVigi + wVigi / 2} y={y0 + alto - 8}
+              textAnchor="middle" fontSize={7} fill="#1e3a8a"
+              fontFamily="system-ui, sans-serif">
+              RCD
+            </text>
+          </g>
+        )}
       </g>,
     );
     modCursor += a.modulosDin;
