@@ -20,6 +20,8 @@ const COLOR_MOD_BORDE = '#94a3b8';
 const COLOR_TEXTO = '#0f172a';
 const COLOR_RESERVA = '#fde68a';
 const COLOR_RESERVA_BORDE = '#b45309';
+const COLOR_DIF_BG = '#dbeafe'; // blue-100
+const COLOR_DIF_BORDE = '#1d4ed8'; // blue-700
 
 export const VistaFrontalCdcSvg = forwardRef<SVGSVGElement, Props>(function VistaFrontalCdcSvg(
   { tablero }, ref,
@@ -114,6 +116,40 @@ function FilaSvg({ x0, y0, ancho, alto, fila, modulosPorFila }: FilaSvgProps) {
       F{fila.indice}
     </text>,
   );
+
+  // Diferencial de cabecera (RCD) al inicio
+  if (fila.diferencial) {
+    const d = fila.diferencial;
+    const w = d.modulosDin * modW;
+    const x = x0 + modCursor * modW;
+    elementos.push(
+      <g key="dif">
+        <rect x={x} y={y0} width={w} height={alto}
+          fill={COLOR_DIF_BG} stroke={COLOR_DIF_BORDE} strokeWidth={1.5} />
+        <text x={x + w / 2} y={y0 + 18}
+          textAnchor="middle" fontSize={11} fontWeight={700} fill={COLOR_TEXTO}
+          fontFamily="system-ui, sans-serif">
+          {`${d.inA}A`}
+        </text>
+        <text x={x + w / 2} y={y0 + 34}
+          textAnchor="middle" fontSize={9} fontWeight={600} fill={COLOR_DIF_BORDE}
+          fontFamily="system-ui, sans-serif">
+          {`iD ${d.sensibilidadMa}mA`}
+        </text>
+        <text x={x + w / 2} y={y0 + 50}
+          textAnchor="middle" fontSize={9} fill="#1e3a8a"
+          fontFamily="system-ui, sans-serif">
+          {`${d.polos}P · ${d.tipo}`}
+        </text>
+        <text x={x + w / 2} y={y0 + alto - 8}
+          textAnchor="middle" fontSize={8} fill="#1e3a8a"
+          fontFamily="system-ui, sans-serif">
+          RCD
+        </text>
+      </g>,
+    );
+    modCursor += d.modulosDin;
+  }
 
   // Reserva al inicio (si la hay)
   if (fila.reserva > 0) {

@@ -8,6 +8,7 @@ import { SUBTIPOS_CDC_LABEL, useCdcCargas, useCdcOpciones, useCdcStore, useCdcSu
 import { dimensionarCdc } from '../logic/cdc';
 import { TableroSelector } from '../components/TableroSelector';
 import { DerrateoControl } from '../components/DerrateoControl';
+import { DiferencialCdcControl } from '../components/DiferencialCdcControl';
 import { useFactorDerrateo } from '../store/proyecto-meta';
 
 export function CdcPage() {
@@ -53,6 +54,7 @@ export function CdcPage() {
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <DerrateoControl nivel="BT" />
+          <DiferencialCdcControl />
           <ExportarPdfCdcBoton svgRef={svgRef} resultado={resultado} subtipo={subtipo} />
         </div>
       </header>

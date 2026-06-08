@@ -189,6 +189,7 @@ function validar(data: unknown): ProyectoSerializado {
     : 0.8;
   const cdcCargas = Array.isArray(d.cdc?.cargas) ? d.cdc!.cargas! : [];
   const cdcOpciones: OpcionesCdc = {
+    ...OPCIONES_CDC_DEFAULT,
     modulosPorFila: typeof d.cdc?.opciones?.modulosPorFila === 'number' ? d.cdc!.opciones!.modulosPorFila : OPCIONES_CDC_DEFAULT.modulosPorFila,
     reservaPorFila: typeof d.cdc?.opciones?.reservaPorFila === 'number' ? d.cdc!.opciones!.reservaPorFila : OPCIONES_CDC_DEFAULT.reservaPorFila,
   };

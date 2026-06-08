@@ -10,6 +10,19 @@ export function ResumenCdc({ resultado }: { resultado: ResultadoCdc }) {
     const ref = c.catalogo.referencia;
     conteoCofres.set(ref, (conteoCofres.get(ref) ?? 0) + 1);
   }
+  // Conteo de diferenciales de cabecera por (sensibilidad, tipo, polos).
+  const conteoDif = new Map<string, { sens: number; tipo: 'AC' | 'A'; polos: 2 | 4; n: number }>();
+  for (const c of t.cofres) {
+    for (const f of c.filas) {
+      if (!f.diferencial) continue;
+      const d = f.diferencial;
+      const k = `${d.sensibilidadMa}-${d.tipo}-${d.polos}`;
+      const prev = conteoDif.get(k);
+      if (prev) prev.n += 1;
+      else conteoDif.set(k, { sens: d.sensibilidadMa, tipo: d.tipo, polos: d.polos, n: 1 });
+    }
+  }
+  const totalDif = [...conteoDif.values()].reduce((s, x) => s + x.n, 0);
   const utilizacion = t.cofres.reduce((s, c) => {
     const totales = c.filas.reduce((x, f) => x + (f.modulosTotales - f.reserva), 0);
     const usados = c.filas.reduce((x, f) => x + (f.modulosTotales - f.reserva - f.modulosLibres), 0);
@@ -46,7 +59,26 @@ export function ResumenCdc({ resultado }: { resultado: ResultadoCdc }) {
               <dd className="text-slate-600 tabular-nums">{t.reservaPorFila} mód.</dd>
             </>
           )}
+          {totalDif > 0 && (
+            <>
+              <dt className="text-slate-500">Diferenciales (RIC)</dt>
+              <dd className="font-medium tabular-nums">{totalDif}</dd>
+            </>
+          )}
         </dl>
+        {totalDif > 0 && (
+          <div className="mt-2 text-xs text-slate-500 border-t border-slate-200 dark:border-slate-800 pt-2">
+            <div className="font-medium mb-1">Detalle RCDs (RIC N°06):</div>
+            <ul className="space-y-0.5">
+              {[...conteoDif.values()].map((d) => (
+                <li key={`${d.sens}-${d.tipo}-${d.polos}`} className="flex justify-between">
+                  <span>{`iD ${d.polos}P · ${d.sens} mA · Tipo ${d.tipo}`}</span>
+                  <span className="tabular-nums">{d.n}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
       <div className="border border-slate-200 dark:border-slate-800 rounded-lg p-4">

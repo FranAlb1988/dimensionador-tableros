@@ -10,23 +10,25 @@ function ilum(id: string, kW: number, fases: '1F' | '3F' = '1F'): Carga {
   };
 }
 
+/** Opciones sin diferencial — para tests que no quieren el RCD obligatorio. */
+const OPC_SIN_DIF = { ...OPCIONES_CDC_DEFAULT, diferencialPorFila: false };
+
 describe('dimensionarCdc', () => {
   it('dimensiona 5 circuitos en un solo cofre Pragma 18×1', () => {
     const r = dimensionarCdc(
       [ilum('1', 1.5), ilum('2', 1.5), ilum('3', 1.5), ilum('4', 1.5), ilum('5', 2)],
-      { modulosPorFila: 18, reservaPorFila: 0 },
+      { ...OPC_SIN_DIF, modulosPorFila: 18, reservaPorFila: 0 },
     );
     expect(r.tablero).toBeDefined();
     const t = r.tablero!;
     expect(t.cofres).toHaveLength(1);
     expect(t.totalAsignaciones).toBe(5);
-    // 5 × 1 módulo = 5 ≤ 18 → 1 sola fila → cofre Pragma 18 (1 fila)
     expect(t.cofres[0]!.filas).toHaveLength(1);
     expect(t.cofres[0]!.catalogo.modulosPorFila).toBe(18);
   });
 
-  it('un circuito 3F ocupa 3 módulos en la fila', () => {
-    const r = dimensionarCdc([ilum('1', 5, '3F')], OPCIONES_CDC_DEFAULT);
+  it('un circuito 3F ocupa 3 módulos (sin diferencial)', () => {
+    const r = dimensionarCdc([ilum('1', 5, '3F')], OPC_SIN_DIF);
     const fila = r.tablero!.cofres[0]!.filas[0]!;
     expect(fila.modulos[0]!.modulosDin).toBe(3);
     expect(fila.modulosLibres).toBe(18 - 3);
@@ -34,7 +36,7 @@ describe('dimensionarCdc', () => {
 
   it('20 circuitos 1F llenan 2 filas (1 cofre 18×2)', () => {
     const cargas = Array.from({ length: 20 }, (_, i) => ilum(String(i + 1), 1.5));
-    const r = dimensionarCdc(cargas, { modulosPorFila: 18, reservaPorFila: 0 });
+    const r = dimensionarCdc(cargas, { ...OPC_SIN_DIF, modulosPorFila: 18, reservaPorFila: 0 });
     expect(r.tablero!.cofres).toHaveLength(1);
     expect(r.tablero!.cofres[0]!.filas).toHaveLength(2);
   });
@@ -42,13 +44,13 @@ describe('dimensionarCdc', () => {
   it('reserva por fila reduce la capacidad efectiva', () => {
     // 18 módulos/fila − 2 reserva = 16 útiles. 17 circuitos → 2 filas.
     const cargas = Array.from({ length: 17 }, (_, i) => ilum(String(i + 1), 1.5));
-    const r = dimensionarCdc(cargas, { modulosPorFila: 18, reservaPorFila: 2 });
+    const r = dimensionarCdc(cargas, { ...OPC_SIN_DIF, modulosPorFila: 18, reservaPorFila: 2 });
     expect(r.tablero!.cofres[0]!.filas).toHaveLength(2);
     expect(r.tablero!.cofres[0]!.filas[0]!.reserva).toBe(2);
   });
 
   it('reserva excesiva (≥ módulos por fila) devuelve motivo de error', () => {
-    const r = dimensionarCdc([ilum('1', 1.5)], { modulosPorFila: 12, reservaPorFila: 12 });
+    const r = dimensionarCdc([ilum('1', 1.5)], { ...OPC_SIN_DIF, modulosPorFila: 12, reservaPorFila: 12 });
     expect(r.tablero).toBeUndefined();
     expect(r.motivo).toBeTruthy();
   });
@@ -65,7 +67,28 @@ describe('dimensionarCdc', () => {
   it('utiliza varios cofres cuando una sola sección no alcanza', () => {
     // Pragma 18 max 5 filas. 18×5 = 90 módulos útiles. 100 circuitos 1F → necesita 2 cofres.
     const cargas = Array.from({ length: 100 }, (_, i) => ilum(String(i + 1), 1.5));
-    const r = dimensionarCdc(cargas, { modulosPorFila: 18, reservaPorFila: 0 });
+    const r = dimensionarCdc(cargas, { ...OPC_SIN_DIF, modulosPorFila: 18, reservaPorFila: 0 });
     expect(r.tablero!.cofres.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('diferencial por fila (RIC): agrega RCD de cabecera a cada fila DIN', () => {
+    const cargas = Array.from({ length: 10 }, (_, i) => ilum(String(i + 1), 1.5));
+    const r = dimensionarCdc(cargas, OPCIONES_CDC_DEFAULT);
+    const fila = r.tablero!.cofres[0]!.filas[0]!;
+    expect(fila.diferencial).toBeDefined();
+    expect(fila.diferencial!.sensibilidadMa).toBe(30);
+    expect(fila.diferencial!.tipo).toBe('AC');
+    // Filas con solo cargas 1F → diferencial 2P (2 módulos).
+    expect(fila.diferencial!.polos).toBe(2);
+    expect(fila.diferencial!.modulosDin).toBe(2);
+  });
+
+  it('diferencial 4P (4 módulos) cuando la fila tiene una carga 3F', () => {
+    const r = dimensionarCdc([ilum('1', 5, '3F')], OPCIONES_CDC_DEFAULT);
+    const fila = r.tablero!.cofres[0]!.filas[0]!;
+    expect(fila.diferencial!.polos).toBe(4);
+    expect(fila.diferencial!.modulosDin).toBe(4);
+    // 18 mod − 4 (di) − 3 (circuito 3F) = 11 libres.
+    expect(fila.modulosLibres).toBe(11);
   });
 });

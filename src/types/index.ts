@@ -525,16 +525,39 @@ export interface CofreCatalogo {
   placeholder?: boolean;
 }
 
+/**
+ * Diferencial (RCD) de cabecera de fila DIN. RIC N°06 (Chile): obligatorio
+ * en todos los circuitos terminales de servicio.
+ */
+export interface DiferencialCabecera {
+  /** Polaridad del RCD: 2P (1F+N) o 4P (3F+N). */
+  polos: 2 | 4;
+  /** Módulos DIN que ocupa. */
+  modulosDin: number;
+  /** Sensibilidad (corriente diferencial residual nominal) en mA. */
+  sensibilidadMa: number;
+  /**
+   * Tipo según forma de onda de la corriente residual:
+   *  - 'AC' — cargas resistivas y motores (default).
+   *  - 'A'  — cuando hay equipos con componentes DC (variadores, UPS).
+   */
+  tipo: 'AC' | 'A';
+  /** Capacidad nominal en A. */
+  inA: number;
+}
+
 /** Una fila DIN dentro de un cofre, ocupada por interruptores. */
 export interface FilaDin {
   /** Posición 1..N dentro del cofre. */
   indice: number;
   modulosTotales: number;
+  /** Diferencial de cabecera de la fila (RCD obligatorio según RIC). */
+  diferencial?: DiferencialCabecera;
   /** Lista de interruptores en orden, con la carga asociada. */
   modulos: AsignacionCdc[];
-  /** Módulos reservados (p.ej. para diferencial cabecera). */
+  /** Módulos reservados libres (sin uso) tras el diferencial. */
   reserva: number;
-  /** Módulos libres tras carga + reserva. */
+  /** Módulos libres tras diferencial + reserva + circuitos. */
   modulosLibres: number;
 }
 
