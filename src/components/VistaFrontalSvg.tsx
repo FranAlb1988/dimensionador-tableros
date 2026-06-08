@@ -164,6 +164,7 @@ export const VistaFrontalSvg = forwardRef<SVGSVGElement, Props>(function VistaFr
               return col.gavetas.map((g) => {
                 const y = yCursor;
                 yCursor += g.altoMm;
+                const esReserva = g.esReserva === true;
                 return (
                   <g key={g.id}>
                     <rect
@@ -171,9 +172,10 @@ export const VistaFrontalSvg = forwardRef<SVGSVGElement, Props>(function VistaFr
                       y={y}
                       width={anchoCol - 20}
                       height={g.altoMm}
-                      fill={COLOR_GAVETA_BG}
+                      fill={esReserva ? '#e2e8f0' : COLOR_GAVETA_BG}
                       stroke={COLOR_GAVETA_BORDE}
                       strokeWidth={2}
+                      strokeDasharray={esReserva ? '8 6' : undefined}
                     />
                     <text
                       x={x0 + anchoCol / 2}
@@ -184,7 +186,7 @@ export const VistaFrontalSvg = forwardRef<SVGSVGElement, Props>(function VistaFr
                       fill={COLOR_TEXTO}
                       fontFamily="system-ui, sans-serif"
                     >
-                      {`Gaveta ${tamanoEnXTexto(g.tamano)}`}
+                      {esReserva ? `Reserva ${tamanoEnXTexto(g.tamano)}` : `Gaveta ${tamanoEnXTexto(g.tamano)}`}
                     </text>
                     <text
                       x={x0 + anchoCol / 2}
@@ -194,9 +196,9 @@ export const VistaFrontalSvg = forwardRef<SVGSVGElement, Props>(function VistaFr
                       fill="#64748b"
                       fontFamily="system-ui, sans-serif"
                     >
-                      {truncate(g.contenido, 38)}
+                      {esReserva ? 'Vacancia · sin asignación' : truncate(g.contenido, 38)}
                     </text>
-                    {g.protecciones[0] && (
+                    {!esReserva && g.protecciones[0] && (
                       <text
                         x={x0 + anchoCol / 2}
                         y={y + g.altoMm - 16}

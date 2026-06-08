@@ -89,6 +89,8 @@ export interface Gaveta {
   /** Referencia de la carga si aplica. */
   cargaId?: string;
   protecciones: Proteccion[];
+  /** Gaveta de reserva/vacancia (sin carga asignada). */
+  esReserva?: boolean;
 }
 
 /** Marca/fabricante del interruptor. */
@@ -308,6 +310,8 @@ export interface AsignacionCcmNema {
   version: 'extraible' | 'fijo';
   /** Corriente de diseño usada para la asignación (A). */
   corrienteDisenoA: number;
+  /** Unidad de reserva/vacancia (sin carga real, espacio reservado). */
+  esReserva?: boolean;
 }
 
 export interface ColumnaCcmNema {
@@ -382,6 +386,8 @@ export interface AsignacionCcmMt {
   espaciosV: number;
   /** Corriente de diseño usada en la asignación (A, en lado del motor). */
   corrienteDisenoA: number;
+  /** Celda de reserva/vacancia (sin carga real, espacio reservado). */
+  esReserva?: boolean;
 }
 
 export interface ColumnaCcmMt {

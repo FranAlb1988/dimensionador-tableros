@@ -18,7 +18,8 @@ import { dimensionarCcmNema } from '../logic/ccm-nema';
 import { dimensionarCcmMt, UMBRAL_MT_V } from '../logic/ccm-mt';
 import { MARCAS_FEEDER } from '../logic/proteccion';
 import { DerrateoControl } from '../components/DerrateoControl';
-import { useFactorDerrateo } from '../store/proyecto-meta';
+import { ReservaCcmControl } from '../components/ReservaCcmControl';
+import { useFactorDerrateo, useReservaCcm } from '../store/proyecto-meta';
 import type { Norma } from '../types';
 import { TableroSelector } from '../components/TableroSelector';
 
@@ -32,6 +33,8 @@ export function CcmPage() {
   const setMarca = useCcmStore((s) => s.setMarca);
   const factorDerrateo = useFactorDerrateo('BT');
   const factorDerrateoMt = useFactorDerrateo('MT');
+  const reservaCcm = useReservaCcm();
+  const reservaPorcentaje = reservaCcm.activo ? Math.max(0, reservaCcm.porcentaje) : 0;
   // Detección automática del nivel de tensión del CCM.
   const tieneMt = cargas.some((c) => c.tensionV > UMBRAL_MT_V);
   const tieneBt = cargas.some((c) => c.tensionV > 0 && c.tensionV <= UMBRAL_MT_V);
@@ -50,16 +53,16 @@ export function CcmPage() {
   const [importAbierto, setImportAbierto] = useState(false);
 
   const resultadoIec = useMemo(
-    () => (norma === 'IEC' && !esMt ? dimensionarCcm(cargas, factorDerrateo, marca) : null),
-    [cargas, norma, esMt, factorDerrateo, marca],
+    () => (norma === 'IEC' && !esMt ? dimensionarCcm(cargas, factorDerrateo, marca, reservaPorcentaje) : null),
+    [cargas, norma, esMt, factorDerrateo, marca, reservaPorcentaje],
   );
   const resultadoNema = useMemo(
-    () => (norma === 'NEMA' && !esMt ? dimensionarCcmNema(cargas, factorDerrateo) : null),
-    [cargas, norma, factorDerrateo, esMt],
+    () => (norma === 'NEMA' && !esMt ? dimensionarCcmNema(cargas, factorDerrateo, reservaPorcentaje) : null),
+    [cargas, norma, factorDerrateo, esMt, reservaPorcentaje],
   );
   const resultadoMt = useMemo(
-    () => (esMt ? dimensionarCcmMt(cargas, factorDerrateoMt) : null),
-    [cargas, esMt, factorDerrateoMt],
+    () => (esMt ? dimensionarCcmMt(cargas, factorDerrateoMt, reservaPorcentaje) : null),
+    [cargas, esMt, factorDerrateoMt, reservaPorcentaje],
   );
 
   const handleDesglosar = () => {
@@ -91,6 +94,7 @@ export function CcmPage() {
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <DerrateoControl nivel={esMt ? 'MT' : 'BT'} />
+          <ReservaCcmControl />
           {esMt ? (
             <span
               className="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200"

@@ -83,22 +83,33 @@ export const VistaFrontalCcmMtSvg = forwardRef<SVGSVGElement, Props>(({ tablero 
               const slots = a.espaciosV;
               const slotY = colY + altoTotalMm - (cursor + slots) * slotH;
               cursor += slots;
+              const esReserva = a.esReserva === true;
               return (
                 <g key={j}>
-                  <rect x={x + 20} y={slotY + 10} width={anchoColumnaMm - 40} height={slots * slotH - 20}
-                    fill="#fef3c7" stroke="#92400e" strokeWidth={2} rx={6} />
+                  <rect
+                    x={x + 20} y={slotY + 10}
+                    width={anchoColumnaMm - 40} height={slots * slotH - 20}
+                    fill={esReserva ? '#e2e8f0' : '#fef3c7'}
+                    stroke={esReserva ? '#475569' : '#92400e'}
+                    strokeWidth={2} rx={6}
+                    strokeDasharray={esReserva ? '8 6' : undefined}
+                  />
                   <text x={x + anchoColumnaMm / 2} y={slotY + slots * slotH / 2 - 10}
-                    textAnchor="middle" fontSize="40" fontWeight="600" fill="#451a03">
-                    {a.contactor.frameA} A
+                    textAnchor="middle" fontSize="40" fontWeight="600"
+                    fill={esReserva ? '#334155' : '#451a03'}>
+                    {esReserva ? `Reserva ${a.contactor.frameA} A` : `${a.contactor.frameA} A`}
                   </text>
                   <text x={x + anchoColumnaMm / 2} y={slotY + slots * slotH / 2 + 40}
-                    textAnchor="middle" fontSize="28" fill="#78350f">
-                    {a.carga.descripcion || a.carga.id}
+                    textAnchor="middle" fontSize="28"
+                    fill={esReserva ? '#475569' : '#78350f'}>
+                    {esReserva ? 'Vacancia · sin asignación' : (a.carga.descripcion || a.carga.id)}
                   </text>
-                  <text x={x + anchoColumnaMm / 2} y={slotY + slots * slotH / 2 + 75}
-                    textAnchor="middle" fontSize="26" fill="#92400e">
-                    {(a.carga.tensionV / 1000).toLocaleString('es-CL', { maximumFractionDigits: 2 })} kV
-                  </text>
+                  {!esReserva && (
+                    <text x={x + anchoColumnaMm / 2} y={slotY + slots * slotH / 2 + 75}
+                      textAnchor="middle" fontSize="26" fill="#92400e">
+                      {(a.carga.tensionV / 1000).toLocaleString('es-CL', { maximumFractionDigits: 2 })} kV
+                    </text>
+                  )}
                 </g>
               );
             })}

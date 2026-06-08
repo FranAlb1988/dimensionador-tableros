@@ -18,6 +18,7 @@ import type {
 import { corrienteDiseno, corrienteNominal } from './corriente';
 import { MEDIDA_CCM_DEFAULT } from './medida-ccm';
 import { necesitaColumnaIncoming } from './columna';
+import { calcularReservas } from './reserva';
 import { KW_POR_HP } from '../util/potencia';
 
 const MOTORES: readonly MotorNemaCatalogo[] = (motoresData.filas as MotorNemaCatalogo[])
@@ -67,6 +68,7 @@ export const CAPACIDAD_BARRA_MAXIMA_A = Math.max(...BARRAS.map((b) => b.capacida
 export function dimensionarCcmNema(
   cargas: readonly Carga[],
   factorDerrateo = 1,
+  reservaPorcentaje = 0,
 ): ResultadoCcmNema {
   const f = factorDerrateo > 0 ? factorDerrateo : 1;
   const asignaciones: AsignacionCcmNema[] = [];
@@ -82,7 +84,33 @@ export function dimensionarCcmNema(
     return { asignaciones, cargasSinAsignar, motivo: 'Sin asignaciones válidas para NEMA.' };
   }
 
-  const columnasFeeders = empaquetarEnColumnas(asignaciones, ENVOLVENTE_CCM_NEMA.altoUtilXEspacios);
+  // Unidades de reserva (vacancia) — 1 de cada (tamañoX, versión) usado, más
+  // adicionales hasta cubrir el % pedido sobre el X usado por las salidas.
+  const { reservas } = calcularReservas<AsignacionCcmNema>(
+    asignaciones,
+    (a) => `${a.espaciosX}-${a.version}`,
+    (a) => a.espaciosX,
+    (modelo, i) => ({
+      carga: {
+        id: `reserva-${i + 1}`,
+        descripcion: `Reserva ${modelo.espaciosX}X`,
+        tipo: 'otro',
+        tensionV: modelo.carga.tensionV,
+        fases: modelo.carga.fases,
+        factorServicio: 1,
+      },
+      motor: modelo.motor,
+      breaker: modelo.breaker,
+      espaciosX: modelo.espaciosX,
+      version: modelo.version,
+      corrienteDisenoA: 0,
+      esReserva: true,
+    }),
+    reservaPorcentaje,
+  );
+  const asignacionesConReserva: AsignacionCcmNema[] = [...asignaciones, ...reservas];
+
+  const columnasFeeders = empaquetarEnColumnas(asignacionesConReserva, ENVOLVENTE_CCM_NEMA.altoUtilXEspacios);
   const corrienteTotalA = asignaciones.reduce((s, a) => s + a.corrienteDisenoA, 0);
   // Incoming/acometida dedicada cuando hay ≥4 gavetas o I ≥ 250 A.
   const columnas: ColumnaCcmNema[] = necesitaColumnaIncoming(asignaciones.length, corrienteTotalA)

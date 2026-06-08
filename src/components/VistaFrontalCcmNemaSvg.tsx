@@ -133,7 +133,8 @@ export const VistaFrontalCcmNemaSvg = forwardRef<SVGSVGElement, Props>(function 
                 const altoCelda = a.espaciosX * xMm;
                 const y = yCursor;
                 yCursor += altoCelda;
-                const desc = a.carga.descripcion || a.carga.id;
+                const esReserva = a.esReserva === true;
+                const desc = esReserva ? 'Vacancia · sin asignación' : (a.carga.descripcion || a.carga.id);
                 const ref = a.motor
                   ? `NEMA ${a.motor.contactorSize ?? '—'} · MCP ${a.motor.mcpFrameA ?? '—'}A`
                   : a.breaker
@@ -144,14 +145,16 @@ export const VistaFrontalCcmNemaSvg = forwardRef<SVGSVGElement, Props>(function 
                     <rect
                       x={x0 + 12} y={y}
                       width={anchoCol - 24} height={altoCelda}
-                      fill={COLOR_GAVETA_BG} stroke={COLOR_GAVETA_BORDE} strokeWidth={2}
+                      fill={esReserva ? '#e2e8f0' : COLOR_GAVETA_BG}
+                      stroke={COLOR_GAVETA_BORDE} strokeWidth={2}
+                      strokeDasharray={esReserva ? '8 6' : undefined}
                     />
                     <text
                       x={x0 + anchoCol / 2} y={y + 36}
                       textAnchor="middle" fontSize={36} fontWeight={600} fill={COLOR_TEXTO}
                       fontFamily="system-ui, sans-serif"
                     >
-                      {`${a.espaciosX}X · ${a.version}`}
+                      {esReserva ? `Reserva ${a.espaciosX}X` : `${a.espaciosX}X · ${a.version}`}
                     </text>
                     <text
                       x={x0 + anchoCol / 2} y={y + 78}

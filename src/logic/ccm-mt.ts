@@ -11,6 +11,7 @@ import type {
   EnvolventeCcmMtCatalogo, PrincipalMtCatalogo, ProteccionMtCatalogo, TableroCcmMt,
 } from '../types';
 import { corrienteNominal } from './corriente';
+import { calcularReservas } from './reserva';
 
 const CONTACTORES: readonly ContactorMtCatalogo[] = (centerlineData.contactores as ContactorMtCatalogo[])
   .toSorted((a, b) => a.frameA - b.frameA);
@@ -67,6 +68,7 @@ export const UMBRAL_MT_V = 1000;
 export function dimensionarCcmMt(
   cargas: readonly Carga[],
   factorDerrateo = 1,
+  reservaPorcentaje = 0,
 ): ResultadoCcmMt {
   const f = factorDerrateo > 0 ? factorDerrateo : 1;
   const asignaciones: AsignacionCcmMt[] = [];
@@ -106,7 +108,32 @@ export function dimensionarCcmMt(
     };
   }
 
-  const columnas = empaquetarEnColumnasMt(asignaciones, ENVOLVENTE_CCM_MT.espaciosVerticales);
+  // Celdas de reserva (vacancia) — 1 de cada tamaño de contactor usado, más
+  // adicionales hasta cubrir el % pedido sobre los espacios verticales usados.
+  const { reservas } = calcularReservas<AsignacionCcmMt>(
+    asignaciones,
+    (a) => String(a.contactor.frameA),
+    (a) => a.espaciosV,
+    (modelo, i) => ({
+      carga: {
+        id: `reserva-${i + 1}`,
+        descripcion: `Reserva ${modelo.contactor.frameA} A`,
+        tipo: 'motor',
+        tensionV: modelo.carga.tensionV,
+        fases: modelo.carga.fases,
+        factorServicio: 1,
+      },
+      contactor: modelo.contactor,
+      proteccion: modelo.proteccion,
+      espaciosV: modelo.espaciosV,
+      corrienteDisenoA: 0,
+      esReserva: true,
+    }),
+    reservaPorcentaje,
+  );
+  const asignacionesConReserva = [...asignaciones, ...reservas];
+
+  const columnas = empaquetarEnColumnasMt(asignacionesConReserva, ENVOLVENTE_CCM_MT.espaciosVerticales);
   const corrienteTotalA = asignaciones.reduce((s, a) => s + a.corrienteDisenoA, 0);
   const corrienteSeleccionBarraA = corrienteTotalA / f;
 

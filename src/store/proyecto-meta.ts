@@ -50,12 +50,29 @@ export interface DerrateoConfig {
 
 export const DERRATEO_DEFAULT: DerrateoConfig = { activo: false, altitudM: 2300 };
 
+/**
+ * Reserva (vacancia) automática en CCM. Práctica de exigencia de cliente —
+ * sin cláusula normativa específica, pero estándar en proyectos
+ * industriales y mineros (Codelco, BHP, AMSA, SQM…): 25% de capacidad
+ * libre más al menos una protección de cada tipo usado.
+ */
+export interface ReservaCcmConfig {
+  /** Si está activo, el dimensionamiento agrega gavetas/celdas de reserva. */
+  activo: boolean;
+  /** Porcentaje mínimo de reserva respecto a la capacidad usada por las salidas. */
+  porcentaje: number;
+}
+
+export const RESERVA_CCM_DEFAULT: ReservaCcmConfig = { activo: true, porcentaje: 25 };
+
 interface MetaState {
   metadatos: MetadatosProyecto;
   derrateo: DerrateoConfig;
+  reservaCcm: ReservaCcmConfig;
   setMetadato: <K extends keyof MetadatosProyecto>(campo: K, valor: MetadatosProyecto[K]) => void;
   setMetadatos: (m: Partial<MetadatosProyecto>) => void;
   setDerrateo: (parcial: Partial<DerrateoConfig>) => void;
+  setReservaCcm: (parcial: Partial<ReservaCcmConfig>) => void;
   limpiar: () => void;
 }
 
@@ -64,14 +81,21 @@ export const useMetaStore = create<MetaState>()(
     (set) => ({
       metadatos: { ...METADATOS_VACIOS },
       derrateo: { ...DERRATEO_DEFAULT },
+      reservaCcm: { ...RESERVA_CCM_DEFAULT },
       setMetadato: (campo, valor) => set((s) => ({ metadatos: { ...s.metadatos, [campo]: valor } })),
       setMetadatos: (m) => set((s) => ({ metadatos: { ...s.metadatos, ...m } })),
       setDerrateo: (parcial) => set((s) => ({ derrateo: { ...s.derrateo, ...parcial } })),
+      setReservaCcm: (parcial) => set((s) => ({ reservaCcm: { ...s.reservaCcm, ...parcial } })),
       limpiar: () => set({ metadatos: { ...METADATOS_VACIOS } }),
     }),
     { name: 'proyecto-meta-v1', version: 1 },
   ),
 );
+
+/** Hook: configuración de reserva (vacancia) de CCM del proyecto. */
+export function useReservaCcm(): ReservaCcmConfig {
+  return useMetaStore((s) => s.reservaCcm);
+}
 
 /** Helper para PDF/headers: extrae los metadatos actuales sin necesitar hook. */
 export function getMetadatos(): MetadatosProyecto {

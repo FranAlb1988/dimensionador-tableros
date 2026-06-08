@@ -1,11 +1,13 @@
-import type { AsignacionCarga, Carga, MarcaProteccion, Tablero, TipoTablero } from '../types';
+import type { AsignacionCarga, Carga, Gaveta, MarcaProteccion, Tablero, TipoTablero } from '../types';
 import {
   distribuirEnColumnas, necesitaColumnaIncoming, nuevaColumnaIncoming, resetContadorColumnas,
 } from './columna';
-import { asignarCargaCcm, COLUMNA_CATALOGO, resetContadorGavetas } from './gaveta';
+import { altoDeGaveta, asignarCargaCcm, COLUMNA_CATALOGO, resetContadorGavetas } from './gaveta';
 import { MEDIDA_CCM_DEFAULT } from './medida-ccm';
 import { corrienteDiseno } from './corriente';
 import { sugerirBarra } from './barra';
+import { calcularReservas } from './reserva';
+import { tamanoEnX } from '../util/x-blokset';
 
 export interface ResultadoCcm {
   asignaciones: AsignacionCarga[];
@@ -25,6 +27,7 @@ export function dimensionarCcm(
   cargas: readonly Carga[],
   factorDerrateo = 1,
   marca: MarcaProteccion = 'Schneider',
+  reservaPorcentaje = 0,
 ): ResultadoCcm {
   resetContadorGavetas();
   resetContadorColumnas();
@@ -38,7 +41,26 @@ export function dimensionarCcm(
     else cargasSinAsignar.push(c);
   }
 
-  const gavetas = asignaciones.map((a) => a.gaveta);
+  // Gavetas de reserva (vacancia): 1 de cada tamaño usado + adicionales hasta
+  // alcanzar el porcentaje pedido sobre el X usado por las salidas reales.
+  const gavetasReales = asignaciones.map((a) => a.gaveta);
+  const { reservas } = calcularReservas<Gaveta>(
+    gavetasReales,
+    (g) => g.tamano,
+    (g) => tamanoEnX(g.tamano),
+    (modelo, i) => ({
+      id: `reserva-${i + 1}`,
+      tamano: modelo.tamano,
+      altoMm: altoDeGaveta(modelo.tamano),
+      version: 'extraible',
+      contenido: `Reserva · ${modelo.tamano}X`,
+      protecciones: [],
+      esReserva: true,
+    }),
+    reservaPorcentaje,
+  );
+
+  const gavetas = [...gavetasReales, ...reservas];
   const columnasFeeders = distribuirEnColumnas(gavetas);
 
   // Barra principal por la FLC total. El derrateo por altura reduce la
