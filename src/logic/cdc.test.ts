@@ -81,12 +81,13 @@ describe('dimensionarCdc', () => {
     expect(r.asignaciones[0]!.diferencial!.tipo).toBe('AC');
   });
 
-  it('el bloque Vigi suma 1 módulo a cada circuito (1F → 2 mód., 3F → 4 mód.)', () => {
+  it('el bloque Vigi suma 2 módulos a cada circuito (1F → 3 mód., 3F → 5 mód.)', () => {
     const r = dimensionarCdc([ilum('1', 1.5, '1F'), ilum('2', 5, '3F')], OPCIONES_CDC_DEFAULT);
     const por1F = r.asignaciones.find((a) => a.proteccion.polos === 1)!;
     const por3F = r.asignaciones.find((a) => a.proteccion.polos === 3)!;
-    expect(por1F.modulosDin).toBe(2); // 1 breaker + 1 Vigi
-    expect(por3F.modulosDin).toBe(4); // 3 breaker + 1 Vigi
+    expect(por1F.modulosDin).toBe(3); // 1 breaker + 2 Vigi
+    expect(por3F.modulosDin).toBe(5); // 3 breaker + 2 Vigi
+    expect(por1F.diferencial!.modulosExtra).toBe(2);
   });
 
   it('sin diferencial, el circuito ocupa solo los módulos del breaker', () => {

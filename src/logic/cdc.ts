@@ -41,8 +41,13 @@ export const OPCIONES_CDC_DEFAULT: OpcionesCdc = {
   tipoDiferencial: 'AC',
 };
 
-/** Módulos extra (bloque Vigi) que añade el RCD individual al breaker. */
-const MODULOS_VIGI_EXTRA = 1;
+/**
+ * Módulos extra que añade el bloque Vigi/RCD al breaker. Schneider iC60 Vigi
+ * y equivalentes ABB Tmax/Chint ocupan 2 módulos DIN de 18 mm. Resultado:
+ *  - 1F (1+N): breaker 1 mód. + Vigi 2 mód. = 3 mód.
+ *  - 3F (3+N): breaker 3 mód. + Vigi 2 mód. = 5 mód.
+ */
+const MODULOS_VIGI_EXTRA = 2;
 
 export interface ResultadoCdc {
   asignaciones: AsignacionCdc[];
