@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Carga } from '../types';
@@ -161,13 +162,15 @@ export const useCdcStore = create<CdcState>()(
     },
     {
       name: 'cdc-cargas-v1',
-      version: 2,
+      version: 3,
       migrate: (persisted, fromVersion) => {
         if (fromVersion < 1) {
           // De v0 (single-tablero, sin subtipo) → v2 (multi-tablero con subtipo).
           const p = (persisted ?? {}) as { cargas?: Carga[]; opciones?: OpcionesCdc };
           const cargas = Array.isArray(p.cargas) ? p.cargas : [];
-          const opciones: OpcionesCdc = p.opciones ?? { ...OPCIONES_CDC_DEFAULT };
+          const opciones: OpcionesCdc = p.opciones
+            ? { ...OPCIONES_CDC_DEFAULT, ...p.opciones }
+            : { ...OPCIONES_CDC_DEFAULT };
           const t: CdcTablero = { id: nuevoId('cdc'), nombre: 'Tablero 1', subtipo: 'general', opciones, cargas };
           return { tableros: [t], activoId: t.id } as unknown as CdcState;
         }
@@ -175,6 +178,16 @@ export const useCdcStore = create<CdcState>()(
           // De v1 (multi-tablero sin subtipo) → v2: rellenar subtipo='general'.
           const p = (persisted ?? {}) as { tableros?: Array<Omit<CdcTablero, 'subtipo'> & { subtipo?: SubtipoCdc }>; activoId?: string | null };
           const tableros = (p.tableros ?? []).map((t) => ({ ...t, subtipo: (t.subtipo ?? 'general') as SubtipoCdc }));
+          return { tableros, activoId: p.activoId ?? tableros[0]?.id ?? null } as unknown as CdcState;
+        }
+        if (fromVersion < 3) {
+          // De v2 → v3: rellenar las nuevas opciones del RIC (diferencial por
+          // circuito, sensibilidad, tipo) en los tableros guardados.
+          const p = (persisted ?? {}) as { tableros?: CdcTablero[]; activoId?: string | null };
+          const tableros = (p.tableros ?? []).map((t) => ({
+            ...t,
+            opciones: { ...OPCIONES_CDC_DEFAULT, ...t.opciones },
+          }));
           return { tableros, activoId: p.activoId ?? tableros[0]?.id ?? null } as unknown as CdcState;
         }
         return persisted as CdcState;
@@ -189,8 +202,18 @@ export const useCdcTableroActivo = (): CdcTablero | undefined =>
 export const useCdcCargas = (): Carga[] =>
   useCdcStore((s) => s.tableros.find((t) => t.id === s.activoId)?.cargas ?? []);
 
-export const useCdcOpciones = (): OpcionesCdc =>
-  useCdcStore((s) => s.tableros.find((t) => t.id === s.activoId)?.opciones ?? OPCIONES_CDC_DEFAULT);
+/**
+ * Mezcla los defaults con las opciones del tablero activo, así los campos
+ * nuevos (p.ej. diferencialPorCircuito) salen siempre con valor aunque el
+ * tablero guardado en localStorage no los tenga.
+ */
+export const useCdcOpciones = (): OpcionesCdc => {
+  const opc = useCdcStore((s) => s.tableros.find((t) => t.id === s.activoId)?.opciones);
+  return useMemo(
+    () => (opc ? { ...OPCIONES_CDC_DEFAULT, ...opc } : OPCIONES_CDC_DEFAULT),
+    [opc],
+  );
+};
 
 export const useCdcSubtipo = (): SubtipoCdc =>
   useCdcStore((s) => s.tableros.find((t) => t.id === s.activoId)?.subtipo ?? 'general');
