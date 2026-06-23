@@ -6,6 +6,7 @@ import { altoDeGaveta, asignarCargaCcm, COLUMNA_CATALOGO, resetContadorGavetas }
 import { MEDIDA_CCM_DEFAULT } from './medida-ccm';
 import { corrienteDiseno } from './corriente';
 import { sugerirBarra } from './barra';
+import { MAX_BARRA_CCM_A } from './limites-barra';
 import { calcularReservas } from './reserva';
 import { tamanoEnX } from '../util/x-blokset';
 
@@ -68,7 +69,9 @@ export function dimensionarCcm(
   const f = factorDerrateo > 0 ? factorDerrateo : 1;
   const corrienteTotalA = asignaciones.reduce((s, a) => s + corrienteDiseno(a.carga), 0);
   const corrienteSeleccionBarraA = corrienteTotalA / f;
-  const barra = sugerirBarra(corrienteSeleccionBarraA);
+  // CCM: la barra principal se topa en 3200 A. Para corrientes mayores el
+  // tablero corresponde a un CDC.
+  const barra = sugerirBarra(corrienteSeleccionBarraA, MAX_BARRA_CCM_A);
 
   // Incoming/acometida dedicada cuando hay ≥4 gavetas o I ≥ 250 A.
   const columnas = necesitaColumnaIncoming(asignaciones.length, corrienteTotalA)

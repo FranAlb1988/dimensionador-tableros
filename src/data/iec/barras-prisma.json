@@ -12,6 +12,8 @@
     { "id": "cu-125x10", "referencia": "Cu 125×10 mm", "inA": 2000, "material": "Cu", "dimensionMm": "125×10", "seccionMm2": 1250, "placeholder": true },
     { "id": "cu-160x10", "referencia": "Cu 160×10 mm", "inA": 2500, "material": "Cu", "dimensionMm": "160×10", "seccionMm2": 1600, "placeholder": true },
     { "id": "cu-200x10", "referencia": "Cu 200×10 mm", "inA": 3200, "material": "Cu", "dimensionMm": "200×10", "seccionMm2": 2000, "placeholder": true },
-    { "id": "cu-160x10x2", "referencia": "Cu 2×(160×10) mm", "inA": 4000, "material": "Cu", "dimensionMm": "2×(160×10)", "seccionMm2": 3200, "placeholder": true, "notas": "Dos pletinas por fase" }
+    { "id": "cu-160x10x2", "referencia": "Cu 2×(160×10) mm", "inA": 4000, "material": "Cu", "dimensionMm": "2×(160×10)", "seccionMm2": 3200, "placeholder": true, "notas": "Dos pletinas por fase" },
+    { "id": "cu-200x10x2", "referencia": "Cu 2×(200×10) mm", "inA": 5000, "material": "Cu", "dimensionMm": "2×(200×10)", "seccionMm2": 4000, "placeholder": true, "notas": "Dos pletinas por fase — solo CDC" },
+    { "id": "cu-200x10x3", "referencia": "Cu 3×(200×10) mm", "inA": 6000, "material": "Cu", "dimensionMm": "3×(200×10)", "seccionMm2": 6000, "placeholder": true, "notas": "Tres pletinas por fase — solo CDC" }
   ]
 }

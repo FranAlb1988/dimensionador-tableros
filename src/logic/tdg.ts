@@ -4,6 +4,7 @@ import { corrienteDiseno } from './corriente';
 import { sugerirProteccionFeeder } from './proteccion';
 import { sugerirInterruptorPrincipal } from './principal';
 import { sugerirBarra } from './barra';
+import { MAX_BARRA_CDC_A } from './limites-barra';
 import { MEDIDA_TDG_DEFAULT } from './medida-tdg';
 
 export const ENVOLVENTE_PRISMA: EnvolventePrismaCatalogo = prismaData.envolvente as EnvolventePrismaCatalogo;
@@ -56,7 +57,9 @@ export function dimensionarTdg(
   const corrienteTotalA = sumaSalidasA * fs;
 
   const principal = sugerirInterruptorPrincipal(corrienteTotalA, marca);
-  const barra = sugerirBarra(corrienteTotalA);
+  // CDC: la barra principal puede llegar hasta 6000 A (alimenta CCMs y CDCs
+  // aguas abajo).
+  const barra = sugerirBarra(corrienteTotalA, MAX_BARRA_CDC_A);
   if (!principal) {
     return {
       salidasAsignadas,
