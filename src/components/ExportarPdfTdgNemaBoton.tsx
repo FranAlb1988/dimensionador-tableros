@@ -5,6 +5,8 @@ import type { ResultadoTdgNema } from '../logic/tdg-nema';
 import { fmtAmp, fmtMm } from '../util/format';
 
 import type { SubtipoTdg } from '../store/tdg';
+import { useTdgTransformador } from '../store/tdg';
+import { calcularTransformador, TIPO_TRAFO_LABEL } from '../logic/transformador';
 import { dibujarCajetinProyecto, sufijoArchivoProyecto } from '../util/pdf-cajetin';
 
 interface Props {
@@ -19,6 +21,7 @@ const btnCls =
 
 export function ExportarPdfTdgNemaBoton({ svgRef, resultado, subtipo = 'general' }: Props) {
   const [exportando, setExportando] = useState(false);
+  const trafoConfig = useTdgTransformador();
   const t = resultado.tablero;
   const tituloPdf = subtipo === 'fuerza'
     ? 'Tablero de fuerza NEMA — Vista frontal'
@@ -61,6 +64,22 @@ export function ExportarPdfTdgNemaBoton({ svgRef, resultado, subtipo = 'general'
       doc.setFontSize(9);
       doc.text(`Principal: ${t.principal.frameAF}AF · ${t.principal.rating} (${fmtAmp(t.principal.ratingA)})`, 14, 21);
       doc.text(`Barra: ${t.barra.frameAF}AF (rango FLC ${t.barra.flcMin}-${t.barra.flcMax} A)`, 14, 27);
+      if (trafoConfig) {
+        const r = calcularTransformador({
+          corrienteSecundarioA: t.corrienteTotalA,
+          tensionPrimariaKv: trafoConfig.tensionPrimariaKv,
+          tensionSecundariaV: trafoConfig.tensionSecundariaV,
+          margen: trafoConfig.margen,
+          tipo: trafoConfig.tipo,
+        });
+        const parStr = r.paralelo
+          ? ` × ${r.paralelo.cantidad} unidades (${r.paralelo.cadaUno.kvaNominal} kVA c/u)`
+          : '';
+        doc.text(
+          `Trafo: ${r.kvaNominal} kVA${parStr} · ${trafoConfig.tensionPrimariaKv} kV / ${trafoConfig.tensionSecundariaV} V · ${r.grupoVectorial} · Ucc ${r.uccPorcentaje}% · ${TIPO_TRAFO_LABEL[r.tipo]}`,
+          14, 33,
+        );
+      }
 
       doc.setFontSize(8);
       const filas: string[][] = [
@@ -78,7 +97,7 @@ export function ExportarPdfTdgNemaBoton({ svgRef, resultado, subtipo = 'general'
 
       const cols = [10, 70, 22, 22, 26, 26, 26];
       const rowH = 6;
-      let y = 36;
+      let y = trafoConfig ? 42 : 36;
       filas.forEach((row, i) => {
         let x = 14;
         if (i === 0) doc.setFont('helvetica', 'bold');

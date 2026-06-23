@@ -1,9 +1,12 @@
 import type { ResultadoTdgNema } from '../logic/tdg-nema';
 import { fmtAmp, fmtMm } from '../util/format';
 import { MedidaCard } from './MedidaCard';
+import { TransformadorCard } from './TransformadorCard';
+import { useTdgTransformador } from '../store/tdg';
 
 export function ResumenTdgNema({ resultado }: { resultado: ResultadoTdgNema }) {
   const t = resultado.tablero;
+  const trafoConfig = useTdgTransformador();
   if (!t) return null;
 
   const conteo = new Map<number, number>();
@@ -48,6 +51,10 @@ export function ResumenTdgNema({ resultado }: { resultado: ResultadoTdgNema }) {
       </div>
 
       <MedidaCard medida={t.medida} />
+
+      {trafoConfig && (
+        <TransformadorCard config={trafoConfig} corrienteTotalA={t.corrienteTotalA} />
+      )}
     </div>
   );
 }

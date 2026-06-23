@@ -2,6 +2,8 @@ import type { ResultadoTdg } from '../logic/tdg';
 import { fmtAmp, fmtMm } from '../util/format';
 import type { FamiliaProteccion } from '../types';
 import { MedidaCard } from './MedidaCard';
+import { TransformadorCard } from './TransformadorCard';
+import { useTdgTransformador } from '../store/tdg';
 
 const ORDEN_FAMILIA: readonly FamiliaProteccion[] = [
   'NSXm', 'NSX100', 'NSX160', 'NSX250', 'NSX400', 'NSX630',
@@ -14,6 +16,7 @@ const ORDEN_FAMILIA: readonly FamiliaProteccion[] = [
 
 export function ResumenTdg({ resultado }: { resultado: ResultadoTdg }) {
   const t = resultado.tablero;
+  const trafoConfig = useTdgTransformador();
   if (!t) return null;
 
   const conteo = new Map<FamiliaProteccion, number>();
@@ -58,6 +61,10 @@ export function ResumenTdg({ resultado }: { resultado: ResultadoTdg }) {
       </div>
 
       <MedidaCard medida={t.medida} />
+
+      {trafoConfig && (
+        <TransformadorCard config={trafoConfig} corrienteTotalA={t.corrienteTotalA} />
+      )}
     </div>
   );
 }

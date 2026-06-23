@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Carga, MarcaProteccion, Norma } from '../types';
+import type { ConfigTransformador } from '../logic/transformador';
 
 let idCounter = 0;
 function nuevoId(prefix: string): string {
@@ -37,6 +38,8 @@ export interface TdgTablero {
   norma: Norma;
   /** Marca del interruptor principal (solo aplica al catálogo IEC). */
   marca?: MarcaProteccion;
+  /** Configuración del transformador alimentador (persistida). */
+  transformador?: ConfigTransformador;
   factorSimultaneidad: number;
   salidas: Carga[];
 }
@@ -58,6 +61,7 @@ interface TdgState {
 
   setNorma: (n: Norma) => void;
   setMarca: (m: MarcaProteccion) => void;
+  setTransformador: (cfg: ConfigTransformador | undefined) => void;
   setFactorSimultaneidad: (v: number) => void;
   agregar: () => void;
   duplicar: (id: string) => void;
@@ -118,6 +122,7 @@ export const useTdgStore = create<TdgState>()(
             nuevo.subtipo = orig.subtipo;
             nuevo.norma = orig.norma;
             nuevo.marca = orig.marca;
+            nuevo.transformador = orig.transformador ? { ...orig.transformador } : undefined;
             nuevo.factorSimultaneidad = orig.factorSimultaneidad;
             nuevo.salidas = orig.salidas.map((c) => ({ ...c, id: nuevoId('s') }));
             return { tableros: [...s.tableros, nuevo], activoId: nuevo.id };
@@ -137,6 +142,7 @@ export const useTdgStore = create<TdgState>()(
 
         setNorma: (n) => set((s) => modificarActivo(s, (t) => ({ ...t, norma: n }))),
         setMarca: (m) => set((s) => modificarActivo(s, (t) => ({ ...t, marca: m }))),
+        setTransformador: (cfg) => set((s) => modificarActivo(s, (t) => ({ ...t, transformador: cfg }))),
         setFactorSimultaneidad: (v) => set((s) => modificarActivo(s, (t) => ({
           ...t,
           factorSimultaneidad: Math.max(0.1, Math.min(1, Number.isFinite(v) ? v : 0.8)),
@@ -203,6 +209,10 @@ export const useTdgNorma = (): Norma =>
 
 export const useTdgMarca = (): MarcaProteccion =>
   useTdgStore((s) => s.tableros.find((t) => t.id === s.activoId)?.marca ?? 'Schneider');
+
+/** Configuración persistida del transformador alimentador (puede ser undefined). */
+export const useTdgTransformador = (): ConfigTransformador | undefined =>
+  useTdgStore((s) => s.tableros.find((t) => t.id === s.activoId)?.transformador);
 
 export const useTdgFactorSimultaneidad = (): number =>
   useTdgStore((s) => s.tableros.find((t) => t.id === s.activoId)?.factorSimultaneidad ?? 0.8);

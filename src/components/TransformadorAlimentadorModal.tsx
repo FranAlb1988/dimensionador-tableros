@@ -1,11 +1,16 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import {
   calcularTransformador,
+  CONFIG_TRAFO_DEFAULT,
   POTENCIAS_NOMINALES_KVA,
   TENSIONES_PRIMARIAS_KV,
   TENSIONES_SECUNDARIAS_V,
+  TIPO_TRAFO_LABEL,
   tensionPredominanteV,
+  type ConfigTransformador,
+  type TipoTransformador,
 } from '../logic/transformador';
+import { useTdgStore, useTdgTransformador } from '../store/tdg';
 import { fmtAmp } from '../util/format';
 
 interface Props {
@@ -19,28 +24,39 @@ interface Props {
 
 /**
  * Ventana modal para dimensionar el transformador MT/BT que alimenta el
- * CDC. La tensión secundaria se autodetecta de las cargas del tablero; el
- * usuario elige la tensión primaria y el margen de crecimiento.
+ * CDC. La configuración (tensiones, margen, tipo) se persiste en el store
+ * por tablero. La tensión secundaria se autodetecta de las cargas la
+ * primera vez que se abre el modal.
  */
 export function TransformadorAlimentadorModal({
   abierto, onCerrar, corrienteTotalA, tensionesSalidas,
 }: Props) {
+  const cfgGuardada = useTdgTransformador();
+  const setTransformador = useTdgStore((s) => s.setTransformador);
+
   const v2Predominante = tensionPredominanteV(tensionesSalidas);
-  const [tensionSecundariaV, setTensionSecundariaV] = useState<number>(v2Predominante);
-  const [tensionPrimariaKv, setTensionPrimariaKv] = useState<number>(13.8);
-  const [margenPct, setMargenPct] = useState<number>(25);
+  const cfg: ConfigTransformador = cfgGuardada ?? {
+    ...CONFIG_TRAFO_DEFAULT,
+    tensionSecundariaV: v2Predominante,
+  };
+
+  const setCfg = (parcial: Partial<ConfigTransformador>) => {
+    setTransformador({ ...cfg, ...parcial });
+  };
 
   const resultado = useMemo(
     () => calcularTransformador({
       corrienteSecundarioA: corrienteTotalA,
-      tensionSecundariaV,
-      tensionPrimariaKv,
-      margen: margenPct / 100,
+      tensionPrimariaKv: cfg.tensionPrimariaKv,
+      tensionSecundariaV: cfg.tensionSecundariaV,
+      margen: cfg.margen,
+      tipo: cfg.tipo,
     }),
-    [corrienteTotalA, tensionSecundariaV, tensionPrimariaKv, margenPct],
+    [corrienteTotalA, cfg.tensionPrimariaKv, cfg.tensionSecundariaV, cfg.margen, cfg.tipo],
   );
 
   if (!abierto) return null;
+  const margenPct = Math.round(cfg.margen * 100);
 
   return (
     <div
@@ -73,8 +89,8 @@ export function TransformadorAlimentadorModal({
             <label className="flex flex-col gap-1">
               <span className="text-slate-500">Tensión primaria (MT)</span>
               <select
-                value={tensionPrimariaKv}
-                onChange={(e) => setTensionPrimariaKv(Number(e.target.value))}
+                value={cfg.tensionPrimariaKv}
+                onChange={(e) => setCfg({ tensionPrimariaKv: Number(e.target.value) })}
                 className="px-2 py-1.5 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 tabular-nums"
               >
                 {TENSIONES_PRIMARIAS_KV.map((kv) => (
@@ -86,8 +102,8 @@ export function TransformadorAlimentadorModal({
             <label className="flex flex-col gap-1">
               <span className="text-slate-500">Tensión secundaria (BT)</span>
               <select
-                value={tensionSecundariaV}
-                onChange={(e) => setTensionSecundariaV(Number(e.target.value))}
+                value={cfg.tensionSecundariaV}
+                onChange={(e) => setCfg({ tensionSecundariaV: Number(e.target.value) })}
                 className="px-2 py-1.5 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 tabular-nums"
               >
                 {TENSIONES_SECUNDARIAS_V.map((v) => (
@@ -100,13 +116,40 @@ export function TransformadorAlimentadorModal({
             </label>
 
             <label className="flex flex-col gap-1 col-span-2">
+              <span className="text-slate-500">Tipo constructivo</span>
+              <div
+                className="inline-flex border border-slate-300 dark:border-slate-700 rounded overflow-hidden w-fit"
+                role="tablist"
+              >
+                {(['aceite', 'seco'] as TipoTransformador[]).map((tipo) => {
+                  const activo = cfg.tipo === tipo;
+                  return (
+                    <button
+                      key={tipo}
+                      type="button"
+                      onClick={() => setCfg({ tipo })}
+                      className={
+                        'px-3 py-1.5 text-sm font-medium ' +
+                        (activo
+                          ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+                          : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800')
+                      }
+                    >
+                      {TIPO_TRAFO_LABEL[tipo]}
+                    </button>
+                  );
+                })}
+              </div>
+            </label>
+
+            <label className="flex flex-col gap-1 col-span-2">
               <span className="text-slate-500">Margen de crecimiento</span>
               <div className="flex items-center gap-2">
                 <input
                   type="range"
                   min={0} max={100} step={5}
                   value={margenPct}
-                  onChange={(e) => setMargenPct(Number(e.target.value))}
+                  onChange={(e) => setCfg({ margen: Number(e.target.value) / 100 })}
                   className="flex-1 accent-slate-900 dark:accent-slate-100"
                 />
                 <span className="w-12 text-right tabular-nums font-medium">{margenPct} %</span>
@@ -136,17 +179,17 @@ export function TransformadorAlimentadorModal({
                 }
               >
                 {resultado.kvaNominal} kVA
-                {resultado.excede && ' (excede catálogo)'}
+                {resultado.excede && ' (1 unidad excede catálogo)'}
               </dd>
 
               <dt className="text-slate-500 col-span-2 text-xs uppercase tracking-wide pt-2 border-t border-slate-200 dark:border-slate-800 mt-2">
                 Datos eléctricos
               </dt>
 
-              <dt className="text-slate-500">Primario {tensionPrimariaKv} kV</dt>
+              <dt className="text-slate-500">Primario {cfg.tensionPrimariaKv} kV</dt>
               <dd className="font-medium tabular-nums">{fmtAmp(resultado.inPrimarioA)}</dd>
 
-              <dt className="text-slate-500">Secundario {tensionSecundariaV} V</dt>
+              <dt className="text-slate-500">Secundario {cfg.tensionSecundariaV} V</dt>
               <dd className="font-medium tabular-nums">{fmtAmp(resultado.inSecundarioA)}</dd>
 
               <dt className="text-slate-500">Grupo vectorial</dt>
@@ -154,12 +197,51 @@ export function TransformadorAlimentadorModal({
 
               <dt className="text-slate-500">Impedancia (Ucc)</dt>
               <dd className="font-medium tabular-nums">{resultado.uccPorcentaje} %</dd>
+
+              <dt className="text-slate-500">Tipo</dt>
+              <dd className="font-medium">{TIPO_TRAFO_LABEL[resultado.tipo]}</dd>
+
+              <dt className="text-slate-500">Pérdidas en vacío (P₀)</dt>
+              <dd className="font-medium tabular-nums">{resultado.perdidasVacioW} W</dd>
+
+              <dt className="text-slate-500">Pérdidas en carga (Pk)</dt>
+              <dd className="font-medium tabular-nums">{resultado.perdidasCargaW} W</dd>
             </dl>
 
+            {resultado.paralelo && (
+              <div className="mt-3 border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 rounded p-3 text-sm">
+                <div className="font-semibold text-amber-900 dark:text-amber-100 mb-1">
+                  ⚠ Sugerencia: {resultado.paralelo.cantidad} transformadores en paralelo
+                </div>
+                <p className="text-xs text-amber-800 dark:text-amber-200 mb-2">
+                  Una sola unidad excede el mayor estándar IEC 60076
+                  ({POTENCIAS_NOMINALES_KVA[POTENCIAS_NOMINALES_KVA.length - 1]} kVA).
+                  Sugerimos repartir la carga en {resultado.paralelo.cantidad} trafos
+                  iguales. Sus impedancias (Ucc%) deben coincidir para que la
+                  carga se reparta proporcionalmente.
+                </p>
+                <dl className="grid grid-cols-2 gap-y-1 text-sm text-amber-900 dark:text-amber-100">
+                  <dt>Cada uno</dt>
+                  <dd className="font-semibold tabular-nums">
+                    {resultado.paralelo.cadaUno.kvaNominal} kVA
+                  </dd>
+                  <dt>Primario / unidad</dt>
+                  <dd className="tabular-nums">
+                    {fmtAmp(resultado.paralelo.cadaUno.inPrimarioA)}
+                  </dd>
+                  <dt>Secundario / unidad</dt>
+                  <dd className="tabular-nums">
+                    {fmtAmp(resultado.paralelo.cadaUno.inSecundarioA)}
+                  </dd>
+                </dl>
+              </div>
+            )}
+
             <p className="mt-3 text-xs text-slate-500">
-              Valores típicos según IEC 60076-1. Ucc y grupo vectorial deben confirmarse
-              contra el catálogo del fabricante. Las potencias nominales son la escala
-              estándar: {POTENCIAS_NOMINALES_KVA[0]}–{POTENCIAS_NOMINALES_KVA[POTENCIAS_NOMINALES_KVA.length - 1]} kVA.
+              Valores típicos según IEC 60076-1 / EU Reg. 548/2014 Tier 2.
+              Ucc, pérdidas y grupo vectorial deben confirmarse contra el
+              catálogo del fabricante (Schneider Minera/Trihal, ABB
+              ResiBloc/EcoDry, etc.).
             </p>
           </section>
         </div>
