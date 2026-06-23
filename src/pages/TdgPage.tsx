@@ -1,5 +1,6 @@
-import { useMemo, useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { TablaSalidas } from '../components/TablaSalidas';
+import { TransformadorAlimentadorModal } from '../components/TransformadorAlimentadorModal';
 import { PanelPrincipalBarra } from '../components/PanelPrincipalBarra';
 import { VistaFrontalTdgSvg } from '../components/VistaFrontalTdgSvg';
 import { ResumenTdg } from '../components/ResumenTdg';
@@ -34,6 +35,7 @@ export function TdgPage() {
   const eliminarTablero = useTdgStore((s) => s.eliminarTablero);
   const svgRefIec = useRef<SVGSVGElement | null>(null);
   const svgRefNema = useRef<SVGSVGElement | null>(null);
+  const [trafoAbierto, setTrafoAbierto] = useState(false);
 
   // Nota: este archivo se llama TdgPage por historia, pero se monta en la ruta /cdc
   // (centro de distribución de cargas — tablero principal BT de la sala eléctrica).
@@ -108,6 +110,13 @@ export function TdgPage() {
               </select>
             </label>
           )}
+          <button
+            onClick={() => setTrafoAbierto(true)}
+            className="px-3 py-1.5 text-sm font-medium rounded border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
+            title="Calcular el transformador MT/BT que alimenta este CDC"
+          >
+            ⚡ Transformador
+          </button>
           {norma === 'IEC' && resultadoIec && (
             <ExportarPdfTdgBoton svgRef={svgRefIec} resultado={resultadoIec} subtipo={subtipo} />
           )}
@@ -181,6 +190,15 @@ export function TdgPage() {
           </div>
         </section>
       )}
+
+      <TransformadorAlimentadorModal
+        abierto={trafoAbierto}
+        onCerrar={() => setTrafoAbierto(false)}
+        corrienteTotalA={
+          (norma === 'IEC' ? resultadoIec?.tablero?.corrienteTotalA : resultadoNema?.tablero?.corrienteTotalA) ?? 0
+        }
+        tensionesSalidas={salidas.map((c) => c.tensionV)}
+      />
     </div>
   );
 }
