@@ -477,6 +477,10 @@ export interface TableroTdgNema {
   trafoInSecundarioA?: number;
   /** Icc trifásica de barra aportada por el trafo alimentador (kA). */
   iccBarraKa?: number;
+  /** Factor F2 de derrateo por altura aplicado (1 = sin derrateo). */
+  factorDerrateoAltura: number;
+  /** Corriente con que se seleccionó main y barra: max(carga, trafo) / F2. */
+  corrienteSeleccionA: number;
   factorSimultaneidad: number;
   /** 1 columna principal + columnas de salidas. */
   columnas: number;
@@ -621,6 +625,10 @@ export interface TableroTdg {
    * principal se seleccionó con Icu ≥ este valor.
    */
   iccBarraKa?: number;
+  /** Factor F2 de derrateo por altura aplicado (1 = sin derrateo). */
+  factorDerrateoAltura: number;
+  /** Corriente con que se seleccionó principal y barra: max(carga, trafo) / F2. */
+  corrienteSeleccionA: number;
   factorSimultaneidad: number;
   /** Cantidad de columnas Prisma (1 + columnas-salidas). */
   columnas: number;

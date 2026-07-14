@@ -55,6 +55,10 @@ function datosTrafo(
  *     crecimiento del trafo debe poder circular por el tablero.
  *  4. Calcula dimensiones de la envolvente.
  *
+ * `factorDerrateo` es el F2 por altura geográfica (Tabla V — ver derrateo.ts):
+ * el aparellaje pierde capacidad con la altitud, así que salidas, principal y
+ * barra se seleccionan contra I / F2. No altera la corriente real de las cargas.
+ *
  * Si no hay salidas válidas, devuelve `tablero: undefined` con `motivo`.
  */
 export function dimensionarTdg(
@@ -62,13 +66,15 @@ export function dimensionarTdg(
   factorSimultaneidad: number,
   marca: MarcaProteccion = 'Schneider',
   trafo?: ConfigTransformador,
+  factorDerrateo = 1,
 ): ResultadoTdg {
   const fs = clamp(factorSimultaneidad, FACTOR_SIMULTANEIDAD_MIN, FACTOR_SIMULTANEIDAD_MAX);
+  const f = factorDerrateo > 0 ? factorDerrateo : 1;
   const salidasAsignadas: SalidaAsignada[] = [];
   const cargasSinAsignar: Carga[] = [];
 
   for (const c of cargas) {
-    const proteccion = sugerirProteccionFeeder(c, marca);
+    const proteccion = sugerirProteccionFeeder(c, marca, f);
     const corrienteDisenoA = corrienteDiseno(c);
     if (!proteccion || corrienteDisenoA <= 0) {
       cargasSinAsignar.push(c);
@@ -96,7 +102,9 @@ export function dimensionarTdg(
   const datos = trafo ? datosTrafo(trafo, corrienteTotalA) : undefined;
   const trafoInSecundarioA = datos?.inSecundarioA;
   const iccBarraKa = datos?.iccKa;
-  const corrienteSeleccionA = Math.max(corrienteTotalA, trafoInSecundarioA ?? 0);
+  // El derrateo por altura reduce la capacidad útil del equipo: la selección
+  // se hace contra la exigencia (carga o trafo, la mayor) dividida por F2.
+  const corrienteSeleccionA = Math.max(corrienteTotalA, trafoInSecundarioA ?? 0) / f;
 
   const principal = sugerirInterruptorPrincipal(corrienteSeleccionA, marca, iccBarraKa ?? 0);
   // CDC: la barra principal puede llegar hasta 6000 A (alimenta CCMs y CDCs
@@ -133,6 +141,8 @@ export function dimensionarTdg(
     corrienteTotalA,
     ...(trafoInSecundarioA != null ? { trafoInSecundarioA } : {}),
     ...(iccBarraKa != null ? { iccBarraKa } : {}),
+    factorDerrateoAltura: f,
+    corrienteSeleccionA,
     factorSimultaneidad: fs,
     columnas,
     altoTotalMm: ENVOLVENTE_PRISMA.altoTotalMm,

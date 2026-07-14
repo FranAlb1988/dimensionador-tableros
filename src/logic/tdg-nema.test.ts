@@ -103,6 +103,23 @@ describe('dimensionarTdgNema', () => {
     expect(t.corrienteTotalA).toBeCloseTo(mayor + 0.8 * (suma - mayor), 5);
   });
 
+  it('el derrateo por altura selecciona main, barra y salidas contra I / F2', () => {
+    // Salida de 200 kW @ 480 V ≈ 267.3 A, fs 1 → FLC 267.3.
+    // Sin derrateo: main por rango 241–320 → 400AS. Con F2 = 0.8:
+    // selección 334.1 → fila 321–400 → 600AS; la salida también sube.
+    const cargas = [salida('1', 200)];
+    const base = dimensionarTdgNema(cargas, 1).tablero!;
+    const derrateado = dimensionarTdgNema(cargas, 1, undefined, 0.8).tablero!;
+
+    expect(base.factorDerrateoAltura).toBe(1);
+    expect(derrateado.factorDerrateoAltura).toBe(0.8);
+    expect(derrateado.corrienteTotalA).toBeCloseTo(base.corrienteTotalA, 5);
+    expect(derrateado.corrienteSeleccionA).toBeCloseTo(base.corrienteTotalA / 0.8, 5);
+    expect(derrateado.principal.ratingA).toBeGreaterThan(base.principal.ratingA);
+    expect(derrateado.salidas[0]!.breaker.ratingA)
+      .toBeGreaterThanOrEqual(base.salidas[0]!.breaker.ratingA);
+  });
+
   it('clamp del factor de simultaneidad', () => {
     const r = dimensionarTdgNema([salida('1', 100)], 5);
     expect(r.tablero!.factorSimultaneidad).toBe(1);

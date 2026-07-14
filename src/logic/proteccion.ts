@@ -40,22 +40,26 @@ export const MARCAS_FEEDER: readonly MarcaProteccion[] = ['Schneider', 'ABB'];
 /**
  * Sugiere un interruptor de alimentador (MCCB) para una carga de CCM/CDC, según marca.
  * Margen 1.25 sobre I_diseño (motores y alimentadores continuos por igual).
- * Si la carga trae `corrienteProteccionA` (frame mínimo forzado), el In elegido
- * será ≥ ese valor — usado para forzar un frame mayor del necesario por la
- * corriente, lo que define el tamaño de gaveta.
+ * `factorDerrateo` (F2 por altura): el equipo pierde capacidad con la altitud,
+ * por lo que se selecciona contra (I × margen) / F2. El frame forzado
+ * (`corrienteProteccionA`) no se escala — es una elección explícita del usuario:
+ * si la carga trae ese campo, el In elegido será ≥ ese valor, usado para forzar
+ * un frame mayor del necesario por la corriente (define el tamaño de gaveta).
  * El relé térmico hace la protección de sobrecarga; el MCCB corta cortocircuito.
  */
 export function sugerirProteccionFeeder(
   carga: Carga,
   marca: MarcaProteccion = 'Schneider',
+  factorDerrateo = 1,
 ): Proteccion | undefined {
   const I = corrienteDiseno(carga);
+  const f = factorDerrateo > 0 ? factorDerrateo : 1;
   const frameForzado = carga.corrienteProteccionA && carga.corrienteProteccionA > 0
     ? carga.corrienteProteccionA
     : 0;
   if (I <= 0 && frameForzado <= 0) return undefined;
   const margen = carga.tipo === 'motor' ? MARGEN_NSX_MOTOR : MARGEN_NSX_NO_MOTOR;
-  const Imin = Math.max(I * margen, frameForzado);
+  const Imin = Math.max((I * margen) / f, frameForzado);
   return MCCB_POR_MARCA[marca]
     .toSorted((a, b) => a.inA - b.inA)
     .find((p) => p.inA >= Imin);

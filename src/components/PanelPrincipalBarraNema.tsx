@@ -29,6 +29,12 @@ export function PanelPrincipalBarraNema({ tablero }: Props) {
         {tablero.iccBarraKa != null && (
           <Stat label="Icc barra (trafo)" value={`${tablero.iccBarraKa.toFixed(1)} kA`} />
         )}
+        {tablero.factorDerrateoAltura < 1 && (
+          <Stat
+            label="Derrateo F2 (altura)"
+            value={`${tablero.factorDerrateoAltura.toFixed(3)} → selección ${fmtAmp(tablero.corrienteSeleccionA)}`}
+          />
+        )}
         <Stat label="Margen del principal" value={`+${(((principal.ratingA / corrienteTotalA) - 1) * 100).toFixed(0)} %`} />
         <Stat label="Margen de la barra" value={`+${(((barra.frameAF / corrienteTotalA) - 1) * 100).toFixed(0)} %`} />
       </div>

@@ -14,6 +14,8 @@ import { dimensionarTdg } from '../logic/tdg';
 import { dimensionarTdgNema } from '../logic/tdg-nema';
 import { MARCAS_PRINCIPAL } from '../logic/principal';
 import { CONFIG_TRAFO_DEFAULT, tensionPredominanteV, type ConfigTransformador } from '../logic/transformador';
+import { DerrateoControl } from '../components/DerrateoControl';
+import { useFactorDerrateo } from '../store/proyecto-meta';
 import type { Norma } from '../types';
 import { TableroSelector } from '../components/TableroSelector';
 
@@ -62,13 +64,14 @@ export function TdgPage() {
     [cfgTrafoGuardada, salidas],
   );
 
+  const factorDerrateo = useFactorDerrateo('BT');
   const resultadoIec = useMemo(
-    () => (norma === 'IEC' ? dimensionarTdg(salidas, fs, marca, cfgTrafo) : null),
-    [salidas, fs, norma, marca, cfgTrafo],
+    () => (norma === 'IEC' ? dimensionarTdg(salidas, fs, marca, cfgTrafo, factorDerrateo) : null),
+    [salidas, fs, norma, marca, cfgTrafo, factorDerrateo],
   );
   const resultadoNema = useMemo(
-    () => (norma === 'NEMA' ? dimensionarTdgNema(salidas, fs, cfgTrafo) : null),
-    [salidas, fs, norma, cfgTrafo],
+    () => (norma === 'NEMA' ? dimensionarTdgNema(salidas, fs, cfgTrafo, factorDerrateo) : null),
+    [salidas, fs, norma, cfgTrafo, factorDerrateo],
   );
 
   return (
@@ -85,6 +88,7 @@ export function TdgPage() {
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
+          <DerrateoControl nivel="BT" />
           <div
             className="inline-flex border border-slate-300 dark:border-slate-700 rounded overflow-hidden"
             role="tablist"

@@ -77,19 +77,27 @@ function minIcuKa(icuRange: string): number {
  *  3. Barra principal y main breaker se buscan por rango FLC en las tablas del Excel.
  *     Si se entrega la configuración del trafo alimentador (`trafo`), ambos deben
  *     además cubrir la In del secundario del transformador sugerido.
+ *
+ * `factorDerrateo` es el F2 por altura geográfica (Tabla V — ver derrateo.ts):
+ * el equipo pierde capacidad con la altitud, así que salidas, main y barra se
+ * seleccionan contra I / F2. No altera la corriente real de las cargas.
  */
 export function dimensionarTdgNema(
   cargas: readonly Carga[],
   factorSimultaneidad: number,
   trafo?: ConfigTransformador,
+  factorDerrateo = 1,
 ): ResultadoTdgNema {
   const fs = clamp(factorSimultaneidad, FS_MIN, FS_MAX);
+  const f = factorDerrateo > 0 ? factorDerrateo : 1;
   const salidas: SalidaAsignadaNema[] = [];
   const cargasSinAsignar: Carga[] = [];
 
   for (const c of cargas) {
     const I = corrienteDiseno(c);
-    const Imin = Math.max(I * MARGEN_SALIDA_NEMA, c.corrienteProteccionA ?? 0);
+    // El frame forzado (corrienteProteccionA) no se escala por F2 — es una
+    // elección explícita del usuario.
+    const Imin = Math.max((I * MARGEN_SALIDA_NEMA) / f, c.corrienteProteccionA ?? 0);
     if (Imin <= 0) {
       cargasSinAsignar.push(c);
       continue;
@@ -118,8 +126,11 @@ export function dimensionarTdgNema(
   const datos = trafo ? datosTrafo(trafo, corrienteTotalA) : undefined;
   const trafoInSecundarioA = datos?.inSecundarioA;
   const iccBarraKa = datos?.iccKa;
-  const principal = sugerirMain(corrienteTotalA, trafoInSecundarioA ?? 0);
-  const barra = sugerirBarra(corrienteTotalA, trafoInSecundarioA ?? 0);
+  // El derrateo por altura reduce la capacidad útil del equipo: main y barra
+  // se seleccionan contra la exigencia (carga y piso del trafo) dividida por F2.
+  const corrienteSeleccionA = Math.max(corrienteTotalA, trafoInSecundarioA ?? 0) / f;
+  const principal = sugerirMain(corrienteTotalA / f, (trafoInSecundarioA ?? 0) / f);
+  const barra = sugerirBarra(corrienteTotalA / f, (trafoInSecundarioA ?? 0) / f);
   if (!principal) {
     return {
       salidas, cargasSinAsignar,
@@ -148,6 +159,8 @@ export function dimensionarTdgNema(
     corrienteTotalA,
     ...(trafoInSecundarioA != null ? { trafoInSecundarioA } : {}),
     ...(iccBarraKa != null ? { iccBarraKa } : {}),
+    factorDerrateoAltura: f,
+    corrienteSeleccionA,
     factorSimultaneidad: fs,
     columnas,
     altoTotalMm: ENVOLVENTE_TDG_NEMA.altoTotalMm,

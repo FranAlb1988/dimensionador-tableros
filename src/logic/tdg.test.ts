@@ -139,6 +139,25 @@ describe('dimensionarTdg', () => {
     expect(r.tablero!.principal.inA).toBeGreaterThanOrEqual(r.tablero!.corrienteTotalA);
   });
 
+  it('el derrateo por altura selecciona salidas, principal y barra contra I / F2', () => {
+    // 3 × 75 kW @ 400 V (I ≈ 120.3 c/u, Σ = 360.9 con fs 1).
+    // Sin derrateo: selección 360.9 → principal NSX400, barra Cu 40×5 (400 A).
+    // Con F2 = 0.9: selección 401 → principal NSX630, barra Cu 50×5 (500 A);
+    // la salida sube de TM160 (150.4) a TM200 (167.1).
+    const cargas = [salida3F('1', 75), salida3F('2', 75), salida3F('3', 75)];
+    const base = dimensionarTdg(cargas, 1).tablero!;
+    const derrateado = dimensionarTdg(cargas, 1, 'Schneider', undefined, 0.9).tablero!;
+
+    expect(base.factorDerrateoAltura).toBe(1);
+    expect(derrateado.factorDerrateoAltura).toBe(0.9);
+    // La corriente real de las cargas no cambia; solo la de selección.
+    expect(derrateado.corrienteTotalA).toBeCloseTo(base.corrienteTotalA, 5);
+    expect(derrateado.corrienteSeleccionA).toBeCloseTo(base.corrienteTotalA / 0.9, 5);
+    expect(derrateado.principal.inA).toBeGreaterThan(base.principal.inA);
+    expect(derrateado.barra.inA).toBeGreaterThan(base.barra.inA);
+    expect(derrateado.salidas[0]!.proteccion.inA).toBeGreaterThan(base.salidas[0]!.proteccion.inA);
+  });
+
   it('cantidad de columnas crece según el número de salidas', () => {
     const N = salidasPorColumna() + 1;
     const cargas: Carga[] = Array.from({ length: N }, (_, i) => salida3F(String(i + 1), 30));
