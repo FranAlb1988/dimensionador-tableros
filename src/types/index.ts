@@ -468,7 +468,7 @@ export interface TableroTdgNema {
   salidas: SalidaAsignadaNema[];
   /** Equipos de medida del CDC (PT/CT + luces piloto + analizador). */
   medida: MedidaCcm;
-  /** FLC total (suma × factor de simultaneidad). */
+  /** FLC total: salida mayor al 100% + resto × factor de simultaneidad. */
   corrienteTotalA: number;
   /**
    * In del secundario del trafo alimentador sugerido (A). Cuando está
@@ -607,7 +607,7 @@ export interface TableroTdg {
   salidas: SalidaAsignada[];
   /** Equipos de medida del CDC (PT/CT + luces piloto + analizador). */
   medida: MedidaCcm;
-  /** Suma de corrientes de diseño afectada por simultaneidad (A). */
+  /** Corriente total: salida mayor al 100% + resto × simultaneidad (A). */
   corrienteTotalA: number;
   /**
    * In del secundario del trafo alimentador sugerido (A). Cuando está

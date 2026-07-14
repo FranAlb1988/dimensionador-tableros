@@ -37,7 +37,8 @@ function inSecundarioTrafo(cfg: ConfigTransformador, corrienteCargaA: number): n
 /**
  * Punto de entrada para TDG Prisma.
  *  1. Calcula corriente de diseño y sugiere NSX por salida.
- *  2. Suma las corrientes y aplica factor de simultaneidad.
+ *  2. Corriente total = salida mayor al 100% + resto × factor de simultaneidad
+ *     (regla del mayor consumidor).
  *  3. Sugiere interruptor principal y barra de distribución. Si se entrega la
  *     configuración del transformador alimentador (`trafo`), el principal y la
  *     barra se seleccionan además con In ≥ In del secundario del trafo — el
@@ -72,7 +73,13 @@ export function dimensionarTdg(
   }
 
   const sumaSalidasA = salidasAsignadas.reduce((acc, s) => acc + s.corrienteDisenoA, 0);
-  const corrienteTotalA = sumaSalidasA * fs;
+  const mayorSalidaA = salidasAsignadas.reduce((m, s) => Math.max(m, s.corrienteDisenoA), 0);
+  // Regla del mayor consumidor: la salida mayor entra al 100% y la diversidad
+  // solo se aplica al resto (análogo a NEC 430.24). Evita que el principal y
+  // la barra queden por debajo de una salida individual cuando fs < 1 — con
+  // fs×Σ a secas, un CDC con una sola salida de 500 A y fs 0.8 seleccionaba
+  // un principal de 400 A que dispararía en operación normal.
+  const corrienteTotalA = mayorSalidaA + fs * (sumaSalidasA - mayorSalidaA);
 
   // Coordinación con el trafo alimentador: principal y barra deben cubrir la
   // In del secundario del transformador sugerido, no solo la carga.

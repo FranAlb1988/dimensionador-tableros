@@ -84,6 +84,25 @@ describe('dimensionarTdgNema', () => {
     expect(fs05.principal.ratingA).toBeLessThanOrEqual(fs10.principal.ratingA);
   });
 
+  it('regla del mayor consumidor: main y barra nunca quedan bajo una salida individual', () => {
+    // 1 sola salida de 300 kW @ 480 V (≈433 A) con fs 0.5: antes fs×Σ = 217 A
+    // elegía un main de 250-300 A bajo la corriente real de la salida.
+    const r = dimensionarTdgNema([salida('1', 300)], 0.5);
+    const t = r.tablero!;
+    const iSalida = t.salidas[0]!.corrienteDisenoA;
+    expect(t.corrienteTotalA).toBeCloseTo(iSalida, 5);
+    expect(t.principal.ratingA).toBeGreaterThanOrEqual(iSalida);
+  });
+
+  it('con varias salidas: FLC total = mayor + fs × resto', () => {
+    const r = dimensionarTdgNema([salida('1', 100), salida('2', 200), salida('3', 50)], 0.8);
+    const t = r.tablero!;
+    const is = t.salidas.map((s) => s.corrienteDisenoA);
+    const suma = is.reduce((a, b) => a + b, 0);
+    const mayor = Math.max(...is);
+    expect(t.corrienteTotalA).toBeCloseTo(mayor + 0.8 * (suma - mayor), 5);
+  });
+
   it('clamp del factor de simultaneidad', () => {
     const r = dimensionarTdgNema([salida('1', 100)], 5);
     expect(r.tablero!.factorSimultaneidad).toBe(1);

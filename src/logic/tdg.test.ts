@@ -49,6 +49,27 @@ describe('dimensionarTdg', () => {
     expect(conFs05.principal.inA).toBeLessThanOrEqual(conFs1.principal.inA);
   });
 
+  it('regla del mayor consumidor: el principal nunca queda bajo una salida individual', () => {
+    // 1 sola salida de 300 kW (≈481 A) con fs 0.8: antes fs×Σ = 385 A dejaba
+    // un principal de 400 A que dispararía; ahora la salida mayor entra al 100%.
+    const unica = salida3F('1', 300);
+    const r = dimensionarTdg([unica], 0.8);
+    const t = r.tablero!;
+    const iSalida = t.salidas[0]!.corrienteDisenoA;
+    expect(t.corrienteTotalA).toBeCloseTo(iSalida, 5);
+    expect(t.principal.inA).toBeGreaterThanOrEqual(iSalida);
+    expect(t.barra.inA).toBeGreaterThanOrEqual(iSalida);
+  });
+
+  it('con varias salidas: I total = mayor + fs × resto', () => {
+    const r = dimensionarTdg([salida3F('1', 100), salida3F('2', 200), salida3F('3', 50)], 0.8);
+    const t = r.tablero!;
+    const is = t.salidas.map((s) => s.corrienteDisenoA);
+    const suma = is.reduce((a, b) => a + b, 0);
+    const mayor = Math.max(...is);
+    expect(t.corrienteTotalA).toBeCloseTo(mayor + 0.8 * (suma - mayor), 5);
+  });
+
   it('clamp del factor de simultaneidad: valores fuera de rango se limitan', () => {
     const cargas = [salida3F('1', 100)];
     const r = dimensionarTdg(cargas, 5); // se clampa a 1

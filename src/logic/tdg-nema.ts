@@ -54,7 +54,8 @@ function inSecundarioTrafo(cfg: ConfigTransformador, corrienteCargaA: number): n
  * Dimensionamiento TDG (Switchgear BT) — convención NEMA / ANSI.
  * Tabla-driven (lookup por FLC), datos de referencia para convención NEMA / ANSI.
  *  1. Cada salida → breaker (FDR ≤400AF o electronic >400AF) con rating ≥ 1.25 × I.
- *  2. FLC total = Σ I_diseño × factor de simultaneidad.
+ *  2. FLC total = salida mayor al 100% + resto × factor de simultaneidad
+ *     (regla del mayor consumidor).
  *  3. Barra principal y main breaker se buscan por rango FLC en las tablas del Excel.
  *     Si se entrega la configuración del trafo alimentador (`trafo`), ambos deben
  *     además cubrir la In del secundario del transformador sugerido.
@@ -87,7 +88,12 @@ export function dimensionarTdgNema(
     return { salidas, cargasSinAsignar, motivo: 'Sin salidas válidas para dimensionar.' };
   }
 
-  const corrienteTotalA = salidas.reduce((s, x) => s + x.corrienteDisenoA, 0) * fs;
+  const sumaSalidasA = salidas.reduce((s, x) => s + x.corrienteDisenoA, 0);
+  const mayorSalidaA = salidas.reduce((m, x) => Math.max(m, x.corrienteDisenoA), 0);
+  // Regla del mayor consumidor: la salida mayor al 100% + el resto con
+  // diversidad (análogo a NEC 430.24). Evita que main y barra queden por
+  // debajo de una salida individual cuando fs < 1.
+  const corrienteTotalA = mayorSalidaA + fs * (sumaSalidasA - mayorSalidaA);
   // Coordinación con el trafo alimentador: main y barra deben cubrir la In
   // del secundario del transformador sugerido, no solo la carga diversificada.
   const trafoInSecundarioA = trafo ? inSecundarioTrafo(trafo, corrienteTotalA) : undefined;
