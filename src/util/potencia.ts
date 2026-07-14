@@ -7,7 +7,11 @@ import type { UnidadPotencia } from '../types';
 export const KW_POR_HP = 0.7457;
 
 export function kwToHp(kw: number): number {
-  return kw / KW_POR_HP;
+  // Redondeo a 9 decimales: el roundtrip HP → kW → HP en punto flotante
+  // produce residuos (~1e-15) que hacen que 15, 30 o 60 HP queden como
+  // 15.000000000000002 y los buscadores `find(hp >= x)` salten a la fila
+  // superior del catálogo (20, 40, 75 HP).
+  return Math.round((kw / KW_POR_HP) * 1e9) / 1e9;
 }
 
 export function hpToKw(hp: number): number {

@@ -19,7 +19,7 @@ import { corrienteDiseno, corrienteNominal } from './corriente';
 import { MEDIDA_CCM_DEFAULT } from './medida-ccm';
 import { necesitaColumnaIncoming } from './columna';
 import { calcularReservas } from './reserva';
-import { KW_POR_HP } from '../util/potencia';
+import { kwToHp } from '../util/potencia';
 
 const MOTORES: readonly MotorNemaCatalogo[] = (motoresData.filas as MotorNemaCatalogo[])
   .toSorted((a, b) => a.hp - b.hp);
@@ -203,7 +203,7 @@ function asignarAlimentador(c: Carga, factorDerrateo: number): AsignacionCcmNema
 /** Convierte la potencia de la carga a HP. Si no hay potencia, devuelve null. */
 function hpDeCarga(c: Carga): number | null {
   if (typeof c.potenciaKw === 'number' && c.potenciaKw > 0) {
-    return c.potenciaKw / KW_POR_HP;
+    return kwToHp(c.potenciaKw);
   }
   return null;
 }

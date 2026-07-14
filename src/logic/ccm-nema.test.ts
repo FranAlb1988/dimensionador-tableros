@@ -107,6 +107,13 @@ describe('dimensionarCcmNema', () => {
     expect(a.motor?.hp).toBe(15);
   });
 
+  it('HP exacto del catálogo no salta de fila por residuo flotante (15/30/60 HP)', () => {
+    for (const hp of [15, 30, 60]) {
+      const r = dimensionarCcmNema([motor('1', hp)]);
+      expect(r.asignaciones[0]!.motor?.hp).toBe(hp);
+    }
+  });
+
   it('alimentador no-motor con I diseño de ~30 A elige FDR 100AF', () => {
     const c = alimentador('1', 18); // 18 kW @ 480V 3F ≈ 25 A
     const r = dimensionarCcmNema([c]);

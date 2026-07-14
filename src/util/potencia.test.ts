@@ -15,6 +15,14 @@ describe('conversión kW ↔ HP', () => {
     expect(hpToKw(kwToHp(kw))).toBeCloseTo(kw, 6);
   });
 
+  it('round trip HP → kW → HP devuelve el HP exacto (sin residuo flotante)', () => {
+    // 15, 30 y 60 HP producían 15.000000000000002, etc., y los buscadores
+    // `find(hp >= x)` saltaban a la fila superior del catálogo NEMA.
+    for (const hp of [5, 10, 15, 20, 25, 30, 40, 50, 60, 75, 100, 125]) {
+      expect(kwToHp(hpToKw(hp))).toBe(hp);
+    }
+  });
+
   it('aKw / desdeKw son inversos', () => {
     const v = 22;
     expect(aKw(desdeKw(v, 'HP'), 'HP')).toBeCloseTo(v, 6);

@@ -1,9 +1,9 @@
 {
   "_comment": "Arrancadores TeSys D (LC1D + LRD) para arranque DOL a 400 V AC-3. Para Y-Δ se requieren 3 contactores + temporizador. Los tamaños de gaveta Blokset asignados son aproximaciones para MVP y deben validarse contra el catálogo Blokset del proyecto.",
   "arrancadores": [
-    { "id": "dol-lc1d09",  "contactor": "LC1D09",  "releTermico": "LRD08", "tipo": "DOL", "potenciaKw400V": 4,    "tamanoGaveta": "1/4", "placeholder": true, "notas": "Rango térmico LRD a definir según In motor real" },
-    { "id": "dol-lc1d12",  "contactor": "LC1D12",  "releTermico": "LRD12", "tipo": "DOL", "potenciaKw400V": 5.5,  "tamanoGaveta": "1/4", "placeholder": true },
-    { "id": "dol-lc1d18",  "contactor": "LC1D18",  "releTermico": "LRD16", "tipo": "DOL", "potenciaKw400V": 7.5,  "tamanoGaveta": "1/4", "placeholder": true },
+    { "id": "dol-lc1d09",  "contactor": "LC1D09",  "releTermico": "LRD14", "tipo": "DOL", "potenciaKw400V": 4,    "tamanoGaveta": "1/4", "placeholder": true, "notas": "LRD14 (7-10 A) cubre FLA ~8 A del motor 4 kW / 400 V" },
+    { "id": "dol-lc1d12",  "contactor": "LC1D12",  "releTermico": "LRD16", "tipo": "DOL", "potenciaKw400V": 5.5,  "tamanoGaveta": "1/4", "placeholder": true, "notas": "LRD16 (9-13 A) cubre FLA ~10,5 A del motor 5,5 kW / 400 V" },
+    { "id": "dol-lc1d18",  "contactor": "LC1D18",  "releTermico": "LRD21", "tipo": "DOL", "potenciaKw400V": 7.5,  "tamanoGaveta": "1/4", "placeholder": true, "notas": "LRD21 (12-18 A) cubre FLA ~14 A del motor 7,5 kW / 400 V" },
     { "id": "dol-lc1d25",  "contactor": "LC1D25",  "releTermico": "LRD22", "tipo": "DOL", "potenciaKw400V": 11,   "tamanoGaveta": "1/2", "placeholder": true },
     { "id": "dol-lc1d32",  "contactor": "LC1D32",  "releTermico": "LRD32", "tipo": "DOL", "potenciaKw400V": 15,   "tamanoGaveta": "1/2", "placeholder": true },
     { "id": "dol-lc1d38",  "contactor": "LC1D38",  "releTermico": "LRD35", "tipo": "DOL", "potenciaKw400V": 18.5, "tamanoGaveta": "1/2", "placeholder": true },
