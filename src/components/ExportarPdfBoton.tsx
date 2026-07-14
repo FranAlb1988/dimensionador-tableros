@@ -8,6 +8,7 @@ import { desdeKw } from '../util/potencia';
 import { tamanoEnXTexto } from '../util/x-blokset';
 import type { UnidadPotencia } from '../types';
 import { dibujarCajetinProyecto, sufijoArchivoProyecto } from '../util/pdf-cajetin';
+import { CRITERIOS_CCM_IEC, dibujarCriteriosSeleccion } from '../util/pdf-criterios';
 import { ARRANQUE_LABEL } from '../store/ccm';
 
 interface Props {
@@ -113,6 +114,15 @@ export function ExportarPdfBoton({ svgRef, resultado }: Props) {
           doc.addPage();
           y = 22;
         }
+      });
+
+      // ----- Criterios de selección (documenta márgenes y fórmulas) -----
+      dibujarCriteriosSeleccion(doc, {
+        y: y + 6,
+        xInicio: 14,
+        ancho: pageWidth - 28,
+        pageHeight,
+        lineas: CRITERIOS_CCM_IEC,
       });
 
       const fecha = new Date().toISOString().slice(0, 10);
