@@ -470,6 +470,11 @@ export interface TableroTdgNema {
   medida: MedidaCcm;
   /** FLC total (suma × factor de simultaneidad). */
   corrienteTotalA: number;
+  /**
+   * In del secundario del trafo alimentador sugerido (A). Cuando está
+   * presente, main y barra se seleccionaron con In ≥ este valor.
+   */
+  trafoInSecundarioA?: number;
   factorSimultaneidad: number;
   /** 1 columna principal + columnas de salidas. */
   columnas: number;
@@ -604,6 +609,11 @@ export interface TableroTdg {
   medida: MedidaCcm;
   /** Suma de corrientes de diseño afectada por simultaneidad (A). */
   corrienteTotalA: number;
+  /**
+   * In del secundario del trafo alimentador sugerido (A). Cuando está
+   * presente, principal y barra se seleccionaron con In ≥ este valor.
+   */
+  trafoInSecundarioA?: number;
   factorSimultaneidad: number;
   /** Cantidad de columnas Prisma (1 + columnas-salidas). */
   columnas: number;

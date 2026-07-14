@@ -52,6 +52,20 @@ describe('sugerirProteccionNsx', () => {
   });
 });
 
+describe('sugerirProteccionNsx — margen de cargas continuas', () => {
+  it('carga no-motor lleva margen 1.25 (In ≥ 1.25 × I diseño)', () => {
+    // 90 kW × FS 1.1 @ 400 V 3F ≈ 158.7 A → ×1.25 = 198.4 → In ≥ 200 (TM200),
+    // no TM160 (que quedaría cargado al 99% en régimen continuo).
+    const c: Carga = {
+      id: 's', descripcion: 'alimentador CCM', tipo: 'otro',
+      potenciaKw: 90, tensionV: 400, fases: '3F', factorServicio: 1.1,
+    };
+    const p = sugerirProteccionNsx(c);
+    expect(p).toBeDefined();
+    expect(p!.inA).toBeGreaterThanOrEqual(199);
+  });
+});
+
 describe('sugerirProteccionFeeder (por marca)', () => {
   it('Schneider devuelve NSX', () => {
     const p = sugerirProteccionFeeder(motor11kW, 'Schneider');

@@ -12,6 +12,7 @@ import type {
 import { corrienteDiseno } from './corriente';
 import { sugerirBreakerNema } from './ccm-nema';
 import { MEDIDA_TDG_DEFAULT } from './medida-tdg';
+import { calcularTransformador, type ConfigTransformador } from './transformador';
 
 const BARRAS: readonly SwitchgearBtBarraNema[] = (barrasData.barras as SwitchgearBtBarraNema[])
   .toSorted((a, b) => a.flcMin - b.flcMin);
@@ -30,15 +31,38 @@ const FS_MIN = 0.1;
 const FS_MAX = 1;
 
 /**
+ * Margen del rating del breaker de salida sobre la corriente de diseño.
+ * Igual criterio que la vía IEC: 1.25 tanto para motores (evita disparo en
+ * la partida / coordinación con la protección del motor aguas abajo) como
+ * para alimentadores de régimen continuo (NEC 210.19/215.2 — el breaker no
+ * debe operar sobre el 80% de su rating en continuo).
+ */
+const MARGEN_SALIDA_NEMA = 1.25;
+
+/**
+ * Corriente nominal del secundario del trafo alimentador con esta carga
+ * (suma de unidades si el sugerido es un banco en paralelo).
+ */
+function inSecundarioTrafo(cfg: ConfigTransformador, corrienteCargaA: number): number {
+  const t = calcularTransformador({ ...cfg, corrienteSecundarioA: corrienteCargaA });
+  return t.paralelo
+    ? t.paralelo.cantidad * t.paralelo.cadaUno.inSecundarioA
+    : t.inSecundarioA;
+}
+
+/**
  * Dimensionamiento TDG (Switchgear BT) — convención NEMA / ANSI.
  * Tabla-driven (lookup por FLC), datos de referencia para convención NEMA / ANSI.
- *  1. Cada salida → breaker (FDR ≤400AF o electronic >400AF) por su corriente.
+ *  1. Cada salida → breaker (FDR ≤400AF o electronic >400AF) con rating ≥ 1.25 × I.
  *  2. FLC total = Σ I_diseño × factor de simultaneidad.
  *  3. Barra principal y main breaker se buscan por rango FLC en las tablas del Excel.
+ *     Si se entrega la configuración del trafo alimentador (`trafo`), ambos deben
+ *     además cubrir la In del secundario del transformador sugerido.
  */
 export function dimensionarTdgNema(
   cargas: readonly Carga[],
   factorSimultaneidad: number,
+  trafo?: ConfigTransformador,
 ): ResultadoTdgNema {
   const fs = clamp(factorSimultaneidad, FS_MIN, FS_MAX);
   const salidas: SalidaAsignadaNema[] = [];
@@ -46,7 +70,7 @@ export function dimensionarTdgNema(
 
   for (const c of cargas) {
     const I = corrienteDiseno(c);
-    const Imin = Math.max(I, c.corrienteProteccionA ?? 0);
+    const Imin = Math.max(I * MARGEN_SALIDA_NEMA, c.corrienteProteccionA ?? 0);
     if (Imin <= 0) {
       cargasSinAsignar.push(c);
       continue;
@@ -64,18 +88,23 @@ export function dimensionarTdgNema(
   }
 
   const corrienteTotalA = salidas.reduce((s, x) => s + x.corrienteDisenoA, 0) * fs;
-  const principal = sugerirMain(corrienteTotalA);
-  const barra = sugerirBarra(corrienteTotalA);
+  // Coordinación con el trafo alimentador: main y barra deben cubrir la In
+  // del secundario del transformador sugerido, no solo la carga diversificada.
+  const trafoInSecundarioA = trafo ? inSecundarioTrafo(trafo, corrienteTotalA) : undefined;
+  const principal = sugerirMain(corrienteTotalA, trafoInSecundarioA ?? 0);
+  const barra = sugerirBarra(corrienteTotalA, trafoInSecundarioA ?? 0);
   if (!principal) {
     return {
       salidas, cargasSinAsignar,
-      motivo: `Sin interruptor principal NEMA en catálogo para FLC ${corrienteTotalA.toFixed(0)} A.`,
+      motivo: `Sin interruptor principal NEMA en catálogo para FLC ${corrienteTotalA.toFixed(0)} A`
+        + (trafoInSecundarioA ? ` (trafo In secundario ${trafoInSecundarioA.toFixed(0)} A)` : '') + '.',
     };
   }
   if (!barra) {
     return {
       salidas, cargasSinAsignar,
-      motivo: `Sin barra principal NEMA en catálogo para FLC ${corrienteTotalA.toFixed(0)} A.`,
+      motivo: `Sin barra principal NEMA en catálogo para FLC ${corrienteTotalA.toFixed(0)} A`
+        + (trafoInSecundarioA ? ` (trafo In secundario ${trafoInSecundarioA.toFixed(0)} A)` : '') + '.',
     };
   }
 
@@ -90,6 +119,7 @@ export function dimensionarTdgNema(
     salidas,
     medida: MEDIDA_TDG_DEFAULT,
     corrienteTotalA,
+    ...(trafoInSecundarioA != null ? { trafoInSecundarioA } : {}),
     factorSimultaneidad: fs,
     columnas,
     altoTotalMm: ENVOLVENTE_TDG_NEMA.altoTotalMm,
@@ -103,16 +133,19 @@ export function dimensionarTdgNema(
 /**
  * El Excel define rangos integer con gaps de 1 entre filas (240/241, 320/321...).
  * Para tolerar FLC fraccionarios, buscamos la primera fila cuyo flcMax cubra el valor.
+ * `minRatingA` (opcional) exige además rating ≥ ese piso — usado para coordinar
+ * el main con la In del secundario del trafo alimentador.
  * Si ningún rango cubre (flc > último flcMax) devuelve undefined.
  */
-export function sugerirMain(flc: number): SwitchgearBtMainNema | undefined {
+export function sugerirMain(flc: number, minRatingA = 0): SwitchgearBtMainNema | undefined {
   if (flc < 0) return undefined;
-  return MAINS.find((m) => flc <= m.flcMax);
+  return MAINS.find((m) => flc <= m.flcMax && m.ratingA >= minRatingA);
 }
 
-export function sugerirBarra(flc: number): SwitchgearBtBarraNema | undefined {
+/** `minCapacidadA` exige barra (frame) ≥ ese piso — coordinación con el trafo. */
+export function sugerirBarra(flc: number, minCapacidadA = 0): SwitchgearBtBarraNema | undefined {
   if (flc < 0) return undefined;
-  return BARRAS.find((b) => flc <= b.flcMax);
+  return BARRAS.find((b) => flc <= b.flcMax && b.frameAF >= minCapacidadA);
 }
 
 export function salidasPorColumnaNema(): number {

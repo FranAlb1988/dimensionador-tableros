@@ -31,6 +31,9 @@ export function PanelPrincipalBarra({ tablero }: Props) {
           label="Factor de simultaneidad"
           value={`${(factorSimultaneidad * 100).toFixed(0)} %`}
         />
+        {tablero.trafoInSecundarioA != null && (
+          <Stat label="In secundario trafo" value={fmtAmp(tablero.trafoInSecundarioA)} />
+        )}
         <Stat
           label="Margen del principal"
           value={`+${(((principal.inA / corrienteTotalA) - 1) * 100).toFixed(0)} %`}

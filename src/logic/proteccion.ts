@@ -8,8 +8,14 @@ const NSX: readonly Proteccion[] = (nsxData.interruptores as Proteccion[]);
 const IC60: readonly Proteccion[] = (ic60Data.interruptores as Proteccion[]);
 const ABB_TMAX: readonly Proteccion[] = (abbTmaxData.interruptores as Proteccion[]);
 
-/** Margen para el In del interruptor sobre la corriente de diseño. */
-const MARGEN_NSX_NO_MOTOR = 1.0;
+/**
+ * Margen para el In del interruptor sobre la corriente de diseño.
+ * No-motor: 1.25 — alimentadores de régimen continuo (subtableros, CCMs,
+ * iluminación) no deben cargar el térmico TM-D sobre el 80% de su In
+ * (criterio NEC 210.19/215.2 para carga continua; práctica IEC equivalente).
+ * Motor: 1.25 sobre I de diseño (la sobrecarga la cubre el relé térmico).
+ */
+const MARGEN_NSX_NO_MOTOR = 1.25;
 const MARGEN_NSX_MOTOR = 1.25;
 const MARGEN_IC60 = 1.0;
 
@@ -33,7 +39,7 @@ export const MARCAS_FEEDER: readonly MarcaProteccion[] = ['Schneider', 'ABB'];
 
 /**
  * Sugiere un interruptor de alimentador (MCCB) para una carga de CCM/CDC, según marca.
- * Para motores se usa margen 1.25 sobre I_diseño; para otras cargas 1.0.
+ * Margen 1.25 sobre I_diseño (motores y alimentadores continuos por igual).
  * Si la carga trae `corrienteProteccionA` (frame mínimo forzado), el In elegido
  * será ≥ ese valor — usado para forzar un frame mayor del necesario por la
  * corriente, lo que define el tamaño de gaveta.

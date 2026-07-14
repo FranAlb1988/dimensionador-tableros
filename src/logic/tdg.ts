@@ -6,6 +6,7 @@ import { sugerirInterruptorPrincipal } from './principal';
 import { sugerirBarra } from './barra';
 import { MAX_BARRA_CDC_A } from './limites-barra';
 import { MEDIDA_TDG_DEFAULT } from './medida-tdg';
+import { calcularTransformador, type ConfigTransformador } from './transformador';
 
 export const ENVOLVENTE_PRISMA: EnvolventePrismaCatalogo = prismaData.envolvente as EnvolventePrismaCatalogo;
 export const ALTO_CELDA_SALIDA_MM: number = (prismaData.salida as { altoCeldaMm: number }).altoCeldaMm;
@@ -22,10 +23,26 @@ const FACTOR_SIMULTANEIDAD_MIN = 0.1;
 const FACTOR_SIMULTANEIDAD_MAX = 1;
 
 /**
+ * Corriente nominal del secundario del transformador que alimentaría el CDC
+ * con esta configuración y carga. Si el trafo sugerido requiere N unidades en
+ * paralelo, la barra recibe la suma de los secundarios.
+ */
+function inSecundarioTrafo(cfg: ConfigTransformador, corrienteCargaA: number): number {
+  const t = calcularTransformador({ ...cfg, corrienteSecundarioA: corrienteCargaA });
+  return t.paralelo
+    ? t.paralelo.cantidad * t.paralelo.cadaUno.inSecundarioA
+    : t.inSecundarioA;
+}
+
+/**
  * Punto de entrada para TDG Prisma.
  *  1. Calcula corriente de diseño y sugiere NSX por salida.
  *  2. Suma las corrientes y aplica factor de simultaneidad.
- *  3. Sugiere interruptor principal y barra de distribución.
+ *  3. Sugiere interruptor principal y barra de distribución. Si se entrega la
+ *     configuración del transformador alimentador (`trafo`), el principal y la
+ *     barra se seleccionan además con In ≥ In del secundario del trafo — el
+ *     principal es también la protección BT del transformador, y el margen de
+ *     crecimiento del trafo debe poder circular por el tablero.
  *  4. Calcula dimensiones de la envolvente.
  *
  * Si no hay salidas válidas, devuelve `tablero: undefined` con `motivo`.
@@ -34,6 +51,7 @@ export function dimensionarTdg(
   cargas: readonly Carga[],
   factorSimultaneidad: number,
   marca: MarcaProteccion = 'Schneider',
+  trafo?: ConfigTransformador,
 ): ResultadoTdg {
   const fs = clamp(factorSimultaneidad, FACTOR_SIMULTANEIDAD_MIN, FACTOR_SIMULTANEIDAD_MAX);
   const salidasAsignadas: SalidaAsignada[] = [];
@@ -56,22 +74,27 @@ export function dimensionarTdg(
   const sumaSalidasA = salidasAsignadas.reduce((acc, s) => acc + s.corrienteDisenoA, 0);
   const corrienteTotalA = sumaSalidasA * fs;
 
-  const principal = sugerirInterruptorPrincipal(corrienteTotalA, marca);
+  // Coordinación con el trafo alimentador: principal y barra deben cubrir la
+  // In del secundario del transformador sugerido, no solo la carga.
+  const trafoInSecundarioA = trafo ? inSecundarioTrafo(trafo, corrienteTotalA) : undefined;
+  const corrienteSeleccionA = Math.max(corrienteTotalA, trafoInSecundarioA ?? 0);
+
+  const principal = sugerirInterruptorPrincipal(corrienteSeleccionA, marca);
   // CDC: la barra principal puede llegar hasta 6000 A (alimenta CCMs y CDCs
   // aguas abajo).
-  const barra = sugerirBarra(corrienteTotalA, MAX_BARRA_CDC_A);
+  const barra = sugerirBarra(corrienteSeleccionA, MAX_BARRA_CDC_A);
   if (!principal) {
     return {
       salidasAsignadas,
       cargasSinAsignar,
-      motivo: `Sin interruptor principal ${marca} en catálogo para ${corrienteTotalA.toFixed(0)} A.`,
+      motivo: `Sin interruptor principal ${marca} en catálogo para ${corrienteSeleccionA.toFixed(0)} A.`,
     };
   }
   if (!barra) {
     return {
       salidasAsignadas,
       cargasSinAsignar,
-      motivo: `Sin barra de distribución en catálogo para ${corrienteTotalA.toFixed(0)} A.`,
+      motivo: `Sin barra de distribución en catálogo para ${corrienteSeleccionA.toFixed(0)} A.`,
     };
   }
 
@@ -88,6 +111,7 @@ export function dimensionarTdg(
     salidas: salidasAsignadas,
     medida: MEDIDA_TDG_DEFAULT,
     corrienteTotalA,
+    ...(trafoInSecundarioA != null ? { trafoInSecundarioA } : {}),
     factorSimultaneidad: fs,
     columnas,
     altoTotalMm: ENVOLVENTE_PRISMA.altoTotalMm,

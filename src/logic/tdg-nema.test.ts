@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { dimensionarTdgNema, sugerirBarra, sugerirMain } from './tdg-nema';
+import { CONFIG_TRAFO_DEFAULT } from './transformador';
 import type { Carga } from '../types';
 
 function salida(id: string, kW: number, fs = 1): Carga {
@@ -105,5 +106,33 @@ describe('dimensionarTdgNema', () => {
     const grd = r.tablero!.salidas[1]!;
     expect(peq.breaker.ratingTipo).toBe('AT');
     expect(grd.breaker.ratingTipo).toBe('AS');
+  });
+
+  it('las salidas llevan margen 1.25 (rating ≥ 1.25 × I diseño), motor incluido', () => {
+    const motor: Carga = {
+      id: 'chiller', descripcion: 'Chiller', tipo: 'motor',
+      potenciaKw: 110, tensionV: 400, fases: '3F', factorServicio: 1.15, arranque: 'DOL',
+    };
+    const r = dimensionarTdgNema([motor, salida('otro', 90, 1.1)], 1);
+    for (const s of r.tablero!.salidas) {
+      expect(s.breaker.ratingA).toBeGreaterThanOrEqual(s.corrienteDisenoA * 1.25);
+    }
+  });
+
+  it('con configuración de trafo, main y barra cubren la In del secundario', () => {
+    // Carga ≈ 651 A → main por rango sería 1000AS; el trafo 630 kVA a 400 V
+    // tiene In sec ≈ 909 A → main y barra deben quedar ≥ 909 A.
+    const cargas = [salida('1', 200), salida('2', 200), salida('3', 200)];
+    const r = dimensionarTdgNema(cargas, 1, { ...CONFIG_TRAFO_DEFAULT, tensionSecundariaV: 480 });
+    const t = r.tablero!;
+    expect(t.trafoInSecundarioA).toBeDefined();
+    expect(t.principal.ratingA).toBeGreaterThanOrEqual(t.trafoInSecundarioA!);
+    expect(t.barra.frameAF).toBeGreaterThanOrEqual(t.trafoInSecundarioA!);
+  });
+
+  it('sugerirMain con piso de rating salta a una fila con rating suficiente', () => {
+    // FLC 100 A cae en la fila 200AS; con piso 900 A debe subir a 1000AS.
+    expect(sugerirMain(100)?.ratingA).toBe(200);
+    expect(sugerirMain(100, 900)?.ratingA).toBeGreaterThanOrEqual(900);
   });
 });

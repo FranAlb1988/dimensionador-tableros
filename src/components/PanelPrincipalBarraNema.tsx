@@ -23,6 +23,9 @@ export function PanelPrincipalBarraNema({ tablero }: Props) {
       <div className="sm:col-span-2 border border-slate-200 dark:border-slate-800 rounded-lg p-3 text-sm flex flex-wrap gap-x-6 gap-y-1">
         <Stat label="FLC total" value={fmtAmp(corrienteTotalA)} />
         <Stat label="Factor de simultaneidad" value={`${(factorSimultaneidad * 100).toFixed(0)} %`} />
+        {tablero.trafoInSecundarioA != null && (
+          <Stat label="In secundario trafo" value={fmtAmp(tablero.trafoInSecundarioA)} />
+        )}
         <Stat label="Margen del principal" value={`+${(((principal.ratingA / corrienteTotalA) - 1) * 100).toFixed(0)} %`} />
         <Stat label="Margen de la barra" value={`+${(((barra.frameAF / corrienteTotalA) - 1) * 100).toFixed(0)} %`} />
       </div>

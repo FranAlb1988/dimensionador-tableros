@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { dimensionarTdg, salidasPorColumna } from './tdg';
+import { CONFIG_TRAFO_DEFAULT, calcularTransformador } from './transformador';
 import type { Carga } from '../types';
 
 function salida3F(id: string, kW: number, fs = 1): Carga {
@@ -62,6 +63,35 @@ describe('dimensionarTdg', () => {
     const r = dimensionarTdg([c], 1);
     expect(r.cargasSinAsignar).toHaveLength(1);
     expect(r.tablero).toBeUndefined();
+  });
+
+  it('las salidas no-motor llevan margen 1.25 (In del NSX ≥ 1.25 × I diseño)', () => {
+    // 90 kW × FS 1.1 @ 400 V ≈ 158.7 A → ×1.25 = 198.4 → NSX250 TM200 (no TM160).
+    const r = dimensionarTdg([salida3F('1', 90, 1.1)], 1);
+    const s = r.tablero!.salidas[0]!;
+    expect(s.proteccion.inA).toBeGreaterThanOrEqual(s.corrienteDisenoA * 1.25);
+  });
+
+  it('con configuración de trafo, el principal y la barra cubren la In del secundario', () => {
+    // Carga ≈ 651 A → trafo sugerido 630 kVA (margen 25%) → In sec ≈ 909 A.
+    // Sin coordinación el principal quedaba en 800 A (< 909 A).
+    const cargas = [salida3F('1', 80), salida3F('2', 120), salida3F('3', 90, 1.1),
+      salida3F('4', 25), salida3F('5', 35), salida3F('6', 150)];
+    const r = dimensionarTdg(cargas, 0.8, 'Schneider', CONFIG_TRAFO_DEFAULT);
+    const t = r.tablero!;
+    expect(t.trafoInSecundarioA).toBeDefined();
+    const trafo = calcularTransformador({
+      ...CONFIG_TRAFO_DEFAULT, corrienteSecundarioA: t.corrienteTotalA,
+    });
+    expect(t.trafoInSecundarioA).toBeCloseTo(trafo.inSecundarioA, 3);
+    expect(t.principal.inA).toBeGreaterThanOrEqual(t.trafoInSecundarioA!);
+    expect(t.barra.inA).toBeGreaterThanOrEqual(t.trafoInSecundarioA!);
+  });
+
+  it('sin configuración de trafo, el comportamiento anterior se mantiene', () => {
+    const r = dimensionarTdg([salida3F('1', 100)], 1);
+    expect(r.tablero!.trafoInSecundarioA).toBeUndefined();
+    expect(r.tablero!.principal.inA).toBeGreaterThanOrEqual(r.tablero!.corrienteTotalA);
   });
 
   it('cantidad de columnas crece según el número de salidas', () => {

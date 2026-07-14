@@ -9,10 +9,11 @@ import { PanelPrincipalBarraNema } from '../components/PanelPrincipalBarraNema';
 import { VistaFrontalTdgNemaSvg } from '../components/VistaFrontalTdgNemaSvg';
 import { ResumenTdgNema } from '../components/ResumenTdgNema';
 import { ExportarPdfTdgNemaBoton } from '../components/ExportarPdfTdgNemaBoton';
-import { SUBTIPOS_TDG_LABEL, useTdgFactorSimultaneidad, useTdgMarca, useTdgNorma, useTdgSalidas, useTdgStore, useTdgSubtipo } from '../store/tdg';
+import { SUBTIPOS_TDG_LABEL, useTdgFactorSimultaneidad, useTdgMarca, useTdgNorma, useTdgSalidas, useTdgStore, useTdgSubtipo, useTdgTransformador } from '../store/tdg';
 import { dimensionarTdg } from '../logic/tdg';
 import { dimensionarTdgNema } from '../logic/tdg-nema';
 import { MARCAS_PRINCIPAL } from '../logic/principal';
+import { CONFIG_TRAFO_DEFAULT, tensionPredominanteV, type ConfigTransformador } from '../logic/transformador';
 import type { Norma } from '../types';
 import { TableroSelector } from '../components/TableroSelector';
 
@@ -49,13 +50,25 @@ export function TdgPage() {
     ...(t.subtipo !== 'general' ? { badge: SUBTIPOS_TDG_LABEL[t.subtipo], badgeColor: 'sky' as const } : {}),
   }));
 
+  // Configuración efectiva del trafo alimentador: la persistida, o el default
+  // con la tensión secundaria predominante — la misma que muestra el modal.
+  // El principal y la barra del CDC se coordinan contra su In secundario.
+  const cfgTrafoGuardada = useTdgTransformador();
+  const cfgTrafo: ConfigTransformador = useMemo(
+    () => cfgTrafoGuardada ?? {
+      ...CONFIG_TRAFO_DEFAULT,
+      tensionSecundariaV: tensionPredominanteV(salidas.map((c) => c.tensionV)),
+    },
+    [cfgTrafoGuardada, salidas],
+  );
+
   const resultadoIec = useMemo(
-    () => (norma === 'IEC' ? dimensionarTdg(salidas, fs, marca) : null),
-    [salidas, fs, norma, marca],
+    () => (norma === 'IEC' ? dimensionarTdg(salidas, fs, marca, cfgTrafo) : null),
+    [salidas, fs, norma, marca, cfgTrafo],
   );
   const resultadoNema = useMemo(
-    () => (norma === 'NEMA' ? dimensionarTdgNema(salidas, fs) : null),
-    [salidas, fs, norma],
+    () => (norma === 'NEMA' ? dimensionarTdgNema(salidas, fs, cfgTrafo) : null),
+    [salidas, fs, norma, cfgTrafo],
   );
 
   return (
