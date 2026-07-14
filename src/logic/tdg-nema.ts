@@ -25,6 +25,11 @@ export interface ResultadoTdgNema {
   cargasSinAsignar: Carga[];
   tablero?: TableroTdgNema;
   motivo?: string;
+  /**
+   * Advertencias de poder de corte: salidas cuyo Icu mínimo declarado queda
+   * bajo la Icc de barra aportada por el trafo alimentador.
+   */
+  advertenciasIcu?: string[];
 }
 
 const FS_MIN = 0.1;
@@ -40,14 +45,27 @@ const FS_MAX = 1;
 const MARGEN_SALIDA_NEMA = 1.25;
 
 /**
- * Corriente nominal del secundario del trafo alimentador con esta carga
- * (suma de unidades si el sugerido es un banco en paralelo).
+ * Datos del trafo alimentador con esta carga: In del secundario (suma de
+ * unidades si es un banco en paralelo) e Icc trifásica de barra.
  */
-function inSecundarioTrafo(cfg: ConfigTransformador, corrienteCargaA: number): number {
+function datosTrafo(
+  cfg: ConfigTransformador,
+  corrienteCargaA: number,
+): { inSecundarioA: number; iccKa: number } {
   const t = calcularTransformador({ ...cfg, corrienteSecundarioA: corrienteCargaA });
-  return t.paralelo
+  const inSecundarioA = t.paralelo
     ? t.paralelo.cantidad * t.paralelo.cadaUno.inSecundarioA
     : t.inSecundarioA;
+  return { inSecundarioA, iccKa: t.iccSecundarioKa };
+}
+
+/**
+ * Icu mínimo (kA) declarado en el rango del breaker, p. ej. "65, 100" → 65.
+ * El rango depende de la tensión de servicio; se toma el menor (conservador).
+ */
+function minIcuKa(icuRange: string): number {
+  const valores = icuRange.split(',').map((s) => parseFloat(s)).filter(Number.isFinite);
+  return valores.length > 0 ? Math.min(...valores) : 0;
 }
 
 /**
@@ -96,7 +114,10 @@ export function dimensionarTdgNema(
   const corrienteTotalA = mayorSalidaA + fs * (sumaSalidasA - mayorSalidaA);
   // Coordinación con el trafo alimentador: main y barra deben cubrir la In
   // del secundario del transformador sugerido, no solo la carga diversificada.
-  const trafoInSecundarioA = trafo ? inSecundarioTrafo(trafo, corrienteTotalA) : undefined;
+  // El trafo define además la Icc de barra para validar el Icu del aparellaje.
+  const datos = trafo ? datosTrafo(trafo, corrienteTotalA) : undefined;
+  const trafoInSecundarioA = datos?.inSecundarioA;
+  const iccBarraKa = datos?.iccKa;
   const principal = sugerirMain(corrienteTotalA, trafoInSecundarioA ?? 0);
   const barra = sugerirBarra(corrienteTotalA, trafoInSecundarioA ?? 0);
   if (!principal) {
@@ -126,6 +147,7 @@ export function dimensionarTdgNema(
     medida: MEDIDA_TDG_DEFAULT,
     corrienteTotalA,
     ...(trafoInSecundarioA != null ? { trafoInSecundarioA } : {}),
+    ...(iccBarraKa != null ? { iccBarraKa } : {}),
     factorSimultaneidad: fs,
     columnas,
     altoTotalMm: ENVOLVENTE_TDG_NEMA.altoTotalMm,
@@ -133,7 +155,21 @@ export function dimensionarTdgNema(
     profundidadTotalMm: ENVOLVENTE_TDG_NEMA.profundidadMm,
   };
 
-  return { salidas, cargasSinAsignar, tablero };
+  // Validación de poder de corte de las salidas contra la Icc de barra
+  // (el catálogo de mains no declara Icu, por lo que solo se validan salidas).
+  const advertenciasIcu = iccBarraKa != null
+    ? salidas
+        .filter((s) => minIcuKa(s.breaker.icuRange) < iccBarraKa)
+        .map((s) => `${s.carga.descripcion || s.carga.id}: ${s.breaker.frameAF}AF · ${s.breaker.rating} `
+          + `(Icu mín. ${minIcuKa(s.breaker.icuRange)} kA) < Icc de barra ${iccBarraKa.toFixed(1)} kA`)
+    : [];
+
+  return {
+    salidas,
+    cargasSinAsignar,
+    tablero,
+    ...(advertenciasIcu.length > 0 ? { advertenciasIcu } : {}),
+  };
 }
 
 /**

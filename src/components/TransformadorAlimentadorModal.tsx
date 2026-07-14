@@ -198,6 +198,9 @@ export function TransformadorAlimentadorModal({
               <dt className="text-slate-500">Impedancia (Ucc)</dt>
               <dd className="font-medium tabular-nums">{resultado.uccPorcentaje} %</dd>
 
+              <dt className="text-slate-500">Icc secundario (red infinita)</dt>
+              <dd className="font-medium tabular-nums">{resultado.iccSecundarioKa.toFixed(1)} kA</dd>
+
               <dt className="text-slate-500">Tipo</dt>
               <dd className="font-medium">{TIPO_TRAFO_LABEL[resultado.tipo]}</dd>
 

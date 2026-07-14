@@ -475,6 +475,8 @@ export interface TableroTdgNema {
    * presente, main y barra se seleccionaron con In ≥ este valor.
    */
   trafoInSecundarioA?: number;
+  /** Icc trifásica de barra aportada por el trafo alimentador (kA). */
+  iccBarraKa?: number;
   factorSimultaneidad: number;
   /** 1 columna principal + columnas de salidas. */
   columnas: number;
@@ -614,6 +616,11 @@ export interface TableroTdg {
    * presente, principal y barra se seleccionaron con In ≥ este valor.
    */
   trafoInSecundarioA?: number;
+  /**
+   * Icc trifásica de barra aportada por el trafo alimentador (kA). El
+   * principal se seleccionó con Icu ≥ este valor.
+   */
+  iccBarraKa?: number;
   factorSimultaneidad: number;
   /** Cantidad de columnas Prisma (1 + columnas-salidas). */
   columnas: number;

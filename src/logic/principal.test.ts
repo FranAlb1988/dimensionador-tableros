@@ -78,4 +78,17 @@ describe('sugerirInterruptorPrincipal', () => {
   it('expone las tres marcas disponibles', () => {
     expect(MARCAS_PRINCIPAL).toEqual(['Schneider', 'ABB', 'Chint']);
   });
+
+  it('minIcuKA filtra por poder de corte: 700 A con Icu ≥ 50 kA salta de NT (42) a NW (65)', () => {
+    const sinIcu = sugerirInterruptorPrincipal(700, 'Schneider');
+    expect(sinIcu!.familia).toBe('MasterpactNT');
+    const conIcu = sugerirInterruptorPrincipal(700, 'Schneider', 50);
+    expect(conIcu).toBeDefined();
+    expect(conIcu!.familia).toBe('MasterpactNW');
+    expect(conIcu!.icuKA).toBeGreaterThanOrEqual(50);
+  });
+
+  it('minIcuKA imposible de cumplir devuelve undefined', () => {
+    expect(sugerirInterruptorPrincipal(700, 'Schneider', 200)).toBeUndefined();
+  });
 });

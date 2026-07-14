@@ -35,18 +35,23 @@ const MARGEN_PRINCIPAL = 1.0;
  * (MCCB para corrientes bajas, ACB para corrientes altas — el catálogo ya los mezcla
  * ordenados por In).
  *
+ * `minIcuKA` (opcional): poder de corte mínimo exigido — usado para validar el
+ * principal contra la Icc de barra que aporta el trafo alimentador (IEC 61439-2 /
+ * RIC N°02: el aparellaje debe soportar el cortocircuito del punto de instalación).
+ *
  * Devuelve `undefined` si la corriente total no es asignable con esa marca
- * (p. ej. Chint por debajo de 1000 A).
+ * (p. ej. Chint por debajo de 1000 A) o si ningún equipo alcanza el Icu pedido.
  */
 export function sugerirInterruptorPrincipal(
   corrienteTotalA: number,
   marca: MarcaProteccion = 'Schneider',
+  minIcuKA = 0,
 ): Proteccion | undefined {
   if (!Number.isFinite(corrienteTotalA) || corrienteTotalA <= 0) return undefined;
   const Imin = corrienteTotalA * MARGEN_PRINCIPAL;
   return POOL_POR_MARCA[marca]
     .toSorted((a, b) => a.inA - b.inA)
-    .find((p) => p.inA >= Imin);
+    .find((p) => p.inA >= Imin && p.icuKA >= minIcuKA);
 }
 
 export const PRINCIPAL_DISPONIBLES: readonly Proteccion[] = [

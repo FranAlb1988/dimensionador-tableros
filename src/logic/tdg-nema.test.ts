@@ -149,6 +149,23 @@ describe('dimensionarTdgNema', () => {
     expect(t.barra.frameAF).toBeGreaterThanOrEqual(t.trafoInSecundarioA!);
   });
 
+  it('la Icc de barra del trafo se expone y genera advertencias cuando supera el Icu de las salidas', () => {
+    // 10 × 250 kW @ 480 V, fs 1 → FLC ≈ 3341 A → trafo 4000 kVA (Ucc 7%)
+    // → In sec ≈ 4811 A, Icc ≈ 68.7 kA > 65 kA (Icu mín. de los breakers NEMA).
+    const cargas = Array.from({ length: 10 }, (_, i) => salida(String(i + 1), 250));
+    const r = dimensionarTdgNema(cargas, 1, { ...CONFIG_TRAFO_DEFAULT, tensionSecundariaV: 480 });
+    const t = r.tablero!;
+    expect(t.iccBarraKa).toBeGreaterThan(65);
+    expect(r.advertenciasIcu).toBeDefined();
+    expect(r.advertenciasIcu).toHaveLength(10);
+  });
+
+  it('con Icc bajo el Icu mínimo (65 kA) no hay advertencias NEMA', () => {
+    const r = dimensionarTdgNema([salida('1', 200)], 1, { ...CONFIG_TRAFO_DEFAULT, tensionSecundariaV: 480 });
+    expect(r.tablero!.iccBarraKa).toBeLessThan(65);
+    expect(r.advertenciasIcu).toBeUndefined();
+  });
+
   it('sugerirMain con piso de rating salta a una fila con rating suficiente', () => {
     // FLC 100 A cae en la fila 200AS; con piso 900 A debe subir a 1000AS.
     expect(sugerirMain(100)?.ratingA).toBe(200);

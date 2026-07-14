@@ -72,6 +72,13 @@ export interface UnidadTrafo {
 export interface ResultadoTransformador extends UnidadTrafo {
   /** Potencia aparente requerida por la carga + margen, en kVA. */
   kvaRequerido: number;
+  /**
+   * Corriente de cortocircuito trifásica en el secundario (kA), asumiendo
+   * red primaria de potencia infinita: Icc = In_sec × 100 / Ucc%. Es el valor
+   * conservador estándar para especificar el Icu del aparellaje BT del CDC.
+   * Si el resultado es un banco en paralelo, es el aporte del banco completo.
+   */
+  iccSecundarioKa: number;
   /** Tipo constructivo elegido. */
   tipo: TipoTransformador;
   /** Grupo vectorial recomendado. */
@@ -158,6 +165,12 @@ function sugerirParalelo(
   return undefined;
 }
 
+/** Icc trifásica en el secundario de una unidad (kA): In_sec × 100 / Ucc%. */
+function iccUnidadKa(unidad: UnidadTrafo, tipo: TipoTransformador): number {
+  const ucc = uccTipica(unidad.kvaNominal, tipo);
+  return (unidad.inSecundarioA * 100) / ucc / 1000;
+}
+
 /** Calcula el transformador para alimentar un CDC. */
 export function calcularTransformador(p: ParametrosTransformador): ResultadoTransformador {
   const v2 = p.tensionSecundariaV;
@@ -169,16 +182,21 @@ export function calcularTransformador(p: ParametrosTransformador): ResultadoTran
   const kvaNominal = POTENCIAS_NOMINALES_KVA.find((k) => k >= sRequeridaKva) ?? MAX_KVA_ESTANDAR;
   const excede = sRequeridaKva > MAX_KVA_ESTANDAR;
   const unidad = fabricarUnidad(kvaNominal, v2, v1Kv, tipo);
+  const paralelo = excede ? sugerirParalelo(sRequeridaKva, v2, v1Kv, tipo) : undefined;
+  // Icc de la barra: la unidad sola, o la suma de los aportes del banco en
+  // paralelo (impedancias iguales → aportes iguales).
+  const iccSecundarioKa = paralelo
+    ? paralelo.cantidad * iccUnidadKa(paralelo.cadaUno, tipo)
+    : iccUnidadKa(unidad, tipo);
   return {
     ...unidad,
     kvaRequerido: sRequeridaKva,
     tipo,
     grupoVectorial: 'Dyn11',
     uccPorcentaje: uccTipica(kvaNominal, tipo),
+    iccSecundarioKa,
     excede,
-    ...(excede
-      ? { paralelo: sugerirParalelo(sRequeridaKva, v2, v1Kv, tipo) }
-      : {}),
+    ...(paralelo ? { paralelo } : {}),
   };
 }
 

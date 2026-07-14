@@ -109,9 +109,33 @@ describe('dimensionarTdg', () => {
     expect(t.barra.inA).toBeGreaterThanOrEqual(t.trafoInSecundarioA!);
   });
 
+  it('la Icc de barra del trafo filtra el Icu del principal y advierte sobre las salidas', () => {
+    // 4 × 250 kW @ 400 V, fs 0.8 → I total ≈ 1364 A → trafo 1250 kVA (Ucc 5%)
+    // → In sec ≈ 1804 A, Icc ≈ 36.1 kA. El principal debe tener Icu ≥ 36.1
+    // (NW, 65 kA — el NT de 42 kA cumple pero no llega a 1804 A) y las salidas
+    // NSX F (36 kA) quedan bajo la Icc → 4 advertencias.
+    const cargas = [salida3F('1', 250), salida3F('2', 250), salida3F('3', 250), salida3F('4', 250)];
+    const r = dimensionarTdg(cargas, 0.8, 'Schneider', CONFIG_TRAFO_DEFAULT);
+    const t = r.tablero!;
+    expect(t.iccBarraKa).toBeCloseTo(36.1, 0);
+    expect(t.principal.icuKA).toBeGreaterThanOrEqual(t.iccBarraKa!);
+    expect(r.advertenciasIcu).toBeDefined();
+    expect(r.advertenciasIcu).toHaveLength(4);
+    expect(r.advertenciasIcu![0]).toContain('Icu 36 kA');
+  });
+
+  it('sin superar el Icu de las salidas no hay advertencias', () => {
+    // Ejemplo chico: trafo 630 kVA (Ucc 4%) → Icc ≈ 22.7 kA < 36 kA de los NSX F.
+    const r = dimensionarTdg([salida3F('1', 100), salida3F('2', 150)], 0.8, 'Schneider', CONFIG_TRAFO_DEFAULT);
+    expect(r.tablero!.iccBarraKa).toBeLessThan(36);
+    expect(r.advertenciasIcu).toBeUndefined();
+  });
+
   it('sin configuración de trafo, el comportamiento anterior se mantiene', () => {
     const r = dimensionarTdg([salida3F('1', 100)], 1);
     expect(r.tablero!.trafoInSecundarioA).toBeUndefined();
+    expect(r.tablero!.iccBarraKa).toBeUndefined();
+    expect(r.advertenciasIcu).toBeUndefined();
     expect(r.tablero!.principal.inA).toBeGreaterThanOrEqual(r.tablero!.corrienteTotalA);
   });
 

@@ -17,21 +17,30 @@ export interface ResultadoTdg {
   tablero?: TableroTdg;
   /** Razón por la que no se pudo dimensionar (si tablero es undefined). */
   motivo?: string;
+  /**
+   * Advertencias de poder de corte: salidas cuyo Icu queda bajo la Icc de
+   * barra aportada por el trafo alimentador (IEC 61439-2 / RIC N°02).
+   */
+  advertenciasIcu?: string[];
 }
 
 const FACTOR_SIMULTANEIDAD_MIN = 0.1;
 const FACTOR_SIMULTANEIDAD_MAX = 1;
 
 /**
- * Corriente nominal del secundario del transformador que alimentaría el CDC
- * con esta configuración y carga. Si el trafo sugerido requiere N unidades en
- * paralelo, la barra recibe la suma de los secundarios.
+ * Datos del transformador que alimentaría el CDC con esta configuración y
+ * carga: In del secundario (suma de unidades si es un banco en paralelo) e
+ * Icc trifásica que aporta a la barra.
  */
-function inSecundarioTrafo(cfg: ConfigTransformador, corrienteCargaA: number): number {
+function datosTrafo(
+  cfg: ConfigTransformador,
+  corrienteCargaA: number,
+): { inSecundarioA: number; iccKa: number } {
   const t = calcularTransformador({ ...cfg, corrienteSecundarioA: corrienteCargaA });
-  return t.paralelo
+  const inSecundarioA = t.paralelo
     ? t.paralelo.cantidad * t.paralelo.cadaUno.inSecundarioA
     : t.inSecundarioA;
+  return { inSecundarioA, iccKa: t.iccSecundarioKa };
 }
 
 /**
@@ -82,11 +91,14 @@ export function dimensionarTdg(
   const corrienteTotalA = mayorSalidaA + fs * (sumaSalidasA - mayorSalidaA);
 
   // Coordinación con el trafo alimentador: principal y barra deben cubrir la
-  // In del secundario del transformador sugerido, no solo la carga.
-  const trafoInSecundarioA = trafo ? inSecundarioTrafo(trafo, corrienteTotalA) : undefined;
+  // In del secundario del transformador sugerido, no solo la carga. Además el
+  // trafo define la Icc de barra, que fija el Icu mínimo del aparellaje.
+  const datos = trafo ? datosTrafo(trafo, corrienteTotalA) : undefined;
+  const trafoInSecundarioA = datos?.inSecundarioA;
+  const iccBarraKa = datos?.iccKa;
   const corrienteSeleccionA = Math.max(corrienteTotalA, trafoInSecundarioA ?? 0);
 
-  const principal = sugerirInterruptorPrincipal(corrienteSeleccionA, marca);
+  const principal = sugerirInterruptorPrincipal(corrienteSeleccionA, marca, iccBarraKa ?? 0);
   // CDC: la barra principal puede llegar hasta 6000 A (alimenta CCMs y CDCs
   // aguas abajo).
   const barra = sugerirBarra(corrienteSeleccionA, MAX_BARRA_CDC_A);
@@ -94,7 +106,8 @@ export function dimensionarTdg(
     return {
       salidasAsignadas,
       cargasSinAsignar,
-      motivo: `Sin interruptor principal ${marca} en catálogo para ${corrienteSeleccionA.toFixed(0)} A.`,
+      motivo: `Sin interruptor principal ${marca} en catálogo para ${corrienteSeleccionA.toFixed(0)} A`
+        + (iccBarraKa ? ` con Icu ≥ ${iccBarraKa.toFixed(1)} kA (Icc de barra del trafo)` : '') + '.',
     };
   }
   if (!barra) {
@@ -119,6 +132,7 @@ export function dimensionarTdg(
     medida: MEDIDA_TDG_DEFAULT,
     corrienteTotalA,
     ...(trafoInSecundarioA != null ? { trafoInSecundarioA } : {}),
+    ...(iccBarraKa != null ? { iccBarraKa } : {}),
     factorSimultaneidad: fs,
     columnas,
     altoTotalMm: ENVOLVENTE_PRISMA.altoTotalMm,
@@ -126,7 +140,23 @@ export function dimensionarTdg(
     profundidadTotalMm: ENVOLVENTE_PRISMA.profundidadMm,
   };
 
-  return { salidasAsignadas, cargasSinAsignar, tablero };
+  // Validación de poder de corte de las salidas contra la Icc de barra.
+  // El principal ya se filtró por Icu; las salidas del catálogo actual son de
+  // Icu fijo (NSX F 36 kA), así que si la barra las supera se advierte para
+  // subir de familia (NSX N/H) o especificar limitación aguas arriba.
+  const advertenciasIcu = iccBarraKa != null
+    ? salidasAsignadas
+        .filter((s) => s.proteccion.icuKA < iccBarraKa)
+        .map((s) => `${s.carga.descripcion || s.carga.id}: ${s.proteccion.referencia} `
+          + `(Icu ${s.proteccion.icuKA} kA) < Icc de barra ${iccBarraKa.toFixed(1)} kA`)
+    : [];
+
+  return {
+    salidasAsignadas,
+    cargasSinAsignar,
+    tablero,
+    ...(advertenciasIcu.length > 0 ? { advertenciasIcu } : {}),
+  };
 }
 
 /** Cantidad máxima de salidas por columna lateral, según el alto útil y el alto de celda. */

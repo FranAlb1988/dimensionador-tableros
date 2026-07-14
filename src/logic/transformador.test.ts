@@ -39,6 +39,23 @@ describe('calcularTransformador', () => {
     const r = calcularTransformador({ ...base, corrienteSecundarioA: 1000, margen: 0 });
     expect(r.grupoVectorial).toBe('Dyn11');
   });
+
+  it('Icc secundario = In_sec × 100 / Ucc (red infinita)', () => {
+    // base → 1600 kVA, Ucc 6%, In sec ≈ 2309 A → Icc ≈ 38.5 kA.
+    const r = calcularTransformador(base);
+    expect(r.iccSecundarioKa).toBeCloseTo((r.inSecundarioA * 100) / r.uccPorcentaje / 1000, 6);
+    expect(r.iccSecundarioKa).toBeCloseTo(38.5, 0);
+  });
+
+  it('Icc de un banco en paralelo suma los aportes de las unidades', () => {
+    // 9000 A @ 400 V sin margen ≈ 6235 kVA → excede → 2 × 3150 kVA (Ucc 7%).
+    const r = calcularTransformador({ ...base, corrienteSecundarioA: 9000, margen: 0 });
+    expect(r.excede).toBe(true);
+    expect(r.paralelo).toBeDefined();
+    const { cantidad, cadaUno } = r.paralelo!;
+    const iccUnidad = (cadaUno.inSecundarioA * 100) / 7 / 1000;
+    expect(r.iccSecundarioKa).toBeCloseTo(cantidad * iccUnidad, 6);
+  });
 });
 
 describe('Ucc según tipo y potencia', () => {

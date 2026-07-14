@@ -34,6 +34,9 @@ export function PanelPrincipalBarra({ tablero }: Props) {
         {tablero.trafoInSecundarioA != null && (
           <Stat label="In secundario trafo" value={fmtAmp(tablero.trafoInSecundarioA)} />
         )}
+        {tablero.iccBarraKa != null && (
+          <Stat label="Icc barra (trafo)" value={`${tablero.iccBarraKa.toFixed(1)} kA`} />
+        )}
         <Stat
           label="Margen del principal"
           value={`+${(((principal.inA / corrienteTotalA) - 1) * 100).toFixed(0)} %`}

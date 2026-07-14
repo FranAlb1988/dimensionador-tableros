@@ -183,6 +183,29 @@ export function TdgPage() {
         </>
       )}
 
+      {(() => {
+        const advertencias = norma === 'IEC'
+          ? resultadoIec?.advertenciasIcu
+          : resultadoNema?.advertenciasIcu;
+        if (!advertencias || advertencias.length === 0) return null;
+        return (
+          <section>
+            <div className="border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-950/40 rounded p-3 text-sm">
+              <div className="font-medium text-red-800 dark:text-red-200">
+                ⚠ Poder de corte insuficiente (Icc de barra del trafo alimentador)
+              </div>
+              <ul className="mt-1 list-disc list-inside text-red-900 dark:text-red-100">
+                {advertencias.map((a) => <li key={a}>{a}</li>)}
+              </ul>
+              <p className="mt-1 text-xs text-red-700 dark:text-red-300">
+                Especificar una familia de mayor Icu (p. ej. NSX N/H) o filiación/limitación
+                certificada con el principal (IEC 61439-2 · RIC N°02).
+              </p>
+            </div>
+          </section>
+        );
+      })()}
+
       {((norma === 'IEC' && resultadoIec && !resultadoIec.tablero && resultadoIec.motivo) ||
         (norma === 'NEMA' && resultadoNema && !resultadoNema.tablero && resultadoNema.motivo)) && (
         <div className="border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 rounded p-3 text-sm text-amber-900 dark:text-amber-100">
