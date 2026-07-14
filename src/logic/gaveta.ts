@@ -65,6 +65,20 @@ function nextId(prefix: string): string {
 }
 
 /**
+ * Protección de una salida de CCM: si el motor lleva arrancador en la gaveta
+ * (contactor + relé térmico), el interruptor es SOLO MAGNÉTICO (MA /
+ * Micrologic 1.3 M — coordinación tipo 2 IEC 60947-4-1); en cualquier otro
+ * caso, TM-D. Usado también por la tabla de cargas para mostrar el frame.
+ */
+export function sugerirProteccionCcm(
+  carga: Carga,
+  marca: MarcaProteccion = 'Schneider',
+): Proteccion | undefined {
+  const conArrancador = carga.tipo === 'motor' && sugerirArrancador(carga) != null;
+  return sugerirProteccionFeeder(carga, marca, 1, conArrancador);
+}
+
+/**
  * Para una carga de CCM produce la asignación: protección + arrancador (opcional) + gaveta.
  * Si no es posible sugerir protección, devuelve undefined.
  */
@@ -72,10 +86,10 @@ export function asignarCargaCcm(
   carga: Carga,
   marca: MarcaProteccion = 'Schneider',
 ): AsignacionCarga | undefined {
-  const proteccion = sugerirProteccionFeeder(carga, marca);
-  if (!proteccion) return undefined;
-
   const arrancador = sugerirArrancador(carga);
+  // Motor con arrancador → unidad solo magnética; el LRD cubre la sobrecarga.
+  const proteccion = sugerirProteccionFeeder(carga, marca, 1, arrancador != null);
+  if (!proteccion) return undefined;
 
   const tamano: TamanoGaveta = arrancador
     ? maxTamano(arrancador.tamanoGaveta, tamanoPorProteccion(proteccion))

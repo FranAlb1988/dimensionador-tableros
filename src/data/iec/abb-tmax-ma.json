@@ -1,0 +1,15 @@
+{
+  "_comment": "ABB Tmax solo magnético (unidad MF/MA; PR221DS-I para >200 A) para salidas de MOTOR con arrancador en la gaveta — coordinación tipo 2 IEC 60947-4-1. Icu conservador 36 kA @415 V (prestación N). Referencias placeholder — verificar contra la tabla de coordinación ABB (MNS/System pro E power) vigente.",
+  "interruptores": [
+    { "id": "abb-xt2n-ma10",  "marca": "ABB", "familia": "TmaxXT2", "referencia": "Tmax XT2N 160 MA 10 3P",  "inA": 10,  "icuKA": 36, "polos": 3, "curva": "MA", "placeholder": true },
+    { "id": "abb-xt2n-ma25",  "marca": "ABB", "familia": "TmaxXT2", "referencia": "Tmax XT2N 160 MA 25 3P",  "inA": 25,  "icuKA": 36, "polos": 3, "curva": "MA", "placeholder": true },
+    { "id": "abb-xt2n-ma52",  "marca": "ABB", "familia": "TmaxXT2", "referencia": "Tmax XT2N 160 MA 52 3P",  "inA": 52,  "icuKA": 36, "polos": 3, "curva": "MA", "placeholder": true },
+    { "id": "abb-xt2n-ma100", "marca": "ABB", "familia": "TmaxXT2", "referencia": "Tmax XT2N 160 MA 100 3P", "inA": 100, "icuKA": 36, "polos": 3, "curva": "MA", "placeholder": true },
+    { "id": "abb-xt4n-ma125", "marca": "ABB", "familia": "TmaxXT4", "referencia": "Tmax XT4N 250 MA 125 3P", "inA": 125, "icuKA": 36, "polos": 3, "curva": "MA", "placeholder": true },
+    { "id": "abb-xt4n-ma160", "marca": "ABB", "familia": "TmaxXT4", "referencia": "Tmax XT4N 250 MA 160 3P", "inA": 160, "icuKA": 36, "polos": 3, "curva": "MA", "placeholder": true },
+    { "id": "abb-xt4n-ma200", "marca": "ABB", "familia": "TmaxXT4", "referencia": "Tmax XT4N 250 MA 200 3P", "inA": 200, "icuKA": 36, "polos": 3, "curva": "MA", "placeholder": true },
+    { "id": "abb-t4n-i320",   "marca": "ABB", "familia": "TmaxT4",  "referencia": "Tmax T4N 320 PR221DS-I 320 3P", "inA": 320, "icuKA": 36, "polos": 3, "curva": "MA", "placeholder": true, "notas": "Solo instantáneo (I) para motor" },
+    { "id": "abb-t5n-i400",   "marca": "ABB", "familia": "TmaxT5",  "referencia": "Tmax T5N 400 PR221DS-I 400 3P", "inA": 400, "icuKA": 36, "polos": 3, "curva": "MA", "placeholder": true },
+    { "id": "abb-t5n-i630",   "marca": "ABB", "familia": "TmaxT5",  "referencia": "Tmax T5N 630 PR221DS-I 630 3P", "inA": 630, "icuKA": 36, "polos": 3, "curva": "MA", "placeholder": true }
+  ]
+}

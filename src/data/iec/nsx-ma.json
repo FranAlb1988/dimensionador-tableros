@@ -1,0 +1,15 @@
+{
+  "_comment": "Compact NSX solo magnético (unidad MA; Micrologic 1.3 M para >250 A) para salidas de MOTOR con arrancador en la gaveta — coordinación tipo 2 IEC 60947-4-1: la sobrecarga la cubre el relé térmico del arrancador y el interruptor corta solo cortocircuito. Familia F (Icu 36 kA @415 V). Referencias placeholder — verificar contra la tabla de coordinación Schneider (MCS) vigente.",
+  "interruptores": [
+    { "id": "nsx100f-ma2-5",  "familia": "NSX100", "referencia": "NSX100F MA2.5 3P",  "inA": 2.5,  "icuKA": 36, "polos": 3, "curva": "MA", "placeholder": true },
+    { "id": "nsx100f-ma6-3",  "familia": "NSX100", "referencia": "NSX100F MA6.3 3P",  "inA": 6.3,  "icuKA": 36, "polos": 3, "curva": "MA", "placeholder": true },
+    { "id": "nsx100f-ma12-5", "familia": "NSX100", "referencia": "NSX100F MA12.5 3P", "inA": 12.5, "icuKA": 36, "polos": 3, "curva": "MA", "placeholder": true },
+    { "id": "nsx100f-ma25",   "familia": "NSX100", "referencia": "NSX100F MA25 3P",   "inA": 25,   "icuKA": 36, "polos": 3, "curva": "MA", "placeholder": true },
+    { "id": "nsx100f-ma50",   "familia": "NSX100", "referencia": "NSX100F MA50 3P",   "inA": 50,   "icuKA": 36, "polos": 3, "curva": "MA", "placeholder": true },
+    { "id": "nsx100f-ma100",  "familia": "NSX100", "referencia": "NSX100F MA100 3P",  "inA": 100,  "icuKA": 36, "polos": 3, "curva": "MA", "placeholder": true },
+    { "id": "nsx160f-ma150",  "familia": "NSX160", "referencia": "NSX160F MA150 3P",  "inA": 150,  "icuKA": 36, "polos": 3, "curva": "MA", "placeholder": true },
+    { "id": "nsx250f-ma220",  "familia": "NSX250", "referencia": "NSX250F MA220 3P",  "inA": 220,  "icuKA": 36, "polos": 3, "curva": "MA", "placeholder": true },
+    { "id": "nsx400f-m320",   "familia": "NSX400", "referencia": "NSX400F Micrologic 1.3 M 320 3P", "inA": 320, "icuKA": 36, "polos": 3, "curva": "MA", "placeholder": true, "notas": "Protección solo magnética electrónica para motor" },
+    { "id": "nsx630f-m500",   "familia": "NSX630", "referencia": "NSX630F Micrologic 1.3 M 500 3P", "inA": 500, "icuKA": 36, "polos": 3, "curva": "MA", "placeholder": true }
+  ]
+}

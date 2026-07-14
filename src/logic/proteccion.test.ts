@@ -66,6 +66,46 @@ describe('sugerirProteccionNsx — margen de cargas continuas', () => {
   });
 });
 
+describe('sugerirProteccionFeeder — motor con arrancador (unidad solo magnética)', () => {
+  it('motor con arrancador recibe unidad MA con In ≥ I diseño (margen 1.0)', () => {
+    // 11 kW ≈ 21.1 A → MA25 (con TM-D sería 21.1 × 1.25 = 26.3 → TM40).
+    const p = sugerirProteccionFeeder(motor11kW, 'Schneider', 1, true);
+    expect(p).toBeDefined();
+    expect(p!.curva).toBe('MA');
+    expect(p!.inA).toBe(25);
+  });
+
+  it('sin el contexto de arrancador, el motor mantiene TM-D con margen 1.25', () => {
+    const p = sugerirProteccionFeeder(motor11kW, 'Schneider');
+    expect(p!.curva).toBe('TM-D');
+    expect(p!.inA).toBeGreaterThanOrEqual(26);
+  });
+
+  it('el frame forzado también aplica al pool MA', () => {
+    const carga: Carga = { ...motor11kW, corrienteProteccionA: 100 };
+    const p = sugerirProteccionFeeder(carga, 'Schneider', 1, true);
+    expect(p!.curva).toBe('MA');
+    expect(p!.inA).toBeGreaterThanOrEqual(100);
+  });
+
+  it('una carga no-motor ignora el contexto de arrancador (sigue TM-D)', () => {
+    const c: Carga = {
+      id: 'l', descripcion: 'ilum', tipo: 'iluminacion',
+      potenciaKw: 18, tensionV: 400, fases: '3F', factorServicio: 1,
+    };
+    const p = sugerirProteccionFeeder(c, 'Schneider', 1, true);
+    expect(p!.curva).toBe('TM-D');
+  });
+
+  it('ABB: motor con arrancador recibe Tmax solo magnético', () => {
+    const p = sugerirProteccionFeeder(motor11kW, 'ABB', 1, true);
+    expect(p).toBeDefined();
+    expect(p!.marca).toBe('ABB');
+    expect(p!.familia.startsWith('Tmax')).toBe(true);
+    expect(p!.curva).toBe('MA');
+  });
+});
+
 describe('sugerirProteccionFeeder (por marca)', () => {
   it('Schneider devuelve NSX', () => {
     const p = sugerirProteccionFeeder(motor11kW, 'Schneider');

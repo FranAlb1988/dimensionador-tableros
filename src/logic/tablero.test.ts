@@ -65,6 +65,20 @@ describe('dimensionarCcm', () => {
     expect(r.tablero.medida.lucesPiloto).toBeGreaterThan(0);
   });
 
+  it('motor con arrancador recibe unidad solo magnética (MA); no-motor recibe TM-D', () => {
+    const iluminacion: Carga = {
+      id: 'i1', descripcion: 'Iluminación', tipo: 'iluminacion',
+      potenciaKw: 18, tensionV: 400, fases: '3F', factorServicio: 1,
+    };
+    const r = dimensionarCcm([motor('m1', 15), iluminacion]);
+    const m = r.asignaciones.find((a) => a.carga.tipo === 'motor')!;
+    const nm = r.asignaciones.find((a) => a.carga.tipo !== 'motor')!;
+    // El LRD del arrancador cubre la sobrecarga → el interruptor es MA.
+    expect(m.arrancador).toBeDefined();
+    expect(m.proteccion.curva).toBe('MA');
+    expect(nm.proteccion.curva).toBe('TM-D');
+  });
+
   it('marca ABB usa interruptores Tmax en las gavetas', () => {
     const r = dimensionarCcm([motor('m1', 15)], 1, 'ABB');
     const a = r.asignaciones[0]!;

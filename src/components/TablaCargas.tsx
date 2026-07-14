@@ -3,7 +3,7 @@ import { ARRANQUE_LABEL, FASES, TIPOS_ARRANQUE, TIPOS_CARGA, useCcmCargas, useCc
 import type { Carga, UnidadPotencia } from '../types';
 import { corrienteNominal } from '../logic/corriente';
 import { frameProteccionNema } from '../logic/ccm-nema';
-import { sugerirProteccionNsx } from '../logic/proteccion';
+import { sugerirProteccionCcm } from '../logic/gaveta';
 import { fmtAmp } from '../util/format';
 import { aKw, desdeKw } from '../util/potencia';
 
@@ -170,7 +170,7 @@ function FilaCarga({ carga, zebra, onChange, onDuplicar, onEliminar }: FilaProps
   const frameLabel =
     norma === 'NEMA'
       ? frameProteccionNema(carga)
-      : sugerirProteccionNsx(carga)?.referencia;
+      : sugerirProteccionCcm(carga)?.referencia;
 
   const onNumber =
     (campo: 'corrienteA' | 'corrienteProteccionA' | 'tensionV' | 'factorServicio') =>
