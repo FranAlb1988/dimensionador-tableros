@@ -71,6 +71,11 @@ function Tarjeta({ asignacion }: { asignacion: AsignacionCarga }) {
           </div>
         )}
       </dl>
+      {arrancador?.notas && (
+        <div className="mt-2 text-[11px] text-amber-700 dark:text-amber-300">
+          ⚠ {arrancador.notas}
+        </div>
+      )}
       {placeholder && (
         <div className="mt-2 text-[11px] text-amber-700 dark:text-amber-300">
           ⚠ Datos placeholder — verificar SKU contra catálogo Schneider vigente.

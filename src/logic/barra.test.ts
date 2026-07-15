@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { sugerirBarra } from './barra';
+import { BARRAS_DISPONIBLES, sugerirBarra } from './barra';
 import { MAX_BARRA_CCM_A, MAX_BARRA_CDC_A } from './limites-barra';
 
 describe('sugerirBarra', () => {
@@ -41,5 +41,13 @@ describe('sugerirBarra', () => {
 
   it('con tope CDC (6000 A) rechaza corrientes mayores', () => {
     expect(sugerirBarra(6500, MAX_BARRA_CDC_A)).toBeUndefined();
+  });
+
+  it('toda barra declara su referencia DIN 43671 libre aire y el inA queda por debajo', () => {
+    for (const b of BARRAS_DISPONIBLES) {
+      expect(b.dinLibreAireA, b.referencia).toBeDefined();
+      // El valor de selección (envolvente) nunca puede superar el libre aire.
+      expect(b.inA, b.referencia).toBeLessThanOrEqual(b.dinLibreAireA!);
+    }
   });
 });

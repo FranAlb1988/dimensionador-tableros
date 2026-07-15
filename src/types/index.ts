@@ -497,6 +497,13 @@ export interface Barra {
   referencia: string;
   /** Capacidad nominal en A. */
   inA: number;
+  /**
+   * Referencia de auditoría: corriente permanente DIN 43671 (Cu pintada,
+   * AC ≤60 Hz, 35 °C aire / 65 °C barra, LIBRE AIRE) en A. El inA de
+   * catálogo debe quedar por debajo — dentro de envolvente la capacidad
+   * real es menor y la valida el ensayo de calentamiento IEC 61439-1.
+   */
+  dinLibreAireA?: number;
   material: 'Cu' | 'Al';
   /** Texto descriptivo de geometría, p.ej. "80×5" o "2×(160×10)". */
   dimensionMm: string;

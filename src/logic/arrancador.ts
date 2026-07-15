@@ -38,7 +38,17 @@ export function sugerirArrancador(carga: Carga): Arrancador | undefined {
     .find((a) => a.potenciaKw400V >= carga.potenciaKw!);
   if (!dol) return undefined;
 
-  const notas = `${dol.notas ?? ''} Modelado como Partida Directa equivalente con tamaño de gaveta elevado por arranque ${ARRANQUE_LABEL[tipo]}.`.trim();
+  // Detalle del equipamiento real que la simplificación DOL-equivalente NO
+  // incluye — debe quedar visible para que el conteo de materiales del PDF
+  // no se tome como completo.
+  const DETALLE_FALTANTE: Record<Exclude<TipoArranque, 'DOL'>, string> = {
+    YD: 'El arranque estrella-triángulo real usa 2 contactores de línea/triángulo '
+      + '+ 1 contactor de estrella + temporizador, no incluidos en el conteo.',
+    suave: 'El partidor suave real (ATS480 o equivalente) no está incluido en el conteo.',
+    variador: 'El variador de frecuencia real (ATV o equivalente) no está incluido en el '
+      + 'conteo; el cajón puede requerir más espacio y ventilación.',
+  };
+  const notas = `${dol.notas ?? ''} Modelado como Partida Directa equivalente con tamaño de gaveta elevado por arranque ${ARRANQUE_LABEL[tipo]}. ${DETALLE_FALTANTE[tipo]}`.trim();
   return {
     ...dol,
     tipo,

@@ -1,19 +1,19 @@
 {
-  "_comment": "Barras Cu (cobre electrolítico) tipo pletina, capacidades nominales aproximadas a 35 °C ambiente, instalación al canto, una pletina por fase. Las capacidades reales dependen del montaje, ventilación y temperatura. Verificar contra tablas Schneider/Linergy y norma IEC 61439.",
+  "_comment": "Barras Cu (cobre electrolítico) tipo pletina, al canto, una o varias pletinas por fase. inA = capacidad de selección del dimensionador (conservadora, pensada para montaje en envolvente). dinLibreAireA = referencia de auditoría según DIN 43671: Cu pintada, AC ≤60 Hz, 35 °C aire / 65 °C barra, LIBRE AIRE (fuente: Rittal Catalogue 33, 'Rated currents of busbars E-Cu (DIN 43 671)', p.152-153; valores no listados se interpolan/estiman y se marcan en notas). Dentro de envolvente la capacidad real es menor (típ. 15-20% para IP43) y la valida el ensayo de calentamiento IEC 61439-1 del fabricante.",
   "barras": [
-    { "id": "cu-25x5",   "referencia": "Cu 25×5 mm",   "inA": 250,  "material": "Cu", "dimensionMm": "25×5",   "seccionMm2": 125,  "placeholder": true },
-    { "id": "cu-32x5",   "referencia": "Cu 32×5 mm",   "inA": 315,  "material": "Cu", "dimensionMm": "32×5",   "seccionMm2": 160,  "placeholder": true },
-    { "id": "cu-40x5",   "referencia": "Cu 40×5 mm",   "inA": 400,  "material": "Cu", "dimensionMm": "40×5",   "seccionMm2": 200,  "placeholder": true },
-    { "id": "cu-50x5",   "referencia": "Cu 50×5 mm",   "inA": 500,  "material": "Cu", "dimensionMm": "50×5",   "seccionMm2": 250,  "placeholder": true },
-    { "id": "cu-63x5",   "referencia": "Cu 63×5 mm",   "inA": 630,  "material": "Cu", "dimensionMm": "63×5",   "seccionMm2": 315,  "placeholder": true },
-    { "id": "cu-80x5",   "referencia": "Cu 80×5 mm",   "inA": 800,  "material": "Cu", "dimensionMm": "80×5",   "seccionMm2": 400,  "placeholder": true },
-    { "id": "cu-100x5",  "referencia": "Cu 100×5 mm",  "inA": 1000, "material": "Cu", "dimensionMm": "100×5",  "seccionMm2": 500,  "placeholder": true },
-    { "id": "cu-100x10", "referencia": "Cu 100×10 mm", "inA": 1500, "material": "Cu", "dimensionMm": "100×10", "seccionMm2": 1000, "placeholder": true },
-    { "id": "cu-125x10", "referencia": "Cu 125×10 mm", "inA": 2000, "material": "Cu", "dimensionMm": "125×10", "seccionMm2": 1250, "placeholder": true },
-    { "id": "cu-160x10", "referencia": "Cu 160×10 mm", "inA": 2500, "material": "Cu", "dimensionMm": "160×10", "seccionMm2": 1600, "placeholder": true },
-    { "id": "cu-200x10", "referencia": "Cu 200×10 mm", "inA": 3200, "material": "Cu", "dimensionMm": "200×10", "seccionMm2": 2000, "placeholder": true },
-    { "id": "cu-160x10x2", "referencia": "Cu 2×(160×10) mm", "inA": 4000, "material": "Cu", "dimensionMm": "2×(160×10)", "seccionMm2": 3200, "placeholder": true, "notas": "Dos pletinas por fase" },
-    { "id": "cu-200x10x2", "referencia": "Cu 2×(200×10) mm", "inA": 5000, "material": "Cu", "dimensionMm": "2×(200×10)", "seccionMm2": 4000, "placeholder": true, "notas": "Dos pletinas por fase — solo CDC" },
-    { "id": "cu-200x10x3", "referencia": "Cu 3×(200×10) mm", "inA": 6000, "material": "Cu", "dimensionMm": "3×(200×10)", "seccionMm2": 6000, "placeholder": true, "notas": "Tres pletinas por fase — solo CDC" }
+    { "id": "cu-25x5",   "referencia": "Cu 25×5 mm",   "inA": 250,  "dinLibreAireA": 384,  "material": "Cu", "dimensionMm": "25×5",   "seccionMm2": 125,  "placeholder": true },
+    { "id": "cu-32x5",   "referencia": "Cu 32×5 mm",   "inA": 315,  "dinLibreAireA": 472,  "material": "Cu", "dimensionMm": "32×5",   "seccionMm2": 160,  "placeholder": true, "notas": "DIN interpolado (30×5 = 447, 40×5 = 573)" },
+    { "id": "cu-40x5",   "referencia": "Cu 40×5 mm",   "inA": 400,  "dinLibreAireA": 573,  "material": "Cu", "dimensionMm": "40×5",   "seccionMm2": 200,  "placeholder": true },
+    { "id": "cu-50x5",   "referencia": "Cu 50×5 mm",   "inA": 500,  "dinLibreAireA": 697,  "material": "Cu", "dimensionMm": "50×5",   "seccionMm2": 250,  "placeholder": true },
+    { "id": "cu-63x5",   "referencia": "Cu 63×5 mm",   "inA": 630,  "dinLibreAireA": 863,  "material": "Cu", "dimensionMm": "63×5",   "seccionMm2": 315,  "placeholder": true, "notas": "DIN interpolado (60×5 = 826, 80×5 = 1070)" },
+    { "id": "cu-80x5",   "referencia": "Cu 80×5 mm",   "inA": 800,  "dinLibreAireA": 1070, "material": "Cu", "dimensionMm": "80×5",   "seccionMm2": 400,  "placeholder": true },
+    { "id": "cu-100x5",  "referencia": "Cu 100×5 mm",  "inA": 1000, "dinLibreAireA": 1300, "material": "Cu", "dimensionMm": "100×5",  "seccionMm2": 500,  "placeholder": true, "notas": "DIN estimado (100×5 desnuda = 1080; pintada ~1300)" },
+    { "id": "cu-100x10", "referencia": "Cu 100×10 mm", "inA": 1500, "dinLibreAireA": 1810, "material": "Cu", "dimensionMm": "100×10", "seccionMm2": 1000, "placeholder": true },
+    { "id": "cu-125x10", "referencia": "Cu 125×10 mm", "inA": 2000, "dinLibreAireA": 2160, "material": "Cu", "dimensionMm": "125×10", "seccionMm2": 1250, "placeholder": true, "notas": "DIN interpolado (120×10 = 2110). Margen reducido vs libre aire — validar térmicamente en envolvente (IEC 61439-1)" },
+    { "id": "cu-160x10", "referencia": "Cu 160×10 mm", "inA": 2500, "dinLibreAireA": 2700, "material": "Cu", "dimensionMm": "160×10", "seccionMm2": 1600, "placeholder": true, "notas": "DIN publicado no verificado en doc fuente. Margen reducido vs libre aire — validar térmicamente en envolvente (IEC 61439-1)" },
+    { "id": "cu-200x10", "referencia": "Cu 200×10 mm", "inA": 3200, "dinLibreAireA": 3290, "material": "Cu", "dimensionMm": "200×10", "seccionMm2": 2000, "placeholder": true, "notas": "DIN publicado no verificado en doc fuente. inA al 97% del valor LIBRE AIRE — en envolvente requiere validación térmica del fabricante o bajar a ~2700 A" },
+    { "id": "cu-160x10x2", "referencia": "Cu 2×(160×10) mm", "inA": 4000, "dinLibreAireA": 4250, "material": "Cu", "dimensionMm": "2×(160×10)", "seccionMm2": 3200, "placeholder": true, "notas": "Dos pletinas por fase. DIN estimado (factor 2×/1× = 1,575 medido en 100×10: 2850/1810). Margen reducido — validar térmicamente (IEC 61439-1)" },
+    { "id": "cu-200x10x2", "referencia": "Cu 2×(200×10) mm", "inA": 5000, "dinLibreAireA": 5180, "material": "Cu", "dimensionMm": "2×(200×10)", "seccionMm2": 4000, "placeholder": true, "notas": "Dos pletinas por fase — solo CDC. DIN estimado. inA al 97% del valor LIBRE AIRE — validar térmicamente (IEC 61439-1)" },
+    { "id": "cu-200x10x3", "referencia": "Cu 3×(200×10) mm", "inA": 6000, "dinLibreAireA": 6700, "material": "Cu", "dimensionMm": "3×(200×10)", "seccionMm2": 6000, "placeholder": true, "notas": "Tres pletinas por fase — solo CDC. DIN estimado (factor 3×/1× ~2,04). Validar térmicamente en envolvente (IEC 61439-1)" }
   ]
 }

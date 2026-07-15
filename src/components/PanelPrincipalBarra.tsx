@@ -24,6 +24,15 @@ export function PanelPrincipalBarra({ tablero }: Props) {
         <Linea label="In nominal" value={fmtAmp(barra.inA)} />
         <Linea label="Sección" value={`${barra.seccionMm2} mm²`} />
         <Linea label="Dimensión" value={`${barra.dimensionMm} mm`} />
+        {barra.dinLibreAireA != null && (
+          <Linea label="DIN 43671" value={`${fmtAmp(barra.dinLibreAireA)} (libre aire)`} />
+        )}
+        {barra.dinLibreAireA != null && barra.inA / barra.dinLibreAireA > 0.9 && (
+          <div className="mt-1 text-[11px] text-amber-700 dark:text-amber-300">
+            ⚠ In al {Math.round((barra.inA / barra.dinLibreAireA) * 100)}% del valor DIN 43671
+            libre aire — en envolvente requiere validación térmica del fabricante (IEC 61439-1).
+          </div>
+        )}
       </Tarjeta>
       <div className="sm:col-span-2 border border-slate-200 dark:border-slate-800 rounded-lg p-3 text-sm flex flex-wrap gap-x-6 gap-y-1">
         <Stat label="I total de diseño" value={fmtAmp(corrienteTotalA)} />
