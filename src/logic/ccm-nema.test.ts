@@ -3,7 +3,7 @@ import { dimensionarCcmNema, sugerirBarraNema, sugerirBreakerNema } from './ccm-
 import type { Carga } from '../types';
 import { KW_POR_HP } from '../util/potencia';
 
-function motor(id: string, hp: number, fs = 1): Carga {
+function motor(id: string, hp: number, fs = 1, arranque: Carga['arranque'] = 'DOL'): Carga {
   return {
     id,
     descripcion: `M-${id}`,
@@ -13,7 +13,7 @@ function motor(id: string, hp: number, fs = 1): Carga {
     tensionV: 480,
     fases: '3F',
     factorServicio: fs,
-    arranque: 'DOL',
+    arranque,
   };
 }
 
@@ -176,6 +176,33 @@ describe('dimensionarCcmNema', () => {
     expect(r.tablero!.medida.transformadoresCorriente).toBeGreaterThan(0);
     expect(r.tablero!.medida.lucesPiloto).toBeGreaterThan(0);
     expect(r.tablero!.medida.instrumento).toBeTruthy();
+  });
+
+  it('el tipo de arranque amplía el espacio: YD/PSV +1 escalón, VSD +2 (tabla FVNR)', () => {
+    // 15 HP FVNR = 1.5X. Con partidor suave → 2X; con variador → 2.5X.
+    const dol = dimensionarCcmNema([motor('1', 15)]).asignaciones[0]!;
+    const psv = dimensionarCcmNema([motor('1', 15, 1, 'suave')]).asignaciones[0]!;
+    const vsd = dimensionarCcmNema([motor('1', 15, 1, 'variador')]).asignaciones[0]!;
+    expect(dol.espaciosX).toBe(1.5);
+    expect(dol.notas).toBeUndefined();
+    expect(psv.espaciosX).toBe(2);
+    expect(psv.notas).toContain('SMC');
+    expect(vsd.espaciosX).toBe(2.5);
+    expect(vsd.notas).toContain('PowerFlex');
+  });
+
+  it('VSD grande llega a 6X (media sección) y pasa a unidad fija', () => {
+    // 100 HP FVNR = 3.5X extraíble; con variador +2 escalones → 6X fijo.
+    const a = dimensionarCcmNema([motor('1', 100, 1, 'variador')]).asignaciones[0]!;
+    expect(a.espaciosX).toBe(6);
+    expect(a.version).toBe('fijo');
+  });
+
+  it('el escalado por arranque se topa en 6X', () => {
+    // 250 HP ya ocupa 6X: YD/VSD no pueden crecer más allá del tope.
+    const a = dimensionarCcmNema([motor('1', 250, 1, 'YD')]).asignaciones[0]!;
+    expect(a.espaciosX).toBe(6);
+    expect(a.notas).toContain('YD');
   });
 
   it('las reservas son vacancia: heredan tamaño y versión pero no motor ni breaker', () => {

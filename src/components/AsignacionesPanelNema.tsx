@@ -1,4 +1,5 @@
 import type { AsignacionCcmNema, Carga } from '../types';
+import { ARRANQUE_LABEL } from '../types';
 import { fmtAmp } from '../util/format';
 
 interface Props {
@@ -47,6 +48,9 @@ function Tarjeta({ a }: { a: AsignacionCcmNema }) {
           <>
             <Linea label="Motor" value={`${motor.hp} HP / ${motor.kw.toFixed(2)} kW`} />
             {motor.flaA != null && <Linea label="FLA (400V)" value={fmtAmp(motor.flaA)} />}
+            {carga.arranque && (
+              <Linea label="Arranque" value={ARRANQUE_LABEL[carga.arranque]} />
+            )}
             {motor.mcpFrameA != null && <Linea label="MCP frame" value={`${motor.mcpFrameA} A`} mono />}
             {motor.contactorSize != null && <Linea label="Contactor" value={`NEMA size ${motor.contactorSize}`} mono />}
             {motor.moduloOL && <Linea label="Sensor OL" value={motor.moduloOL} mono />}
@@ -59,6 +63,11 @@ function Tarjeta({ a }: { a: AsignacionCcmNema }) {
           </>
         )}
       </dl>
+      {a.notas && (
+        <div className="mt-2 text-[11px] text-amber-700 dark:text-amber-300">
+          ⚠ {a.notas}
+        </div>
+      )}
     </div>
   );
 }

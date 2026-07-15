@@ -322,6 +322,11 @@ export interface AsignacionCcmNema {
   corrienteDisenoA: number;
   /** Unidad de reserva/vacancia (sin carga real, espacio reservado). */
   esReserva?: boolean;
+  /**
+   * Nota de la asignación — p. ej. la ampliación de espacio por tipo de
+   * arranque (RVSS/VSD) y el equipamiento real no incluido en la tabla FVNR.
+   */
+  notas?: string;
 }
 
 export interface ColumnaCcmNema {

@@ -14,6 +14,7 @@ import type {
   EnvolventeCcmNemaCatalogo,
   MotorNemaCatalogo,
   TableroCcmNema,
+  TipoArranque,
 } from '../types';
 import { corrienteDiseno, corrienteNominal } from './corriente';
 import { MEDIDA_CCM_DEFAULT } from './medida-ccm';
@@ -167,6 +168,33 @@ function asignar(c: Carga, factorDerrateo: number): AsignacionCcmNema | undefine
   return asignarAlimentador(c, factorDerrateo);
 }
 
+/** Escala de espacios X de la envolvente CENTERLINE (1 espacio = 6"). */
+const ESCALA_ESPACIOS_X: readonly number[] = [1.5, 2, 2.5, 3.5, 6];
+
+/** Sube `niveles` escalones en la escala de espacios X (tope: 6X = ½ sección). */
+function subirEspaciosX(x: number, niveles: number): number {
+  let i = ESCALA_ESPACIOS_X.findIndex((v) => v >= x);
+  if (i < 0) i = ESCALA_ESPACIOS_X.length - 1;
+  return ESCALA_ESPACIOS_X[Math.min(i + niveles, ESCALA_ESPACIOS_X.length - 1)]!;
+}
+
+/**
+ * La tabla del catálogo es FVNR (partida directa). Para otros arranques la
+ * unidad real es más grande y con otro aparellaje; como MVP se amplía el
+ * espacio (RVSS/YD: +1 escalón; VSD: +2) y se deja nota del equipamiento no
+ * incluido — mismo criterio que la vía IEC.
+ */
+const NOTA_ARRANQUE_NEMA: Record<Exclude<TipoArranque, 'DOL'>, string> = {
+  YD: 'Espacio ampliado por arranque YD (tabla FVNR). El equipamiento real '
+    + '(2 contactores línea/triángulo + estrella + temporizador, o unidad RVAT/RVSS '
+    + 'CENTERLINE) no está incluido en el conteo.',
+  suave: 'Espacio ampliado por partidor suave — RVSS (SMC Flex / SMC-50). El partidor '
+    + 'no está incluido en el conteo (tabla FVNR).',
+  variador: 'Espacio ampliado por variador — PowerFlex. El drive no está incluido en el '
+    + 'conteo (tabla FVNR); frames grandes pueden requerir sección completa y '
+    + 'ventilación adicional.',
+};
+
 function asignarMotor(c: Carga): AsignacionCcmNema | undefined {
   const hp = hpDeCarga(c);
   if (hp == null || hp <= 0) return undefined;
@@ -177,12 +205,26 @@ function asignarMotor(c: Carga): AsignacionCcmNema | undefined {
   // En BT se usa el flaA del catálogo (o la corriente del usuario si la dio).
   const flaCatalogoMm = c.tensionV > 1000 ? null : motor.flaA;
   const corriente = c.corrienteA ?? flaCatalogoMm ?? corrienteNominal(c);
+
+  // Tipo de arranque: la tabla es FVNR; YD/PSV amplían 1 escalón y VSD 2.
+  const tipo: TipoArranque = c.arranque ?? 'DOL';
+  let espaciosX = motor.espaciosX;
+  let version = motor.version;
+  let notas: string | undefined;
+  if (tipo !== 'DOL') {
+    espaciosX = subirEspaciosX(motor.espaciosX, tipo === 'variador' ? 2 : 1);
+    // 6X = media sección: unidad fija, igual que los NEMA 6 del catálogo.
+    if (espaciosX >= 6) version = 'fijo';
+    notas = NOTA_ARRANQUE_NEMA[tipo];
+  }
+
   return {
     carga: c,
     motor,
-    espaciosX: motor.espaciosX,
-    version: motor.version,
+    espaciosX,
+    version,
     corrienteDisenoA: corriente * (c.factorServicio || 1),
+    ...(notas ? { notas } : {}),
   };
 }
 
