@@ -16,6 +16,7 @@ import { useCcmCargas, useCcmMarca, useCcmNorma, useCcmStore } from '../store/cc
 import { dimensionarCcm } from '../logic/tablero';
 import { dimensionarCcmNema } from '../logic/ccm-nema';
 import { dimensionarCcmMt, UMBRAL_MT_V } from '../logic/ccm-mt';
+import { cargasContraincendio } from '../logic/advertencias-ccm';
 import { MARCAS_FEEDER } from '../logic/proteccion';
 import { DerrateoControl } from '../components/DerrateoControl';
 import { ReservaCcmControl } from '../components/ReservaCcmControl';
@@ -182,6 +183,21 @@ export function CcmPage() {
           (usa el selector de tableros arriba).
         </div>
       )}
+
+      {(() => {
+        const cargasCi = cargasContraincendio(cargas);
+        if (cargasCi.length === 0) return null;
+        return (
+          <div className="border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 rounded p-3 text-sm text-amber-900 dark:text-amber-100">
+            <strong>⚠ Bomba contraincendio en CCM de servicios generales.</strong>{' '}
+            {cargasCi.map((c) => c.descripcion || c.id).join(', ')} — según NFPA 20, las
+            bombas del sistema contraincendio deben alimentarse por un circuito dedicado e
+            independiente, tomado aguas arriba de la protección general del servicio normal,
+            de modo que una falla o desconexión de este CCM no las deje sin alimentación.
+            Verifica la topología del proyecto antes de mantenerla aquí.
+          </div>
+        );
+      })()}
 
       {esMt && resultadoMt && resultadoMt.tablero && (
         <>
