@@ -86,6 +86,10 @@ export function dimensionarCcmNema(
 
   // Unidades de reserva (vacancia) — 1 de cada (tamañoX, versión) usado, más
   // adicionales hasta cubrir el % pedido sobre el X usado por las salidas.
+  // La reserva es ESPACIO VACÍO: hereda tamaño (espaciosX) y versión del
+  // modelo, pero NO su motor/breaker — de lo contrario el aparellaje
+  // "fantasma" aparece dibujado dentro de la vacancia (y un equipped spare
+  // real debería, además, sumarse al conteo de materiales).
   const { reservas } = calcularReservas<AsignacionCcmNema>(
     asignaciones,
     (a) => `${a.espaciosX}-${a.version}`,
@@ -99,8 +103,6 @@ export function dimensionarCcmNema(
         fases: modelo.carga.fases,
         factorServicio: 1,
       },
-      motor: modelo.motor,
-      breaker: modelo.breaker,
       espaciosX: modelo.espaciosX,
       version: modelo.version,
       corrienteDisenoA: 0,

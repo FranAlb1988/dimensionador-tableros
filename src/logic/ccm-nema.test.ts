@@ -178,6 +178,20 @@ describe('dimensionarCcmNema', () => {
     expect(r.tablero!.medida.instrumento).toBeTruthy();
   });
 
+  it('las reservas son vacancia: heredan tamaño y versión pero no motor ni breaker', () => {
+    const r = dimensionarCcmNema([motor('1', 30), alimentador('2', 18)], 1, 25);
+    const reservas = r.tablero!.columnas
+      .flatMap((c) => c.asignaciones)
+      .filter((a) => a.esReserva);
+    expect(reservas.length).toBeGreaterThan(0);
+    for (const res of reservas) {
+      expect(res.motor, res.carga.id).toBeUndefined();
+      expect(res.breaker, res.carga.id).toBeUndefined();
+      expect(res.espaciosX).toBeGreaterThan(0);
+      expect(res.corrienteDisenoA).toBe(0);
+    }
+  });
+
   it('en media tensión calcula la FLA con la fórmula (no el catálogo BT)', () => {
     // Motor 100 HP @ 6,6 kV, cosφ 0,85, η 0,9, 3F:
     //   I = (100·0,7457·1000) / (√3 · 6600 · 0,85 · 0,9) ≈ 8,5 A
