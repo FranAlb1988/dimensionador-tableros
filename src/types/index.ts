@@ -70,6 +70,16 @@ export interface Carga {
   tensionV: number;
   fases: Fases;
   factorServicio: number;
+  /**
+   * Factor de potencia de la carga (0–1). Si se omite se usan los típicos:
+   * 0,85 para motores, 0,9 para el resto.
+   */
+  cosPhi?: number;
+  /**
+   * Rendimiento del motor (0–1). Solo aplica a motores; default 0,9.
+   * Los motores chicos rondan 0,7–0,85 y los grandes 0,93–0,96.
+   */
+  rendimiento?: number;
   /** Solo aplica a motores. */
   arranque?: TipoArranque;
 }

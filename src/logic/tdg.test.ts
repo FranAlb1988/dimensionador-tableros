@@ -139,6 +139,16 @@ describe('dimensionarTdg', () => {
     expect(r.tablero!.principal.inA).toBeGreaterThanOrEqual(r.tablero!.corrienteTotalA);
   });
 
+  it('la barra nunca queda bajo el In del principal', () => {
+    // 2 × 150 kW @ 400 V (I ≈ 240.6 c/u, Σ = 481.3, fs 1) → principal NSX630.
+    // Antes la barra se elegía solo por la corriente (Cu 50×5, 500 A < 630 A
+    // del principal, que deja pasar hasta su In sin disparar).
+    const r = dimensionarTdg([salida3F('1', 150), salida3F('2', 150)], 1);
+    const t = r.tablero!;
+    expect(t.principal.inA).toBe(630);
+    expect(t.barra.inA).toBeGreaterThanOrEqual(t.principal.inA);
+  });
+
   it('el derrateo por altura selecciona salidas, principal y barra contra I / F2', () => {
     // 3 × 75 kW @ 400 V (I ≈ 120.3 c/u, Σ = 360.9 con fs 1).
     // Sin derrateo: selección 360.9 → principal NSX400, barra Cu 40×5 (400 A).

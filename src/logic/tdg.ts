@@ -107,9 +107,6 @@ export function dimensionarTdg(
   const corrienteSeleccionA = Math.max(corrienteTotalA, trafoInSecundarioA ?? 0) / f;
 
   const principal = sugerirInterruptorPrincipal(corrienteSeleccionA, marca, iccBarraKa ?? 0);
-  // CDC: la barra principal puede llegar hasta 6000 A (alimenta CCMs y CDCs
-  // aguas abajo).
-  const barra = sugerirBarra(corrienteSeleccionA, MAX_BARRA_CDC_A);
   if (!principal) {
     return {
       salidasAsignadas,
@@ -118,11 +115,18 @@ export function dimensionarTdg(
         + (iccBarraKa ? ` con Icu ≥ ${iccBarraKa.toFixed(1)} kA (Icc de barra del trafo)` : '') + '.',
     };
   }
+  // Coordinación barra ↔ principal: la barra debe transportar al menos el In
+  // del interruptor principal — el breaker deja pasar hasta su In sin
+  // disparar, y una barra menor quedaría sobrecargable (IEC 61439-1).
+  // CDC: la barra principal puede llegar hasta 6000 A (alimenta CCMs y CDCs
+  // aguas abajo).
+  const corrienteBarraA = Math.max(corrienteSeleccionA, principal.inA);
+  const barra = sugerirBarra(corrienteBarraA, MAX_BARRA_CDC_A);
   if (!barra) {
     return {
       salidasAsignadas,
       cargasSinAsignar,
-      motivo: `Sin barra de distribución en catálogo para ${corrienteSeleccionA.toFixed(0)} A.`,
+      motivo: `Sin barra de distribución en catálogo para ${corrienteBarraA.toFixed(0)} A (≥ In del principal).`,
     };
   }
 

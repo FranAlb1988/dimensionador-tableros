@@ -2,6 +2,36 @@ import { describe, expect, it } from 'vitest';
 import { corrienteDiseno, corrienteNominal } from './corriente';
 import type { Carga } from '../types';
 
+describe('cosφ y rendimiento por carga', () => {
+  const base: Carga = {
+    id: 'm', descripcion: 'motor', tipo: 'motor',
+    potenciaKw: 22, tensionV: 400, fases: '3F', factorServicio: 1, arranque: 'DOL',
+  };
+
+  it('sin overrides usa los típicos (0,85 / 0,9)', () => {
+    const esperado = 22000 / (Math.sqrt(3) * 400 * 0.85 * 0.9);
+    expect(corrienteNominal(base)).toBeCloseTo(esperado, 6);
+  });
+
+  it('cosPhi y rendimiento ingresados prevalecen', () => {
+    const c: Carga = { ...base, cosPhi: 0.9, rendimiento: 0.95 };
+    const esperado = 22000 / (Math.sqrt(3) * 400 * 0.9 * 0.95);
+    expect(corrienteNominal(c)).toBeCloseTo(esperado, 6);
+  });
+
+  it('valores fuera de rango (0 o > 1) se ignoran y caen al típico', () => {
+    const c: Carga = { ...base, cosPhi: 0, rendimiento: 1.4 };
+    const esperado = 22000 / (Math.sqrt(3) * 400 * 0.85 * 0.9);
+    expect(corrienteNominal(c)).toBeCloseTo(esperado, 6);
+  });
+
+  it('en no-motor el rendimiento no aplica aunque se ingrese', () => {
+    const c: Carga = { ...base, tipo: 'iluminacion', cosPhi: 0.95, rendimiento: 0.8 };
+    const esperado = 22000 / (Math.sqrt(3) * 400 * 0.95);
+    expect(corrienteNominal(c)).toBeCloseTo(esperado, 6);
+  });
+});
+
 function motor3F(potenciaKw: number, factorServicio = 1): Carga {
   return {
     id: 'm',

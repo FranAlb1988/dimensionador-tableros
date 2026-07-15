@@ -130,7 +130,6 @@ export function dimensionarTdgNema(
   // se seleccionan contra la exigencia (carga y piso del trafo) dividida por F2.
   const corrienteSeleccionA = Math.max(corrienteTotalA, trafoInSecundarioA ?? 0) / f;
   const principal = sugerirMain(corrienteTotalA / f, (trafoInSecundarioA ?? 0) / f);
-  const barra = sugerirBarra(corrienteTotalA / f, (trafoInSecundarioA ?? 0) / f);
   if (!principal) {
     return {
       salidas, cargasSinAsignar,
@@ -138,6 +137,12 @@ export function dimensionarTdgNema(
         + (trafoInSecundarioA ? ` (trafo In secundario ${trafoInSecundarioA.toFixed(0)} A)` : '') + '.',
     };
   }
+  // Coordinación barra ↔ main: la barra debe transportar al menos el rating
+  // del main (deja pasar hasta su In sin disparar) además del piso del trafo.
+  const barra = sugerirBarra(
+    corrienteTotalA / f,
+    Math.max((trafoInSecundarioA ?? 0) / f, principal.ratingA),
+  );
   if (!barra) {
     return {
       salidas, cargasSinAsignar,

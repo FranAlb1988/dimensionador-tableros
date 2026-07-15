@@ -25,6 +25,18 @@ export const TABLA_DERRATEO_ALTURA: readonly PuntoDerrateoAltura[] = [
 ];
 
 /**
+ * Factor de derrateo F1 por temperatura ambiente.
+ * El aparellaje BT se rateaa 40 °C de ambiente; por encima se corrige con la
+ * fórmula de IEEE C37.20.1 (temperatura total admisible 105 °C, elevación
+ * nominal 65 K): F1 = √((105 − Ta) / 65). Sin corrección para Ta ≤ 40 °C.
+ */
+export function factorDerrateoTemperatura(temperaturaC: number): number {
+  if (!Number.isFinite(temperaturaC) || temperaturaC <= 40) return 1;
+  if (temperaturaC >= 100) return 0.27; // límite práctico de la fórmula
+  return Math.sqrt((105 - temperaturaC) / 65);
+}
+
+/**
  * Factor de derrateo F2 por altura de operación.
  * Interpola linealmente entre los puntos de la Tabla V y hace clamp fuera de rango.
  * Devuelve 1 (sin derrateo) por debajo del primer punto de la tabla.

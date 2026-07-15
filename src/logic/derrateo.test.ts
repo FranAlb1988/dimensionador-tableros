@@ -1,5 +1,24 @@
 import { describe, expect, it } from 'vitest';
-import { factorDerrateoAltura } from './derrateo';
+import { factorDerrateoAltura, factorDerrateoTemperatura } from './derrateo';
+
+describe('factorDerrateoTemperatura', () => {
+  it('sin corrección hasta 40 °C', () => {
+    expect(factorDerrateoTemperatura(25)).toBe(1);
+    expect(factorDerrateoTemperatura(40)).toBe(1);
+    expect(factorDerrateoTemperatura(-5)).toBe(1);
+  });
+
+  it('fórmula IEEE C37.20.1 sobre 40 °C: F1 = raíz((105 − Ta) / 65)', () => {
+    expect(factorDerrateoTemperatura(45)).toBeCloseTo(0.96, 2);
+    expect(factorDerrateoTemperatura(50)).toBeCloseTo(0.92, 2);
+    expect(factorDerrateoTemperatura(55)).toBeCloseTo(Math.sqrt(50 / 65), 5);
+  });
+
+  it('clamp para temperaturas extremas y entradas no finitas', () => {
+    expect(factorDerrateoTemperatura(100)).toBeCloseTo(0.27, 2);
+    expect(factorDerrateoTemperatura(Number.NaN)).toBe(1);
+  });
+});
 
 describe('factorDerrateoAltura', () => {
   it('por debajo de la tabla no hay derrateo (factor = 1)', () => {

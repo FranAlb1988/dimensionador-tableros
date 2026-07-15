@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { factorDerrateoAltura, type NivelTension } from '../logic/derrateo';
+import { factorDerrateoAltura, factorDerrateoTemperatura, type NivelTension } from '../logic/derrateo';
 
 /**
  * Metadatos del proyecto. Aparecen en el cajetín del PDF y se guardan junto al estado.
@@ -42,13 +42,18 @@ export const METADATOS_VACIOS: MetadatosProyecto = {
  * se define una vez y aplica al dimensionamiento de todos los tableros.
  */
 export interface DerrateoConfig {
-  /** Si está activo, el dimensionamiento corrige la capacidad de los equipos por F2. */
+  /** Si está activo, el dimensionamiento corrige la capacidad de los equipos por F1·F2. */
   activo: boolean;
   /** Altura de operación en metros sobre el nivel del mar. */
   altitudM: number;
+  /**
+   * Temperatura ambiente de diseño en °C (F1 — IEEE C37.20.1; sin corrección
+   * hasta 40 °C). Puede faltar en estados persistidos antiguos: usar 40.
+   */
+  temperaturaC?: number;
 }
 
-export const DERRATEO_DEFAULT: DerrateoConfig = { activo: false, altitudM: 2300 };
+export const DERRATEO_DEFAULT: DerrateoConfig = { activo: false, altitudM: 2300, temperaturaC: 40 };
 
 /**
  * Reserva (vacancia) automática en CCM. Práctica de exigencia de cliente —
@@ -108,13 +113,17 @@ export function tieneMetadatos(m: MetadatosProyecto = getMetadatos()): boolean {
 }
 
 /**
- * Hook: factor de derrateo F2 según la configuración global del proyecto.
- * Devuelve 1 si el derrateo está desactivado. `nivel` selecciona BT o MT.
+ * Hook: factor de derrateo combinado F = F1(temperatura) · F2(altura) según la
+ * configuración global del proyecto. Devuelve 1 si el derrateo está
+ * desactivado. `nivel` selecciona la columna BT o MT de la Tabla V.
  */
 export function useFactorDerrateo(nivel: NivelTension): number {
   const derrateo = useMetaStore((s) => s.derrateo);
   return useMemo(
-    () => (derrateo.activo ? factorDerrateoAltura(derrateo.altitudM, nivel) : 1),
+    () => (derrateo.activo
+      ? factorDerrateoAltura(derrateo.altitudM, nivel)
+        * factorDerrateoTemperatura(derrateo.temperaturaC ?? 40)
+      : 1),
     [derrateo, nivel],
   );
 }

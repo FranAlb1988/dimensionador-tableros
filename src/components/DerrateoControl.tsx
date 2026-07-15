@@ -16,7 +16,7 @@ export function DerrateoControl({ nivel }: { nivel: NivelTension }) {
     <div className="inline-flex items-center gap-2 border border-slate-300 dark:border-slate-700 rounded px-2.5 py-1">
       <label
         className="flex items-center gap-1.5 text-sm font-medium cursor-pointer select-none"
-        title="Aplica el factor F2 de corrección por altura geográfica (Tabla V, IEEE 37.20) al dimensionamiento"
+        title="Aplica el derrateo por altura geográfica (F2 — Tabla V, IEEE C37.20.1) y por temperatura ambiente (F1 — sin corrección hasta 40 °C) al dimensionamiento"
       >
         <input
           type="checkbox"
@@ -24,7 +24,7 @@ export function DerrateoControl({ nivel }: { nivel: NivelTension }) {
           onChange={(e) => setDerrateo({ activo: e.target.checked })}
           className="accent-slate-900 dark:accent-slate-100"
         />
-        Derrateo altura
+        Derrateo
       </label>
       {derrateo.activo && (
         <span className="flex items-center gap-1.5 text-sm">
@@ -38,11 +38,23 @@ export function DerrateoControl({ nivel }: { nivel: NivelTension }) {
             className="w-20 px-1.5 py-0.5 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 tabular-nums"
           />
           <span className="text-slate-500">m.s.n.m.</span>
+          <input
+            type="number"
+            min={-10}
+            max={99}
+            step={1}
+            value={derrateo.temperaturaC ?? 40}
+            onChange={(e) => setDerrateo({ temperaturaC: Number(e.target.value) || 40 })}
+            aria-label="Temperatura ambiente de diseño en grados Celsius"
+            title="Temperatura ambiente de diseño (F1 — IEEE C37.20.1; sin corrección hasta 40 °C)"
+            className="w-14 px-1.5 py-0.5 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 tabular-nums"
+          />
+          <span className="text-slate-500">°C</span>
           <span
             className="text-slate-600 dark:text-slate-300 tabular-nums"
-            title={`Factor F2 de corrección por altura (${nivel === 'MT' ? 'media' : 'baja'} tensión)`}
+            title={`Factor combinado F1(temperatura) × F2(altura, ${nivel === 'MT' ? 'media' : 'baja'} tensión)`}
           >
-            F2 = {fmtFactor(factor)}
+            F = {fmtFactor(factor)}
           </span>
         </span>
       )}

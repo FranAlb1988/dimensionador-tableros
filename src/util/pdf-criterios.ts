@@ -23,11 +23,34 @@ export const CRITERIOS_CCM_IEC: readonly string[] = [
     + 'del arrancador — coordinación tipo 2, IEC 60947-4-1.',
   'Motor sin arrancador y alimentadores de régimen continuo: unidad termomagnética o '
     + 'electrónica con In >= 1,25 × I de diseño (referencia NEC 430.52 y 210.19/215.2).',
-  'I nominal de motor calculada: I = P / (1,73 × V × f.p. × rend.), con f.p. 0,85 y '
-    + 'rendimiento 0,9 típicos. El valor de placa ("In placa") prevalece si se ingresa.',
-  'Derrateo por altura: el aparellaje se selecciona contra I / F2 '
-    + '(Tabla V, IEEE C37.20.1-1993).',
-  'Barra principal: In >= suma de I de diseño / F2. Tope de fábrica del CCM: 3200 A.',
+  'Umbral magnético: el disparo instantáneo (~10 × In del TM-D; 6-14 × In ajustable en '
+    + 'las unidades MA) queda sobre la corriente de rotor bloqueado (~6-8 × I del motor) '
+    + 'con los márgenes aplicados — sin disparos en la partida directa.',
+  'I nominal de motor calculada: I = P / (1,73 × V × f.p. × rend.). f.p. y rendimiento '
+    + 'editables por carga; típicos 0,85 y 0,9. El valor de placa ("In placa") prevalece '
+    + 'si se ingresa.',
+  'Derrateo: el aparellaje se selecciona contra I / (F1 × F2) — F2 por altura '
+    + '(Tabla V, IEEE C37.20.1-1993) y F1 por temperatura ambiente sobre 40 °C.',
+  'Barra principal: In >= suma de I de diseño / (F1 × F2). Tope de fábrica del CCM: 3200 A.',
+];
+
+/** Criterios del CDC (tablero principal BT — Prisma/NSX/Masterpact o Switchgear NEMA). */
+export const CRITERIOS_CDC: readonly string[] = [
+  'Corriente total de diseño: salida mayor al 100% + resto × factor de simultaneidad '
+    + '(regla del mayor consumidor, análoga a NEC 430.24) — el principal nunca queda bajo '
+    + 'una salida individual.',
+  'Coordinación con el trafo alimentador: principal y barra se seleccionan con '
+    + 'In >= In del secundario del transformador sugerido (el principal es también la '
+    + 'protección BT del trafo y su margen de crecimiento debe poder circular).',
+  'Cortocircuito: Icc de barra = In secundario × 100 / Ucc% (red primaria infinita — '
+    + 'conservador). El principal se filtra por Icu >= Icc y las salidas bajo ese poder '
+    + 'de corte se advierten (IEC 61439-2 / RIC N°02).',
+  'Salidas: In >= 1,25 × I de diseño (motores y alimentadores continuos por igual; '
+    + 'referencia NEC 430.52 y 210.19/215.2).',
+  'Coordinación barra-principal: la barra transporta al menos el In del interruptor '
+    + 'principal (IEC 61439-1).',
+  'Derrateo: selección contra I / (F1 × F2) — F2 por altura (Tabla V, IEEE C37.20.1-1993) '
+    + 'y F1 por temperatura ambiente sobre 40 °C.',
 ];
 
 /** Criterios del CCM NEMA (CENTERLINE 2100, X = 6"). */

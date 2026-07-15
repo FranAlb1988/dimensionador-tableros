@@ -8,6 +8,7 @@ import type { SubtipoTdg } from '../store/tdg';
 import { useTdgTransformador } from '../store/tdg';
 import { calcularTransformador, TIPO_TRAFO_LABEL } from '../logic/transformador';
 import { dibujarCajetinProyecto, sufijoArchivoProyecto } from '../util/pdf-cajetin';
+import { CRITERIOS_CDC, dibujarCriteriosSeleccion } from '../util/pdf-criterios';
 
 interface Props {
   svgRef: RefObject<SVGSVGElement | null>;
@@ -110,6 +111,15 @@ export function ExportarPdfTdgNemaBoton({ svgRef, resultado, subtipo = 'general'
         });
         y += rowH;
         if (y > pageHeight - 14) { doc.addPage(); y = 22; }
+      });
+
+      // ----- Criterios de selección (documenta márgenes y fórmulas) -----
+      dibujarCriteriosSeleccion(doc, {
+        y: y + 6,
+        xInicio: 14,
+        ancho: pageWidth - 28,
+        pageHeight,
+        lineas: CRITERIOS_CDC,
       });
 
       const fecha = new Date().toISOString().slice(0, 10);

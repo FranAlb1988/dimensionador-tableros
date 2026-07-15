@@ -29,8 +29,15 @@ export function corrienteNominal(carga: Carga): number {
   if (carga.tensionV <= 0) return 0;
 
   const esMotor = carga.tipo === 'motor';
-  const cosPhi = esMotor ? COS_PHI_MOTOR : COS_PHI_GENERAL;
-  const eta = esMotor ? RENDIMIENTO_MOTOR : 1;
+  // cosφ y η editables por carga; si no se ingresan, se usan los típicos.
+  const cosPhi = carga.cosPhi && carga.cosPhi > 0 && carga.cosPhi <= 1
+    ? carga.cosPhi
+    : (esMotor ? COS_PHI_MOTOR : COS_PHI_GENERAL);
+  const eta = esMotor
+    ? (carga.rendimiento && carga.rendimiento > 0 && carga.rendimiento <= 1
+        ? carga.rendimiento
+        : RENDIMIENTO_MOTOR)
+    : 1;
   const fases = carga.fases === '3F' ? SQRT3 : 1;
 
   return (carga.potenciaKw * 1000) / (fases * carga.tensionV * cosPhi * eta);

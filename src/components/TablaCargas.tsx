@@ -88,6 +88,18 @@ export function TablaCargas() {
                   F.S. ×
                 </th>
                 <th
+                  className="px-3 py-2.5 text-right font-semibold border-b border-slate-200 dark:border-slate-800 min-w-[4.5rem]"
+                  title="Factor de potencia de la carga. Opcional — vacío usa los típicos: 0,85 motor / 0,9 resto."
+                >
+                  cos φ
+                </th>
+                <th
+                  className="px-3 py-2.5 text-right font-semibold border-b border-slate-200 dark:border-slate-800 min-w-[4.5rem]"
+                  title="Rendimiento del motor (0–1). Opcional — vacío usa 0,9 típico. Solo aplica a motores."
+                >
+                  η
+                </th>
+                <th
                   className="px-3 py-2.5 text-right font-semibold border-b border-slate-200 dark:border-slate-800 min-w-[6rem]"
                   title="Corriente nominal real (FLA de placa). Opcional — si se deja vacío se calcula desde la potencia y tensión ingresadas."
                 >
@@ -173,7 +185,7 @@ function FilaCarga({ carga, zebra, onChange, onDuplicar, onEliminar }: FilaProps
       : sugerirProteccionCcm(carga)?.referencia;
 
   const onNumber =
-    (campo: 'corrienteA' | 'corrienteProteccionA' | 'tensionV' | 'factorServicio') =>
+    (campo: 'corrienteA' | 'corrienteProteccionA' | 'tensionV' | 'factorServicio' | 'cosPhi' | 'rendimiento') =>
     (e: ChangeEvent<HTMLInputElement>) => {
       const v = e.target.value.replace(',', '.');
       const n = v === '' ? undefined : Number(v);
@@ -281,6 +293,30 @@ function FilaCarga({ carga, zebra, onChange, onDuplicar, onEliminar }: FilaProps
           value={carga.factorServicio}
           onChange={onNumber('factorServicio')}
         />
+      </td>
+      <td className={cellCls}>
+        <input
+          className={`${inputCls} text-right`}
+          type="number" step="0.01" min="0.1" max="1"
+          value={carga.cosPhi ?? ''}
+          onChange={onNumber('cosPhi')}
+          placeholder={carga.tipo === 'motor' ? '0.85' : '0.9'}
+          title="Factor de potencia. Vacío: típico (0,85 motor / 0,9 resto)."
+        />
+      </td>
+      <td className={cellCls}>
+        {carga.tipo === 'motor' ? (
+          <input
+            className={`${inputCls} text-right`}
+            type="number" step="0.01" min="0.1" max="1"
+            value={carga.rendimiento ?? ''}
+            onChange={onNumber('rendimiento')}
+            placeholder="0.9"
+            title="Rendimiento del motor. Vacío: 0,9 típico."
+          />
+        ) : (
+          <span className="text-slate-400 text-sm">—</span>
+        )}
       </td>
       <td className={cellCls}>
         <input

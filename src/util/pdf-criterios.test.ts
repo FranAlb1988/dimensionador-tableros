@@ -3,6 +3,7 @@ import { jsPDF } from 'jspdf';
 import {
   CRITERIOS_CCM_IEC,
   CRITERIOS_CCM_NEMA,
+  CRITERIOS_CDC,
   dibujarCriteriosSeleccion,
 } from './pdf-criterios';
 
@@ -33,9 +34,17 @@ describe('dibujarCriteriosSeleccion', () => {
     expect(CRITERIOS_CCM_NEMA.join(' ')).toContain('E300');
   });
 
+  it('los criterios del CDC documentan la coordinación con el trafo y la Icc', () => {
+    const texto = CRITERIOS_CDC.join(' ');
+    expect(texto).toContain('mayor consumidor');
+    expect(texto).toContain('In del secundario');
+    expect(texto).toContain('Icc de barra');
+    expect(texto).toContain('IEC 61439');
+  });
+
   it('usa solo glifos compatibles con WinAnsi (cp1252) de las fuentes estándar jsPDF', () => {
-    const prohibidos = ['≥', '≤', '√', 'Σ', 'φ', 'η', '→'];
-    for (const linea of [...CRITERIOS_CCM_IEC, ...CRITERIOS_CCM_NEMA]) {
+    const prohibidos = ['≥', '≤', '√', 'Σ', 'φ', 'η', '→', '↔'];
+    for (const linea of [...CRITERIOS_CCM_IEC, ...CRITERIOS_CCM_NEMA, ...CRITERIOS_CDC]) {
       for (const g of prohibidos) {
         expect(linea.includes(g), `glifo no WinAnsi "${g}" en: ${linea}`).toBe(false);
       }
