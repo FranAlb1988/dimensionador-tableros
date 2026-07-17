@@ -106,6 +106,49 @@ describe('sugerirProteccionFeeder — motor con arrancador (unidad solo magnéti
   });
 });
 
+describe('elevación de prestación por Icc de barra (F→N→H / N→S→H)', () => {
+  it('Icc dentro de la prestación base no cambia nada', () => {
+    const p = sugerirProteccionFeeder(motor11kW, 'Schneider', 1, false, 30);
+    expect(p!.icuKA).toBe(36);
+    expect(p!.referencia).toContain('NSX100F');
+  });
+
+  it('Icc 45 kA eleva el NSX de F (36) a N (50) manteniendo In y familia', () => {
+    const base = sugerirProteccionFeeder(motor11kW, 'Schneider');
+    const p = sugerirProteccionFeeder(motor11kW, 'Schneider', 1, false, 45);
+    expect(p!.icuKA).toBe(50);
+    expect(p!.inA).toBe(base!.inA);
+    expect(p!.familia).toBe(base!.familia);
+    expect(p!.referencia).toContain('NSX100N');
+    expect(p!.notas).toContain('Prestación elevada');
+  });
+
+  it('Icc 60 kA salta directo a H (70)', () => {
+    const p = sugerirProteccionFeeder(motor11kW, 'Schneider', 1, false, 60);
+    expect(p!.icuKA).toBe(70);
+    expect(p!.referencia).toContain('NSX100H');
+  });
+
+  it('Icc sobre la prestación mayor devuelve H y el caller debe advertir', () => {
+    const p = sugerirProteccionFeeder(motor11kW, 'Schneider', 1, false, 85);
+    expect(p).toBeDefined();
+    expect(p!.icuKA).toBe(70); // < 85 → advertencia aguas arriba
+  });
+
+  it('ABB eleva por la escala Tmax (N→S→H)', () => {
+    const p = sugerirProteccionFeeder(motor11kW, 'ABB', 1, false, 45);
+    expect(p!.icuKA).toBe(50);
+    expect(p!.referencia).toMatch(/XT2S/);
+  });
+
+  it('también aplica a las unidades MA (motor con arrancador)', () => {
+    const p = sugerirProteccionFeeder(motor11kW, 'Schneider', 1, true, 45);
+    expect(p!.curva).toBe('MA');
+    expect(p!.icuKA).toBe(50);
+    expect(p!.referencia).toContain('NSX100N MA');
+  });
+});
+
 describe('sugerirProteccionFeeder (por marca)', () => {
   it('Schneider devuelve NSX', () => {
     const p = sugerirProteccionFeeder(motor11kW, 'Schneider');

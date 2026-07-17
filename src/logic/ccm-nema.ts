@@ -50,6 +50,12 @@ export interface ResultadoCcmNema {
   tablero?: TableroCcmNema;
   motivo?: string;
   overflowBarra?: OverflowBarra;
+  /**
+   * Advertencias de poder de corte: breakers de alimentador cuyo Icu mínimo
+   * declarado queda bajo la Icc de barra ingresada. Los partidores (MCP)
+   * no declaran Icu en el catálogo y no se validan.
+   */
+  advertenciasIcu?: string[];
 }
 
 /** Mayor capacidad de barra del catálogo NEMA (A). */
@@ -70,6 +76,7 @@ export function dimensionarCcmNema(
   cargas: readonly Carga[],
   factorDerrateo = 1,
   reservaPorcentaje = 0,
+  iccBarraKa = 0,
 ): ResultadoCcmNema {
   const f = factorDerrateo > 0 ? factorDerrateo : 1;
   const asignaciones: AsignacionCcmNema[] = [];
@@ -160,7 +167,31 @@ export function dimensionarCcmNema(
     xMm: ENVOLVENTE_CCM_NEMA.xMm,
   };
 
-  return { asignaciones, cargasSinAsignar, tablero };
+  // Validación de poder de corte de los breakers de alimentador contra la
+  // Icc de barra declarada (los MCP de motor no declaran Icu en el catálogo).
+  const advertenciasIcu = iccBarraKa > 0
+    ? asignaciones
+        .filter((a) => a.breaker != null && minIcuKa(a.breaker.icuRange) < iccBarraKa)
+        .map((a) => `${a.carga.descripcion || a.carga.id}: ${a.breaker!.frameAF}AF · `
+          + `${a.breaker!.rating} (Icu mín. ${minIcuKa(a.breaker!.icuRange)} kA) `
+          + `< Icc de barra ${iccBarraKa.toFixed(1)} kA`)
+    : [];
+
+  return {
+    asignaciones,
+    cargasSinAsignar,
+    tablero,
+    ...(advertenciasIcu.length > 0 ? { advertenciasIcu } : {}),
+  };
+}
+
+/**
+ * Icu mínimo (kA) declarado en el rango del breaker, p. ej. "65, 100" → 65.
+ * El rango depende de la tensión de servicio; se toma el menor (conservador).
+ */
+function minIcuKa(icuRange: string): number {
+  const valores = icuRange.split(',').map((s) => parseFloat(s)).filter(Number.isFinite);
+  return valores.length > 0 ? Math.min(...valores) : 0;
 }
 
 function asignar(c: Carga, factorDerrateo: number): AsignacionCcmNema | undefined {

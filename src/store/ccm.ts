@@ -28,6 +28,11 @@ export interface CcmTablero {
   norma: Norma;
   /** Marca de los interruptores de alimentador (solo aplica al catálogo IEC). */
   marca?: MarcaProteccion;
+  /**
+   * Icc trifásica de la barra del CCM (kA), dato del estudio de cortocircuito
+   * o del trafo/CDC aguas arriba. Define la prestación (F/N/H) del aparellaje.
+   */
+  iccBarraKa?: number;
   cargas: Carga[];
 }
 
@@ -47,6 +52,7 @@ interface CcmState {
   // Operaciones sobre el tablero activo (mismos nombres que antes)
   setNorma: (n: Norma) => void;
   setMarca: (m: MarcaProteccion) => void;
+  setIccBarra: (kA: number | undefined) => void;
   agregar: () => void;
   duplicar: (cargaId: string) => void;
   eliminar: (cargaId: string) => void;
@@ -108,6 +114,7 @@ export const useCcmStore = create<CcmState>()(
             nuevo.nombre = `${orig.nombre} (copia)`;
             nuevo.norma = orig.norma;
             nuevo.marca = orig.marca;
+            nuevo.iccBarraKa = orig.iccBarraKa;
             nuevo.cargas = orig.cargas.map((c) => ({ ...c, id: nuevoId('c') }));
             return { tableros: [...s.tableros, nuevo], activoId: nuevo.id };
           });
@@ -149,6 +156,10 @@ export const useCcmStore = create<CcmState>()(
 
         setNorma: (n) => set((s) => modificarActivo(s, (t) => ({ ...t, norma: n }))),
         setMarca: (m) => set((s) => modificarActivo(s, (t) => ({ ...t, marca: m }))),
+        setIccBarra: (kA) => set((s) => modificarActivo(s, (t) => ({
+          ...t,
+          iccBarraKa: kA != null && Number.isFinite(kA) && kA > 0 ? kA : undefined,
+        }))),
         agregar: () => set((s) => modificarActivo(s, (t) => ({
           ...t, cargas: [...t.cargas, cargaPorDefecto()],
         }))),
@@ -211,6 +222,10 @@ export const useCcmNorma = (): Norma =>
 /** Marca de los alimentadores del tablero activo (Schneider por defecto). */
 export const useCcmMarca = (): MarcaProteccion =>
   useCcmStore((s) => s.tableros.find((t) => t.id === s.activoId)?.marca ?? 'Schneider');
+
+/** Icc de barra del tablero activo en kA (0 = no declarada). */
+export const useCcmIccBarra = (): number =>
+  useCcmStore((s) => s.tableros.find((t) => t.id === s.activoId)?.iccBarraKa ?? 0);
 
 export const TIPOS_CARGA: readonly TipoCarga[] = ['motor', 'resistivo', 'iluminacion', 'tomas', 'otro'];
 export const FASES: readonly Fases[] = ['1F', '3F'];

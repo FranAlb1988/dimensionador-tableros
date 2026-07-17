@@ -14,6 +14,11 @@ export interface ResultadoCcm {
   asignaciones: AsignacionCarga[];
   cargasSinAsignar: Carga[];
   tablero: Tablero;
+  /**
+   * Advertencias de poder de corte: salidas cuyo Icu queda bajo la Icc de
+   * barra declarada incluso en la prestación mayor disponible (H, 70 kA).
+   */
+  advertenciasIcu?: string[];
 }
 
 /**
@@ -29,6 +34,7 @@ export function dimensionarCcm(
   factorDerrateo = 1,
   marca: MarcaProteccion = 'Schneider',
   reservaPorcentaje = 0,
+  iccBarraKa = 0,
 ): ResultadoCcm {
   resetContadorGavetas();
   resetContadorColumnas();
@@ -41,7 +47,7 @@ export function dimensionarCcm(
   const cargasSinAsignar: Carga[] = [];
 
   for (const c of cargas) {
-    const a = asignarCargaCcm(c, marca, f);
+    const a = asignarCargaCcm(c, marca, f, iccBarraKa);
     if (a) asignaciones.push(a);
     else cargasSinAsignar.push(c);
   }
@@ -89,11 +95,27 @@ export function dimensionarCcm(
     corrienteTotalA,
     factorDerrateoAltura: f,
     corrienteSeleccionBarraA,
+    ...(iccBarraKa > 0 ? { iccBarraKa } : {}),
     barra,
     altoTotalMm: COLUMNA_CATALOGO.altoTotalMm,
     anchoTotalMm: columnas.length * COLUMNA_CATALOGO.anchoMm,
     profundidadTotalMm: COLUMNA_CATALOGO.profundidadMm,
   };
 
-  return { asignaciones, cargasSinAsignar, tablero };
+  // Validación de poder de corte: la selección ya elevó la prestación
+  // (F→N→H); si aun así el Icu queda bajo la Icc declarada, se advierte
+  // (IEC 61439-2 / RIC N°02 — filiación o limitación aguas arriba).
+  const advertenciasIcu = iccBarraKa > 0
+    ? asignaciones
+        .filter((a) => a.proteccion.icuKA < iccBarraKa)
+        .map((a) => `${a.carga.descripcion || a.carga.id}: ${a.proteccion.referencia} `
+          + `(Icu ${a.proteccion.icuKA} kA) < Icc de barra ${iccBarraKa.toFixed(1)} kA`)
+    : [];
+
+  return {
+    asignaciones,
+    cargasSinAsignar,
+    tablero,
+    ...(advertenciasIcu.length > 0 ? { advertenciasIcu } : {}),
+  };
 }

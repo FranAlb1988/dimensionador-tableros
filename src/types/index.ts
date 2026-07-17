@@ -233,6 +233,11 @@ export interface Tablero {
   factorDerrateoAltura: number;
   /** Corriente con que se selecciona la barra: FLC / F2. */
   corrienteSeleccionBarraA: number;
+  /**
+   * Icc de barra declarada por el usuario (kA). Las protecciones se
+   * seleccionaron con prestación (F/N/H) suficiente para cubrirla.
+   */
+  iccBarraKa?: number;
   /** Barra principal sugerida (undefined si la corriente excede el catálogo). */
   barra?: Barra;
   /** Dimensiones totales en mm. */

@@ -1,5 +1,5 @@
 import type { ChangeEvent } from 'react';
-import { ARRANQUE_LABEL, FASES, TIPOS_ARRANQUE, TIPOS_CARGA, useCcmCargas, useCcmNorma, useCcmStore } from '../store/ccm';
+import { ARRANQUE_LABEL, FASES, TIPOS_ARRANQUE, TIPOS_CARGA, useCcmCargas, useCcmIccBarra, useCcmNorma, useCcmStore } from '../store/ccm';
 import type { Carga, UnidadPotencia } from '../types';
 import { corrienteNominal } from '../logic/corriente';
 import { frameProteccionNema } from '../logic/ccm-nema';
@@ -180,11 +180,12 @@ function FilaCarga({ carga, zebra, onChange, onDuplicar, onEliminar }: FilaProps
   const norma = useCcmNorma();
   const unidad: UnidadPotencia = carga.unidadPotencia ?? 'HP';
   const factorDerrateo = useFactorDerrateo('BT');
+  const iccBarraKa = useCcmIccBarra();
 
   const frameLabel =
     norma === 'NEMA'
       ? frameProteccionNema(carga, factorDerrateo)
-      : sugerirProteccionCcm(carga, 'Schneider', factorDerrateo)?.referencia;
+      : sugerirProteccionCcm(carga, 'Schneider', factorDerrateo, iccBarraKa)?.referencia;
 
   const onNumber =
     (campo: 'corrienteA' | 'corrienteProteccionA' | 'tensionV' | 'factorServicio' | 'cosPhi' | 'rendimiento') =>

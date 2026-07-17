@@ -246,6 +246,17 @@ describe('dimensionarCcmNema', () => {
     expect(a.notas).toContain('YD');
   });
 
+  it('la Icc de barra advierte los breakers de alimentador con Icu mínimo insuficiente', () => {
+    // Breakers NEMA declaran Icu mín. 65 kA: con Icc 80 se advierte; con 50 no.
+    const cargas = [motor('1', 30), alimentador('2', 18)];
+    const con80 = dimensionarCcmNema(cargas, 1, 0, 80);
+    expect(con80.advertenciasIcu).toBeDefined();
+    expect(con80.advertenciasIcu).toHaveLength(1); // solo el alimentador (MCP sin dato)
+    expect(con80.advertenciasIcu![0]).toContain('Icu mín. 65 kA');
+    const con50 = dimensionarCcmNema(cargas, 1, 0, 50);
+    expect(con50.advertenciasIcu).toBeUndefined();
+  });
+
   it('las reservas son vacancia: heredan tamaño y versión pero no motor ni breaker', () => {
     const r = dimensionarCcmNema([motor('1', 30), alimentador('2', 18)], 1, 25);
     const reservas = r.tablero!.columnas

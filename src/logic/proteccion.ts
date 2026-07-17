@@ -60,6 +60,51 @@ const MCCB_MOTOR_POR_MARCA: Record<MarcaProteccion, readonly Proteccion[]> = {
  */
 const MARGEN_MA = 1.0;
 
+/**
+ * Escalas de prestación (poder de corte a 415 V) por línea de producto. Los
+ * catálogos base traen la prestación económica; cuando la Icc de barra la
+ * supera, la misma unidad se pide en la prestación superior (mismo In y
+ * frame — cambia la letra de la referencia y el Icu).
+ */
+interface Prestacion { sufijo: string; icuKA: number }
+const PRESTACIONES_NSX: readonly Prestacion[] = [
+  { sufijo: 'F', icuKA: 36 },
+  { sufijo: 'N', icuKA: 50 },
+  { sufijo: 'H', icuKA: 70 },
+];
+const PRESTACIONES_TMAX: readonly Prestacion[] = [
+  { sufijo: 'N', icuKA: 36 },
+  { sufijo: 'S', icuKA: 50 },
+  { sufijo: 'H', icuKA: 70 },
+];
+
+/**
+ * Eleva la prestación del interruptor hasta cubrir `minIcuKA` (Icc de barra).
+ * Si ni la prestación mayor alcanza, devuelve la mayor disponible — el caller
+ * debe comparar icuKA contra la Icc y advertir. Sin escala conocida (p. ej.
+ * ACB) devuelve la unidad tal cual.
+ */
+export function elevarPrestacion(p: Proteccion, minIcuKA: number): Proteccion {
+  if (!(minIcuKA > 0) || p.icuKA >= minIcuKA) return p;
+  const esNsx = p.familia.startsWith('NSX');
+  const esTmax = p.familia.startsWith('Tmax');
+  const escala = esNsx ? PRESTACIONES_NSX : esTmax ? PRESTACIONES_TMAX : null;
+  if (!escala) return p;
+  const objetivo = escala.find((e) => e.icuKA >= minIcuKA) ?? escala[escala.length - 1]!;
+  if (objetivo.icuKA <= p.icuKA) return p;
+  const referencia = esNsx
+    ? p.referencia.replace(/^(NSX\d+)[FNH]/, `$1${objetivo.sufijo}`)
+    : p.referencia.replace(/\b(X?T\d+)[NSH]\b/, `$1${objetivo.sufijo}`);
+  return {
+    ...p,
+    referencia,
+    icuKA: objetivo.icuKA,
+    placeholder: true,
+    notas: `${p.notas ? `${p.notas} ` : ''}Prestación elevada a ${objetivo.sufijo} `
+      + `(Icu ${objetivo.icuKA} kA) por la Icc de barra — verificar SKU.`,
+  };
+}
+
 /** Marcas con interruptores de alimentador (MCCB) disponibles. */
 export const MARCAS_FEEDER: readonly MarcaProteccion[] = ['Schneider', 'ABB'];
 
@@ -84,6 +129,7 @@ export function sugerirProteccionFeeder(
   marca: MarcaProteccion = 'Schneider',
   factorDerrateo = 1,
   motorConArrancador = false,
+  minIcuKA = 0,
 ): Proteccion | undefined {
   const I = corrienteDiseno(carga);
   const f = factorDerrateo > 0 ? factorDerrateo : 1;
@@ -97,9 +143,12 @@ export function sugerirProteccionFeeder(
     ? MARGEN_MA
     : (carga.tipo === 'motor' ? MARGEN_NSX_MOTOR : MARGEN_NSX_NO_MOTOR);
   const Imin = Math.max((I * margen) / f, frameForzado);
-  return pool
+  const p = pool
     .toSorted((a, b) => a.inA - b.inA)
-    .find((p) => p.inA >= Imin);
+    .find((x) => x.inA >= Imin);
+  // Icc de barra: si la prestación base no la cubre, se sube F→N→H (NSX) o
+  // N→S→H (Tmax). Si ni la mayor alcanza, el caller advierte (icuKA < Icc).
+  return p ? elevarPrestacion(p, minIcuKA) : undefined;
 }
 
 /** Compatibilidad: alimentador Schneider (NSX). */

@@ -12,7 +12,7 @@ import { ExportarPdfCcmNemaBoton } from '../components/ExportarPdfCcmNemaBoton';
 import { AsignacionesPanelMt } from '../components/AsignacionesPanelMt';
 import { VistaFrontalCcmMtSvg } from '../components/VistaFrontalCcmMtSvg';
 import { ResumenCcmMt } from '../components/ResumenCcmMt';
-import { useCcmCargas, useCcmMarca, useCcmNorma, useCcmStore } from '../store/ccm';
+import { useCcmCargas, useCcmIccBarra, useCcmMarca, useCcmNorma, useCcmStore } from '../store/ccm';
 import { dimensionarCcm } from '../logic/tablero';
 import { dimensionarCcmNema } from '../logic/ccm-nema';
 import { dimensionarCcmMt, UMBRAL_MT_V } from '../logic/ccm-mt';
@@ -30,8 +30,10 @@ export function CcmPage() {
   const cargas = useCcmCargas();
   const norma = useCcmNorma();
   const marca = useCcmMarca();
+  const iccBarraKa = useCcmIccBarra();
   const setNorma = useCcmStore((s) => s.setNorma);
   const setMarca = useCcmStore((s) => s.setMarca);
+  const setIccBarra = useCcmStore((s) => s.setIccBarra);
   const factorDerrateo = useFactorDerrateo('BT');
   const factorDerrateoMt = useFactorDerrateo('MT');
   const reservaCcm = useReservaCcm();
@@ -54,12 +56,16 @@ export function CcmPage() {
   const [importAbierto, setImportAbierto] = useState(false);
 
   const resultadoIec = useMemo(
-    () => (norma === 'IEC' && !esMt ? dimensionarCcm(cargas, factorDerrateo, marca, reservaPorcentaje) : null),
-    [cargas, norma, esMt, factorDerrateo, marca, reservaPorcentaje],
+    () => (norma === 'IEC' && !esMt
+      ? dimensionarCcm(cargas, factorDerrateo, marca, reservaPorcentaje, iccBarraKa)
+      : null),
+    [cargas, norma, esMt, factorDerrateo, marca, reservaPorcentaje, iccBarraKa],
   );
   const resultadoNema = useMemo(
-    () => (norma === 'NEMA' && !esMt ? dimensionarCcmNema(cargas, factorDerrateo, reservaPorcentaje) : null),
-    [cargas, norma, factorDerrateo, esMt, reservaPorcentaje],
+    () => (norma === 'NEMA' && !esMt
+      ? dimensionarCcmNema(cargas, factorDerrateo, reservaPorcentaje, iccBarraKa)
+      : null),
+    [cargas, norma, factorDerrateo, esMt, reservaPorcentaje, iccBarraKa],
   );
   const resultadoMt = useMemo(
     () => (esMt ? dimensionarCcmMt(cargas, factorDerrateoMt, reservaPorcentaje) : null),
@@ -96,6 +102,25 @@ export function CcmPage() {
         <div className="flex items-center gap-2 flex-wrap">
           <DerrateoControl nivel={esMt ? 'MT' : 'BT'} />
           <ReservaCcmControl />
+          {!esMt && (
+            <label
+              className="inline-flex items-center gap-1.5 border border-slate-300 dark:border-slate-700 rounded px-2.5 py-1 text-sm"
+              title="Icc trifásica de la barra (estudio de cortocircuito o trafo/CDC aguas arriba). Define la prestación F/N/H del aparellaje (IEC 61439-2 / RIC N°02). Vacío: sin verificación."
+            >
+              <span className="font-medium">Icc barra</span>
+              <input
+                type="number"
+                min={0}
+                step={1}
+                value={iccBarraKa > 0 ? iccBarraKa : ''}
+                onChange={(e) => setIccBarra(e.target.value === '' ? undefined : Number(e.target.value))}
+                placeholder="—"
+                aria-label="Icc de barra en kA"
+                className="w-16 px-1.5 py-0.5 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 tabular-nums"
+              />
+              <span className="text-slate-500">kA</span>
+            </label>
+          )}
           {esMt ? (
             <span
               className="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200"
@@ -183,6 +208,27 @@ export function CcmPage() {
           (usa el selector de tableros arriba).
         </div>
       )}
+
+      {(() => {
+        const advertencias = norma === 'IEC'
+          ? resultadoIec?.advertenciasIcu
+          : resultadoNema?.advertenciasIcu;
+        if (!advertencias || advertencias.length === 0) return null;
+        return (
+          <div className="border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-950/40 rounded p-3 text-sm">
+            <div className="font-medium text-red-800 dark:text-red-200">
+              ⚠ Poder de corte insuficiente (Icc de barra declarada)
+            </div>
+            <ul className="mt-1 list-disc list-inside text-red-900 dark:text-red-100">
+              {advertencias.map((a) => <li key={a}>{a}</li>)}
+            </ul>
+            <p className="mt-1 text-xs text-red-700 dark:text-red-300">
+              La prestación mayor disponible no cubre la Icc: especificar filiación/limitación
+              certificada con la protección aguas arriba (IEC 61439-2 · RIC N°02).
+            </p>
+          </div>
+        );
+      })()}
 
       {(() => {
         const cargasCi = cargasContraincendio(cargas);

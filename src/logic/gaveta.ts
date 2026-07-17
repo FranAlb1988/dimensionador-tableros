@@ -76,9 +76,10 @@ export function sugerirProteccionCcm(
   carga: Carga,
   marca: MarcaProteccion = 'Schneider',
   factorDerrateo = 1,
+  iccBarraKa = 0,
 ): Proteccion | undefined {
   const conArrancador = carga.tipo === 'motor' && sugerirArrancador(carga) != null;
-  return sugerirProteccionFeeder(carga, marca, factorDerrateo, conArrancador);
+  return sugerirProteccionFeeder(carga, marca, factorDerrateo, conArrancador, iccBarraKa);
 }
 
 /**
@@ -89,11 +90,15 @@ export function asignarCargaCcm(
   carga: Carga,
   marca: MarcaProteccion = 'Schneider',
   factorDerrateo = 1,
+  iccBarraKa = 0,
 ): AsignacionCarga | undefined {
   const arrancador = sugerirArrancador(carga);
   // Motor con arrancador → unidad solo magnética; el LRD cubre la sobrecarga.
-  // El interruptor pierde capacidad con la altura/temperatura → I / F.
-  const proteccion = sugerirProteccionFeeder(carga, marca, factorDerrateo, arrancador != null);
+  // El interruptor pierde capacidad con la altura/temperatura → I / F. La Icc
+  // de barra eleva la prestación (F→N→H) cuando corresponde.
+  const proteccion = sugerirProteccionFeeder(
+    carga, marca, factorDerrateo, arrancador != null, iccBarraKa,
+  );
   if (!proteccion) return undefined;
 
   const tamano: TamanoGaveta = arrancador
