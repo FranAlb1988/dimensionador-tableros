@@ -143,9 +143,38 @@ describe('dimensionarCcmNema', () => {
 
   it('FLC total selecciona barra correcta', () => {
     const r = dimensionarCcmNema([motor('1', 100), motor('2', 50)]);
-    // Motor 100 HP FLA = 138, motor 50 HP FLA = 72 → total ~210
-    expect(r.tablero!.corrienteTotalA).toBeGreaterThan(200);
+    // FLA a 480 V = tabla 400 V × 400/480: 100 HP → 119.2 A, 50 HP → 62.3 A
+    // → total ≈ 181.5 A → barra 600 A (rango 0–480).
+    expect(r.tablero!.corrienteTotalA).toBeGreaterThan(170);
+    expect(r.tablero!.corrienteTotalA).toBeLessThan(200);
     expect(r.tablero!.barra.capacidadA).toBe(600);
+  });
+
+  it('la FLA del catálogo (400 V) se escala a la tensión real BT 3F', () => {
+    const base = { ...motor('1', 10), tensionV: 400 };
+    const a400 = dimensionarCcmNema([base]).asignaciones[0]!;
+    const a480 = dimensionarCcmNema([{ ...base, tensionV: 480 }]).asignaciones[0]!;
+    const a220 = dimensionarCcmNema([{ ...base, tensionV: 220 }]).asignaciones[0]!;
+    expect(a400.corrienteDisenoA).toBeCloseTo(16.1, 3);
+    expect(a480.corrienteDisenoA).toBeCloseTo(16.1 * 400 / 480, 3);
+    expect(a400.notas).toBeUndefined();
+    expect(a480.notas).toContain('400 V');
+    // A 220 V la corriente casi se duplica — antes se usaba la FLA de 400 V.
+    expect(a220.corrienteDisenoA).toBeCloseTo(16.1 * 400 / 220, 3);
+  });
+
+  it('motor 1F no usa la tabla 3F: cae a la fórmula', () => {
+    const c: Carga = { ...motor('1', 5), tensionV: 220, fases: '1F' };
+    const a = dimensionarCcmNema([c]).asignaciones[0]!;
+    // I = P / (V × f.p. × rend.) = 3728.5 / (220 × 0.85 × 0.9) ≈ 22.15 A
+    expect(a.corrienteDisenoA).toBeCloseTo(22.15, 1);
+  });
+
+  it('la corriente de placa del usuario prevalece sobre la FLA escalada', () => {
+    const c: Carga = { ...motor('1', 10), tensionV: 480, corrienteA: 15.5 };
+    const a = dimensionarCcmNema([c]).asignaciones[0]!;
+    expect(a.corrienteDisenoA).toBeCloseTo(15.5, 5);
+    expect(a.notas).toBeUndefined();
   });
 
   it('sin derrateo el factor F2 es 1 y la corriente de selección iguala el FLC', () => {
@@ -184,7 +213,8 @@ describe('dimensionarCcmNema', () => {
     const psv = dimensionarCcmNema([motor('1', 15, 1, 'suave')]).asignaciones[0]!;
     const vsd = dimensionarCcmNema([motor('1', 15, 1, 'variador')]).asignaciones[0]!;
     expect(dol.espaciosX).toBe(1.5);
-    expect(dol.notas).toBeUndefined();
+    // El DOL a 480 V lleva la nota de escalado de tensión, pero no la de arranque.
+    expect(dol.notas ?? '').not.toContain('Espacio ampliado');
     expect(psv.espaciosX).toBe(2);
     expect(psv.notas).toContain('SMC');
     expect(vsd.espaciosX).toBe(2.5);

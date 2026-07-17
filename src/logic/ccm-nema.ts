@@ -200,22 +200,34 @@ function asignarMotor(c: Carga): AsignacionCcmNema | undefined {
   if (hp == null || hp <= 0) return undefined;
   const motor = MOTORES.find((m) => m.hp >= hp);
   if (!motor) return undefined;
-  // FLA del motor: el catálogo está rateado en BT (400 V); en media tensión
-  // (>1000 V) el flaA del catálogo no aplica y se calcula con la fórmula.
-  // En BT se usa el flaA del catálogo (o la corriente del usuario si la dio).
-  const flaCatalogoMm = c.tensionV > 1000 ? null : motor.flaA;
-  const corriente = c.corrienteA ?? flaCatalogoMm ?? corrienteNominal(c);
+  // FLA del motor: el catálogo está rateado a 400 V 3F. Para otra tensión BT
+  // trifásica se escala por 400/V (I ∝ 1/V a potencia constante — el propio
+  // catálogo se construyó así: NEC 430.250 a 460 V × 1,15). Para monofásico o
+  // media tensión (>1000 V) la tabla no aplica y se usa la fórmula. La
+  // corriente de placa del usuario siempre prevalece.
+  const esBt3F = c.tensionV > 0 && c.tensionV <= 1000 && c.fases === '3F';
+  const flaCatalogo = esBt3F && motor.flaA != null
+    ? motor.flaA * (400 / c.tensionV)
+    : null;
+  const corriente = c.corrienteA ?? flaCatalogo ?? corrienteNominal(c);
+
+  const notasPartes: string[] = [];
+  if (esBt3F && c.tensionV !== 400 && c.corrienteA == null) {
+    notasPartes.push(
+      `Tabla CENTERLINE rateada a 400 V: FLA escalada a ${c.tensionV} V (× 400/V). `
+      + 'Contactor NEMA, MCP y módulo OL deben verificarse para la tensión real.',
+    );
+  }
 
   // Tipo de arranque: la tabla es FVNR; YD/PSV amplían 1 escalón y VSD 2.
   const tipo: TipoArranque = c.arranque ?? 'DOL';
   let espaciosX = motor.espaciosX;
   let version = motor.version;
-  let notas: string | undefined;
   if (tipo !== 'DOL') {
     espaciosX = subirEspaciosX(motor.espaciosX, tipo === 'variador' ? 2 : 1);
     // 6X = media sección: unidad fija, igual que los NEMA 6 del catálogo.
     if (espaciosX >= 6) version = 'fijo';
-    notas = NOTA_ARRANQUE_NEMA[tipo];
+    notasPartes.push(NOTA_ARRANQUE_NEMA[tipo]);
   }
 
   return {
@@ -224,7 +236,7 @@ function asignarMotor(c: Carga): AsignacionCcmNema | undefined {
     espaciosX,
     version,
     corrienteDisenoA: corriente * (c.factorServicio || 1),
-    ...(notas ? { notas } : {}),
+    ...(notasPartes.length > 0 ? { notas: notasPartes.join(' ') } : {}),
   };
 }
 
