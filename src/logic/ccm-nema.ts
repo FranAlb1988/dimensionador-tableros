@@ -240,12 +240,19 @@ function asignarMotor(c: Carga): AsignacionCcmNema | undefined {
   };
 }
 
+/**
+ * Margen de los breakers de alimentador no-motor: 1.25 sobre I de diseño
+ * (carga continua — NEC 210.19/215.2), igual que las vías IEC y CDC NEMA.
+ */
+const MARGEN_ALIMENTADOR_NEMA = 1.25;
+
 function asignarAlimentador(c: Carga, factorDerrateo: number): AsignacionCcmNema | undefined {
   const I = corrienteDiseno(c);
-  const Imin = Math.max(I, c.corrienteProteccionA ?? 0);
+  // El breaker pierde capacidad con la altura/temperatura → (I × margen) / F.
+  // El frame forzado (corrienteProteccionA) no se escala — elección explícita.
+  const Imin = Math.max((I * MARGEN_ALIMENTADOR_NEMA) / factorDerrateo, c.corrienteProteccionA ?? 0);
   if (Imin <= 0) return undefined;
-  // El breaker pierde capacidad con la altura: se selecciona contra Imin / F2.
-  const breaker = sugerirBreakerNema(Imin / factorDerrateo);
+  const breaker = sugerirBreakerNema(Imin);
   if (!breaker) return undefined;
   return {
     carga: c,
@@ -347,9 +354,11 @@ function empaquetarEnColumnas(asignaciones: AsignacionCcmNema[], altoUtilX: numb
  * Devuelve la etiqueta comercial de la protección para una carga NEMA.
  * Usado para mostrar el frame en la tabla de cargas (solo lectura).
  * - Motor con HP → MCP del catálogo (e.g. "30 A MCP")
- * - Alimentador   → breaker FDR o electrónico mínimo (e.g. "100AF · 50AT")
+ * - Alimentador   → breaker FDR o electrónico mínimo (e.g. "100AF · 50AT"),
+ *   con el mismo margen 1.25 y derrateo F que usa la asignación real.
  */
-export function frameProteccionNema(carga: Carga): string | undefined {
+export function frameProteccionNema(carga: Carga, factorDerrateo = 1): string | undefined {
+  const f = factorDerrateo > 0 ? factorDerrateo : 1;
   if (carga.tipo === 'motor') {
     const hp = hpDeCarga(carga);
     if (hp == null || hp <= 0) return undefined;
@@ -358,7 +367,7 @@ export function frameProteccionNema(carga: Carga): string | undefined {
     return `${motor.mcpFrameA} A MCP`;
   }
   const I = corrienteDiseno(carga);
-  const Imin = Math.max(I, carga.corrienteProteccionA ?? 0);
+  const Imin = Math.max((I * MARGEN_ALIMENTADOR_NEMA) / f, carga.corrienteProteccionA ?? 0);
   if (Imin <= 0) return undefined;
   const b = sugerirBreakerNema(Imin);
   if (!b) return undefined;

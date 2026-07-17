@@ -150,6 +150,17 @@ describe('dimensionarCcmNema', () => {
     expect(r.tablero!.barra.capacidadA).toBe(600);
   });
 
+  it('los alimentadores no-motor llevan margen 1.25 (carga continua) y derratean por F', () => {
+    // 18 kW @ 480 V ≈ 24.1 A → ×1.25 = 30.1 → rating ≥ 30.1 A.
+    const c = alimentador('1', 18);
+    const base = dimensionarCcmNema([c]).asignaciones[0]!;
+    expect(base.breaker!.ratingA).toBeGreaterThanOrEqual(base.corrienteDisenoA * 1.25);
+    // Con F 0.8 → 37.7 → el rating sube.
+    const der = dimensionarCcmNema([c], 0.8).asignaciones[0]!;
+    expect(der.breaker!.ratingA).toBeGreaterThanOrEqual(base.breaker!.ratingA);
+    expect(der.breaker!.ratingA).toBeGreaterThanOrEqual((base.corrienteDisenoA * 1.25) / 0.8);
+  });
+
   it('la FLA del catálogo (400 V) se escala a la tensión real BT 3F', () => {
     const base = { ...motor('1', 10), tensionV: 400 };
     const a400 = dimensionarCcmNema([base]).asignaciones[0]!;

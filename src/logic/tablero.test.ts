@@ -65,6 +65,26 @@ describe('dimensionarCcm', () => {
     expect(r.tablero.medida.lucesPiloto).toBeGreaterThan(0);
   });
 
+  it('el derrateo F selecciona los interruptores de salida contra I / F', () => {
+    const iluminacion: Carga = {
+      id: 'i1', descripcion: 'Iluminación', tipo: 'iluminacion',
+      potenciaKw: 18, tensionV: 400, fases: '3F', factorServicio: 1,
+    };
+    // Motor 11 kW (I ≈ 21.1 A, MA margen 1.0): sin F → MA25; con F 0.8 →
+    // 26.4 A → MA50. Iluminación 18 kW (28.9 A × 1.25 = 36.1 → TM40); con
+    // F 0.8 → 45.2 → TM63.
+    const base = dimensionarCcm([motor('m1', 11), iluminacion]);
+    const derrateado = dimensionarCcm([motor('m1', 11), iluminacion], 0.8);
+    const mBase = base.asignaciones.find((a) => a.carga.tipo === 'motor')!;
+    const mDer = derrateado.asignaciones.find((a) => a.carga.tipo === 'motor')!;
+    const iBase = base.asignaciones.find((a) => a.carga.tipo !== 'motor')!;
+    const iDer = derrateado.asignaciones.find((a) => a.carga.tipo !== 'motor')!;
+    expect(mDer.proteccion.inA).toBeGreaterThan(mBase.proteccion.inA);
+    expect(iDer.proteccion.inA).toBeGreaterThan(iBase.proteccion.inA);
+    // La corriente real de las cargas no cambia.
+    expect(derrateado.tablero.corrienteTotalA).toBeCloseTo(base.tablero.corrienteTotalA, 5);
+  });
+
   it('motor con arrancador recibe unidad solo magnética (MA); no-motor recibe TM-D', () => {
     const iluminacion: Carga = {
       id: 'i1', descripcion: 'Iluminación', tipo: 'iluminacion',

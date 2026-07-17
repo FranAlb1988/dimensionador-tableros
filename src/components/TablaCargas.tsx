@@ -4,6 +4,7 @@ import type { Carga, UnidadPotencia } from '../types';
 import { corrienteNominal } from '../logic/corriente';
 import { frameProteccionNema } from '../logic/ccm-nema';
 import { sugerirProteccionCcm } from '../logic/gaveta';
+import { useFactorDerrateo } from '../store/proyecto-meta';
 import { fmtAmp } from '../util/format';
 import { aKw, desdeKw } from '../util/potencia';
 
@@ -178,11 +179,12 @@ function FilaCarga({ carga, zebra, onChange, onDuplicar, onEliminar }: FilaProps
   const I = corrienteNominal(carga);
   const norma = useCcmNorma();
   const unidad: UnidadPotencia = carga.unidadPotencia ?? 'HP';
+  const factorDerrateo = useFactorDerrateo('BT');
 
   const frameLabel =
     norma === 'NEMA'
-      ? frameProteccionNema(carga)
-      : sugerirProteccionCcm(carga)?.referencia;
+      ? frameProteccionNema(carga, factorDerrateo)
+      : sugerirProteccionCcm(carga, 'Schneider', factorDerrateo)?.referencia;
 
   const onNumber =
     (campo: 'corrienteA' | 'corrienteProteccionA' | 'tensionV' | 'factorServicio' | 'cosPhi' | 'rendimiento') =>

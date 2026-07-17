@@ -33,11 +33,15 @@ export function dimensionarCcm(
   resetContadorGavetas();
   resetContadorColumnas();
 
+  // F por altura/temperatura: reduce la capacidad útil de todo el aparellaje,
+  // por lo que interruptores de salida y barra se seleccionan contra I / F.
+  const f = factorDerrateo > 0 ? factorDerrateo : 1;
+
   const asignaciones: AsignacionCarga[] = [];
   const cargasSinAsignar: Carga[] = [];
 
   for (const c of cargas) {
-    const a = asignarCargaCcm(c, marca);
+    const a = asignarCargaCcm(c, marca, f);
     if (a) asignaciones.push(a);
     else cargasSinAsignar.push(c);
   }
@@ -64,9 +68,7 @@ export function dimensionarCcm(
   const gavetas = [...gavetasReales, ...reservas];
   const columnasFeeders = distribuirEnColumnas(gavetas);
 
-  // Barra principal por la FLC total. El derrateo por altura reduce la
-  // capacidad útil: la barra se selecciona contra FLC / F2.
-  const f = factorDerrateo > 0 ? factorDerrateo : 1;
+  // Barra principal por la FLC total, seleccionada contra FLC / F.
   const corrienteTotalA = asignaciones.reduce((s, a) => s + corrienteDiseno(a.carga), 0);
   const corrienteSeleccionBarraA = corrienteTotalA / f;
   // CCM: la barra principal se topa en 3200 A. Para corrientes mayores el
