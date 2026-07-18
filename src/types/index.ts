@@ -231,7 +231,10 @@ export interface Tablero {
   corrienteTotalA: number;
   /** Factor F2 de derrateo por altura aplicado (1 = sin derrateo). */
   factorDerrateoAltura: number;
-  /** Corriente con que se selecciona la barra: FLC / F2. */
+  /**
+   * Corriente con que se selecciona la barra:
+   * (FLC + 25% del motor mayor — NEC 430.24) × (1 + % reserva) / F.
+   */
   corrienteSeleccionBarraA: number;
   /**
    * Icc de barra declarada por el usuario (kA). Las protecciones se
@@ -362,7 +365,10 @@ export interface TableroCcmNema {
   medida: MedidaCcm;
   /** Factor F2 de derrateo por altura aplicado (1 = sin derrateo). */
   factorDerrateoAltura: number;
-  /** Corriente con que se seleccionó la barra: corrienteTotalA / F2. */
+  /**
+   * Corriente con que se seleccionó la barra:
+   * (FLC + 25% del motor mayor — NEC 430.24) × (1 + % reserva) / F.
+   */
   corrienteSeleccionBarraA: number;
   /**
    * Interruptor general del CCM (opción main breaker; tabla de mains del

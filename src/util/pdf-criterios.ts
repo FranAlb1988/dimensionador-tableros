@@ -31,7 +31,9 @@ export const CRITERIOS_CCM_IEC: readonly string[] = [
     + 'si se ingresa.',
   'Derrateo: el aparellaje se selecciona contra I / (F1 × F2) — F2 por altura '
     + '(Tabla V, IEEE C37.20.1-1993) y F1 por temperatura ambiente sobre 40 °C.',
-  'Barra principal: In >= suma de I de diseño / (F1 × F2). Tope de fábrica del CCM: 3200 A.',
+  'Barra principal: In >= (suma de I de diseño + 25% del motor mayor — NEC 430.24) × '
+    + '(1 + % de reserva) / (F1 × F2) — la vacancia tiene capacidad eléctrica, no solo '
+    + 'espacio. Tope de fábrica del CCM: 3200 A.',
 ];
 
 /** Criterios del CDC (tablero principal BT — Prisma/NSX/Masterpact o Switchgear NEMA). */
@@ -63,8 +65,9 @@ export const CRITERIOS_CCM_NEMA: readonly string[] = [
   'Alimentadores no-motor: breaker FDR (hasta 400 AF) o electrónico con rating >= '
     + 'I de diseño / F2.',
   'Derrateo por altura: selección contra I / F2 (Tabla V, IEEE C37.20.1-1993).',
-  'Barra principal por rango de FLC total; tope 3200 A — sobre ese valor el tablero se '
-    + 'divide en un segundo CCM.',
+  'Barra principal por rango de FLC de selección: (FLC + 25% del motor mayor — '
+    + 'NEC 430.24) × (1 + % de reserva) / (F1 × F2); tope 3200 A — sobre ese valor el '
+    + 'tablero se divide en un segundo CCM.',
 ];
 
 export interface OpcionesCriterios {

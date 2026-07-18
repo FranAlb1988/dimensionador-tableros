@@ -188,10 +188,25 @@ describe('dimensionarCcmNema', () => {
     expect(a.notas).toBeUndefined();
   });
 
-  it('sin derrateo el factor F2 es 1 y la corriente de selección iguala el FLC', () => {
+  it('la barra aplica NEC 430.24: FLC + 25% del motor mayor', () => {
+    // Un solo motor: selección = 1.25 × FLC.
     const r = dimensionarCcmNema([motor('1', 100)]);
     expect(r.tablero!.factorDerrateoAltura).toBe(1);
-    expect(r.tablero!.corrienteSeleccionBarraA).toBeCloseTo(r.tablero!.corrienteTotalA, 5);
+    expect(r.tablero!.corrienteSeleccionBarraA)
+      .toBeCloseTo(r.tablero!.corrienteTotalA * 1.25, 5);
+    // Motor + alimentador: solo el motor mayor aporta el 25% extra.
+    const mixto = dimensionarCcmNema([motor('1', 50), alimentador('2', 18)]).tablero!;
+    const iMotor = mixto.columnas.flatMap((c) => c.asignaciones)
+      .find((a) => a.carga.tipo === 'motor' && !a.esReserva)!.corrienteDisenoA;
+    expect(mixto.corrienteSeleccionBarraA)
+      .toBeCloseTo(mixto.corrienteTotalA + 0.25 * iMotor, 5);
+  });
+
+  it('la reserva declarada agrega capacidad eléctrica a la barra', () => {
+    const sinReserva = dimensionarCcmNema([alimentador('1', 100)], 1, 0).tablero!;
+    const conReserva = dimensionarCcmNema([alimentador('1', 100)], 1, 25).tablero!;
+    expect(conReserva.corrienteSeleccionBarraA)
+      .toBeCloseTo(sinReserva.corrienteSeleccionBarraA * 1.25, 5);
   });
 
   it('el derrateo por altura sube la barra al seleccionar contra FLC / F2', () => {

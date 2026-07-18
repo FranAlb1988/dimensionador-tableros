@@ -126,8 +126,15 @@ export function dimensionarCcmNema(
   const asignacionesConReserva: AsignacionCcmNema[] = [...asignaciones, ...reservas];
 
   const columnasFeeders = empaquetarEnColumnas(asignacionesConReserva, ENVOLVENTE_CCM_NEMA.altoUtilXEspacios);
+  // Barra principal: regla del alimentador de motores (NEC 430.24) — 125% del
+  // motor mayor + 100% del resto — más la capacidad para la reserva declarada,
+  // seleccionada contra la capacidad derrateada (/ F).
   const corrienteTotalA = asignaciones.reduce((s, a) => s + a.corrienteDisenoA, 0);
-  const corrienteSeleccionBarraA = corrienteTotalA / f;
+  const mayorMotorA = asignaciones
+    .filter((a) => a.carga.tipo === 'motor')
+    .reduce((m, a) => Math.max(m, a.corrienteDisenoA), 0);
+  const factorReserva = 1 + Math.max(0, reservaPorcentaje) / 100;
+  const corrienteSeleccionBarraA = ((corrienteTotalA + 0.25 * mayorMotorA) * factorReserva) / f;
 
   // Interruptor general opcional (main breaker de la tabla de mains del
   // switchgear BT). Sin él, el CCM es main lugs protegido aguas arriba.

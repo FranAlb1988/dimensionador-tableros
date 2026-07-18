@@ -95,9 +95,16 @@ export function dimensionarCcm(
   const gavetas = [...gavetasReales, ...reservas];
   const columnasFeeders = distribuirEnColumnas(gavetas);
 
-  // Barra principal por la FLC total, seleccionada contra FLC / F.
+  // Barra principal: regla del alimentador de motores (NEC 430.24) — 125% del
+  // motor mayor + 100% del resto — más la capacidad para la reserva declarada
+  // (las gavetas de vacancia deben poder alimentarse sin cambiar la barra),
+  // todo seleccionado contra la capacidad derrateada (/ F).
   const corrienteTotalA = asignaciones.reduce((s, a) => s + corrienteDiseno(a.carga), 0);
-  const corrienteSeleccionBarraA = corrienteTotalA / f;
+  const mayorMotorA = asignaciones
+    .filter((a) => a.carga.tipo === 'motor')
+    .reduce((m, a) => Math.max(m, corrienteDiseno(a.carga)), 0);
+  const factorReserva = 1 + Math.max(0, reservaPorcentaje) / 100;
+  const corrienteSeleccionBarraA = ((corrienteTotalA + 0.25 * mayorMotorA) * factorReserva) / f;
 
   // Interruptor general opcional (main breaker — RIC N°02, medio de
   // seccionamiento). Sin él, el CCM es main lugs protegido aguas arriba.

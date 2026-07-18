@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { dimensionarCcm } from './tablero';
+import { corrienteDiseno } from './corriente';
 import type { Carga } from '../types';
 
 function motor(id: string, kW: number): Carga {
@@ -47,16 +48,31 @@ describe('dimensionarCcm', () => {
     expect(r.tablero.barra!.inA).toBeGreaterThanOrEqual(r.tablero.corrienteTotalA);
   });
 
-  it('el derrateo por altura sube la barra (selección contra FLC/F2)', () => {
+  it('el derrateo por altura sube la barra (selección contra I/F2)', () => {
     const cargas: Carga[] = [motor('1', 110)];
     const base = dimensionarCcm(cargas).tablero.barra!.inA;
     const conDerrateo = dimensionarCcm(cargas, 0.7);
     expect(conDerrateo.tablero.factorDerrateoAltura).toBe(0.7);
+    // Un solo motor: selección = 1.25 × FLC (NEC 430.24) / F.
     expect(conDerrateo.tablero.corrienteSeleccionBarraA).toBeCloseTo(
-      conDerrateo.tablero.corrienteTotalA / 0.7,
+      (conDerrateo.tablero.corrienteTotalA * 1.25) / 0.7,
       1,
     );
     expect(conDerrateo.tablero.barra!.inA).toBeGreaterThanOrEqual(base);
+  });
+
+  it('la barra incluye el 25% del motor mayor y la capacidad de la reserva', () => {
+    const iluminacion: Carga = {
+      id: 'i1', descripcion: 'Iluminación', tipo: 'iluminacion',
+      potenciaKw: 18, tensionV: 400, fases: '3F', factorServicio: 1,
+    };
+    const cargas: Carga[] = [motor('m1', 30), iluminacion];
+    const r = dimensionarCcm(cargas, 1, 'Schneider', 25);
+    const t = r.tablero;
+    const iMotor = r.asignaciones.find((a) => a.carga.tipo === 'motor')!;
+    const esperado = (t.corrienteTotalA + 0.25 * corrienteDiseno(iMotor.carga)) * 1.25;
+    expect(t.corrienteSeleccionBarraA).toBeCloseTo(esperado, 5);
+    expect(t.barra!.inA).toBeGreaterThanOrEqual(esperado);
   });
 
   it('incluye el compartimento de medida', () => {
