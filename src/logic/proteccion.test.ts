@@ -106,6 +106,41 @@ describe('sugerirProteccionFeeder — motor con arrancador (unidad solo magnéti
   });
 });
 
+describe('variante bipolar para cargas 1F', () => {
+  const ilum1F: Carga = {
+    id: 'l', descripcion: 'alumbrado 1F', tipo: 'iluminacion',
+    potenciaKw: 1.5, tensionV: 230, fases: '1F', factorServicio: 1,
+  };
+
+  it('carga 1F recibe la variante 2P (F+N) con nota de verificación', () => {
+    const p = sugerirProteccionFeeder(ilum1F, 'Schneider');
+    expect(p).toBeDefined();
+    expect(p!.polos).toBe(2);
+    expect(p!.referencia).toContain('2P 2D');
+    expect(p!.referencia).not.toContain('3P');
+    expect(p!.notas).toContain('1F');
+  });
+
+  it('carga 3F mantiene 3 polos', () => {
+    const p = sugerirProteccionFeeder(motor11kW, 'Schneider');
+    expect(p!.polos).toBe(3);
+  });
+
+  it('ABB 1F también deriva a 2P', () => {
+    const p = sugerirProteccionFeeder(ilum1F, 'ABB');
+    expect(p!.polos).toBe(2);
+    expect(p!.referencia).toContain('2P');
+  });
+
+  it('la variante 2P compone con la elevación de prestación por Icc', () => {
+    const p = sugerirProteccionFeeder(ilum1F, 'Schneider', 1, false, 45);
+    expect(p!.polos).toBe(2);
+    expect(p!.icuKA).toBe(50);
+    expect(p!.referencia).toContain('NSX100N');
+    expect(p!.referencia).toContain('2P 2D');
+  });
+});
+
 describe('elevación de prestación por Icc de barra (F→N→H / N→S→H)', () => {
   it('Icc dentro de la prestación base no cambia nada', () => {
     const p = sugerirProteccionFeeder(motor11kW, 'Schneider', 1, false, 30);

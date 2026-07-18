@@ -79,6 +79,26 @@ const PRESTACIONES_TMAX: readonly Prestacion[] = [
 ];
 
 /**
+ * Deriva la variante bipolar del interruptor para cargas monofásicas (fase +
+ * neutro). Los catálogos base son 3P; NSX y Tmax existen en 2P para los frames
+ * chicos — se marca nota para verificar disponibilidad del frame en 2P.
+ */
+function variante1F(p: Proteccion): Proteccion {
+  if (p.polos !== 3) return p;
+  const referencia = p.referencia.includes('3P 3D')
+    ? p.referencia.replace('3P 3D', '2P 2D')
+    : p.referencia.replace(/\b3P\b/, '2P');
+  return {
+    ...p,
+    polos: 2,
+    referencia,
+    placeholder: true,
+    notas: `${p.notas ? `${p.notas} ` : ''}Variante bipolar para carga 1F (F+N) — `
+      + 'verificar disponibilidad del frame en 2P.',
+  };
+}
+
+/**
  * Eleva la prestación del interruptor hasta cubrir `minIcuKA` (Icc de barra).
  * Si ni la prestación mayor alcanza, devuelve la mayor disponible — el caller
  * debe comparar icuKA contra la Icc y advertir. Sin escala conocida (p. ej.
@@ -146,9 +166,12 @@ export function sugerirProteccionFeeder(
   const p = pool
     .toSorted((a, b) => a.inA - b.inA)
     .find((x) => x.inA >= Imin);
-  // Icc de barra: si la prestación base no la cubre, se sube F→N→H (NSX) o
-  // N→S→H (Tmax). Si ni la mayor alcanza, el caller advierte (icuKA < Icc).
-  return p ? elevarPrestacion(p, minIcuKA) : undefined;
+  if (!p) return undefined;
+  // Carga 1F → variante bipolar (F+N); luego, si la Icc de barra supera la
+  // prestación base, se sube F→N→H (NSX) o N→S→H (Tmax). Si ni la mayor
+  // alcanza, el caller advierte (icuKA < Icc).
+  const conPolos = carga.fases === '1F' ? variante1F(p) : p;
+  return elevarPrestacion(conPolos, minIcuKA);
 }
 
 /** Compatibilidad: alimentador Schneider (NSX). */
