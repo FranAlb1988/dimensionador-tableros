@@ -12,7 +12,7 @@ import { ExportarPdfCcmNemaBoton } from '../components/ExportarPdfCcmNemaBoton';
 import { AsignacionesPanelMt } from '../components/AsignacionesPanelMt';
 import { VistaFrontalCcmMtSvg } from '../components/VistaFrontalCcmMtSvg';
 import { ResumenCcmMt } from '../components/ResumenCcmMt';
-import { useCcmCargas, useCcmIccBarra, useCcmMarca, useCcmNorma, useCcmStore } from '../store/ccm';
+import { useCcmCargas, useCcmIccBarra, useCcmInterruptorGeneral, useCcmMarca, useCcmNorma, useCcmStore } from '../store/ccm';
 import { dimensionarCcm } from '../logic/tablero';
 import { dimensionarCcmNema } from '../logic/ccm-nema';
 import { dimensionarCcmMt, UMBRAL_MT_V } from '../logic/ccm-mt';
@@ -31,6 +31,8 @@ export function CcmPage() {
   const norma = useCcmNorma();
   const marca = useCcmMarca();
   const iccBarraKa = useCcmIccBarra();
+  const interruptorGeneral = useCcmInterruptorGeneral();
+  const setInterruptorGeneral = useCcmStore((s) => s.setInterruptorGeneral);
   const setNorma = useCcmStore((s) => s.setNorma);
   const setMarca = useCcmStore((s) => s.setMarca);
   const setIccBarra = useCcmStore((s) => s.setIccBarra);
@@ -57,15 +59,15 @@ export function CcmPage() {
 
   const resultadoIec = useMemo(
     () => (norma === 'IEC' && !esMt
-      ? dimensionarCcm(cargas, factorDerrateo, marca, reservaPorcentaje, iccBarraKa)
+      ? dimensionarCcm(cargas, factorDerrateo, marca, reservaPorcentaje, iccBarraKa, interruptorGeneral)
       : null),
-    [cargas, norma, esMt, factorDerrateo, marca, reservaPorcentaje, iccBarraKa],
+    [cargas, norma, esMt, factorDerrateo, marca, reservaPorcentaje, iccBarraKa, interruptorGeneral],
   );
   const resultadoNema = useMemo(
     () => (norma === 'NEMA' && !esMt
-      ? dimensionarCcmNema(cargas, factorDerrateo, reservaPorcentaje, iccBarraKa)
+      ? dimensionarCcmNema(cargas, factorDerrateo, reservaPorcentaje, iccBarraKa, interruptorGeneral)
       : null),
-    [cargas, norma, factorDerrateo, esMt, reservaPorcentaje, iccBarraKa],
+    [cargas, norma, factorDerrateo, esMt, reservaPorcentaje, iccBarraKa, interruptorGeneral],
   );
   const resultadoMt = useMemo(
     () => (esMt ? dimensionarCcmMt(cargas, factorDerrateoMt, reservaPorcentaje) : null),
@@ -119,6 +121,20 @@ export function CcmPage() {
                 className="w-16 px-1.5 py-0.5 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 tabular-nums"
               />
               <span className="text-slate-500">kA</span>
+            </label>
+          )}
+          {!esMt && (
+            <label
+              className="inline-flex items-center gap-1.5 border border-slate-300 dark:border-slate-700 rounded px-2.5 py-1 text-sm font-medium cursor-pointer select-none"
+              title="Incluye un interruptor general (main breaker) en el incoming — medio de seccionamiento propio del tablero (RIC N°02). Desactivado: main lugs, protección aguas arriba en el CDC."
+            >
+              <input
+                type="checkbox"
+                checked={interruptorGeneral}
+                onChange={(e) => setInterruptorGeneral(e.target.checked)}
+                className="accent-slate-900 dark:accent-slate-100"
+              />
+              Int. general
             </label>
           )}
           {esMt ? (

@@ -1,4 +1,4 @@
-import type { AsignacionCarga, Carga, Gaveta, MarcaProteccion, Tablero, TipoTablero } from '../types';
+import type { AsignacionCarga, Carga, Gaveta, MarcaProteccion, Proteccion, Tablero, TipoTablero } from '../types';
 import {
   distribuirEnColumnas, necesitaColumnaIncoming, nuevaColumnaIncoming, resetContadorColumnas,
 } from './columna';
@@ -6,6 +6,8 @@ import { altoDeGaveta, asignarCargaCcm, COLUMNA_CATALOGO, resetContadorGavetas }
 import { MEDIDA_CCM_DEFAULT } from './medida-ccm';
 import { corrienteDiseno } from './corriente';
 import { sugerirBarra } from './barra';
+import { elevarPrestacion } from './proteccion';
+import { sugerirInterruptorPrincipal } from './principal';
 import { MAX_BARRA_CCM_A } from './limites-barra';
 import { calcularReservas } from './reserva';
 import { tamanoEnX } from '../util/x-blokset';
@@ -29,12 +31,31 @@ export interface ResultadoCcm {
  *
  * Resetea contadores internos para resultados deterministas.
  */
+/**
+ * Interruptor general del CCM: menor In que cubra la corriente, con la
+ * prestación elevada (F→N→H) hasta la Icc de barra. Si ni así alcanza, se
+ * intenta un equipo de Icu mayor (Masterpact); si tampoco, se devuelve el
+ * mejor disponible y el caller advierte.
+ */
+function principalCcm(
+  corrienteA: number,
+  marca: MarcaProteccion,
+  iccBarraKa: number,
+): Proteccion | undefined {
+  const base = sugerirInterruptorPrincipal(corrienteA, marca);
+  if (!base) return undefined;
+  const elevado = elevarPrestacion(base, iccBarraKa);
+  if (!(iccBarraKa > 0) || elevado.icuKA >= iccBarraKa) return elevado;
+  return sugerirInterruptorPrincipal(corrienteA, marca, iccBarraKa) ?? elevado;
+}
+
 export function dimensionarCcm(
   cargas: readonly Carga[],
   factorDerrateo = 1,
   marca: MarcaProteccion = 'Schneider',
   reservaPorcentaje = 0,
   iccBarraKa = 0,
+  conInterruptorGeneral = false,
 ): ResultadoCcm {
   resetContadorGavetas();
   resetContadorColumnas();
@@ -77,12 +98,24 @@ export function dimensionarCcm(
   // Barra principal por la FLC total, seleccionada contra FLC / F.
   const corrienteTotalA = asignaciones.reduce((s, a) => s + corrienteDiseno(a.carga), 0);
   const corrienteSeleccionBarraA = corrienteTotalA / f;
-  // CCM: la barra principal se topa en 3200 A. Para corrientes mayores el
-  // tablero corresponde a un CDC.
-  const barra = sugerirBarra(corrienteSeleccionBarraA, MAX_BARRA_CCM_A);
 
-  // Incoming/acometida dedicada cuando hay ≥4 gavetas o I ≥ 250 A.
-  const columnas = necesitaColumnaIncoming(asignaciones.length, corrienteTotalA)
+  // Interruptor general opcional (main breaker — RIC N°02, medio de
+  // seccionamiento). Sin él, el CCM es main lugs protegido aguas arriba.
+  const principal = conInterruptorGeneral
+    ? principalCcm(corrienteSeleccionBarraA, marca, iccBarraKa)
+    : undefined;
+
+  // CCM: la barra principal se topa en 3200 A. Para corrientes mayores el
+  // tablero corresponde a un CDC. Con interruptor general, la barra debe
+  // transportar al menos su In (deja pasar hasta su In sin disparar).
+  const barra = sugerirBarra(
+    Math.max(corrienteSeleccionBarraA, principal?.inA ?? 0),
+    MAX_BARRA_CCM_A,
+  );
+
+  // Incoming/acometida dedicada cuando hay ≥4 gavetas, I ≥ 250 A o hay
+  // interruptor general (necesita el compartimento de entrada).
+  const columnas = necesitaColumnaIncoming(asignaciones.length, corrienteTotalA) || principal != null
     ? [nuevaColumnaIncoming(), ...columnasFeeders]
     : columnasFeeders;
 
@@ -96,6 +129,7 @@ export function dimensionarCcm(
     factorDerrateoAltura: f,
     corrienteSeleccionBarraA,
     ...(iccBarraKa > 0 ? { iccBarraKa } : {}),
+    ...(principal ? { principal } : {}),
     barra,
     altoTotalMm: COLUMNA_CATALOGO.altoTotalMm,
     anchoTotalMm: columnas.length * COLUMNA_CATALOGO.anchoMm,
@@ -106,10 +140,16 @@ export function dimensionarCcm(
   // (F→N→H); si aun así el Icu queda bajo la Icc declarada, se advierte
   // (IEC 61439-2 / RIC N°02 — filiación o limitación aguas arriba).
   const advertenciasIcu = iccBarraKa > 0
-    ? asignaciones
-        .filter((a) => a.proteccion.icuKA < iccBarraKa)
-        .map((a) => `${a.carga.descripcion || a.carga.id}: ${a.proteccion.referencia} `
-          + `(Icu ${a.proteccion.icuKA} kA) < Icc de barra ${iccBarraKa.toFixed(1)} kA`)
+    ? [
+        ...(principal && principal.icuKA < iccBarraKa
+          ? [`Interruptor general: ${principal.referencia} (Icu ${principal.icuKA} kA) `
+            + `< Icc de barra ${iccBarraKa.toFixed(1)} kA`]
+          : []),
+        ...asignaciones
+          .filter((a) => a.proteccion.icuKA < iccBarraKa)
+          .map((a) => `${a.carga.descripcion || a.carga.id}: ${a.proteccion.referencia} `
+            + `(Icu ${a.proteccion.icuKA} kA) < Icc de barra ${iccBarraKa.toFixed(1)} kA`),
+      ]
     : [];
 
   return {

@@ -240,14 +240,18 @@ export const VistaFrontalSvg = forwardRef<SVGSVGElement, Props>(function VistaFr
                       textAnchor="middle" fontSize={26} fill="#475569"
                       fontFamily="system-ui, sans-serif"
                     >
-                      Entrada de cables · lugs
+                      {tablero.principal
+                        ? `INTERRUPTOR GENERAL · ${tablero.principal.referencia}`
+                        : 'Entrada de cables · lugs'}
                     </text>
                     <text
                       x={x0 + anchoCol / 2} y={yLibreTop + 122}
                       textAnchor="middle" fontSize={26} fill="#64748b"
                       fontFamily="system-ui, sans-serif"
                     >
-                      Conexión a barras · SPD
+                      {tablero.principal
+                        ? `In ${tablero.principal.inA} A · Icu ${tablero.principal.icuKA} kA · SPD`
+                        : 'Conexión a barras · SPD'}
                     </text>
                   </g>
                 );

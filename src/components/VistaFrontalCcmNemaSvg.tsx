@@ -199,14 +199,18 @@ export const VistaFrontalCcmNemaSvg = forwardRef<SVGSVGElement, Props>(function 
                       textAnchor="middle" fontSize={28} fill="#475569"
                       fontFamily="system-ui, sans-serif"
                     >
-                      Entrada de cables · lugs
+                      {tablero.principal
+                        ? `INTERRUPTOR GENERAL · ${tablero.principal.frameAF}AF · ${tablero.principal.rating}`
+                        : 'Entrada de cables · lugs'}
                     </text>
                     <text
                       x={x0 + anchoCol / 2} y={yLibreTop + 128}
                       textAnchor="middle" fontSize={28} fill="#64748b"
                       fontFamily="system-ui, sans-serif"
                     >
-                      Conexión a barras · SPD
+                      {tablero.principal
+                        ? `In ${tablero.principal.ratingA} A · SPD`
+                        : 'Conexión a barras · SPD'}
                     </text>
                   </g>
                 );

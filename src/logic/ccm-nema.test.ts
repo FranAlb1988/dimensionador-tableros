@@ -246,6 +246,19 @@ describe('dimensionarCcmNema', () => {
     expect(a.notas).toContain('YD');
   });
 
+  it('interruptor general opcional NEMA: main de la tabla de switchgear e incoming forzado', () => {
+    const cargas = [motor('1', 30)];
+    const lugs = dimensionarCcmNema(cargas);
+    expect(lugs.tablero!.principal).toBeUndefined();
+    expect(lugs.tablero!.columnas[0]!.esIncoming).toBeFalsy();
+
+    const conIg = dimensionarCcmNema(cargas, 1, 0, 0, true);
+    const t = conIg.tablero!;
+    expect(t.principal).toBeDefined();
+    expect(t.principal!.ratingA).toBeGreaterThanOrEqual(t.corrienteSeleccionBarraA);
+    expect(t.columnas[0]!.esIncoming).toBe(true);
+  });
+
   it('la Icc de barra advierte los breakers de alimentador con Icu mínimo insuficiente', () => {
     // Breakers NEMA declaran Icu mín. 65 kA: con Icc 80 se advierte; con 50 no.
     const cargas = [motor('1', 30), alimentador('2', 18)];

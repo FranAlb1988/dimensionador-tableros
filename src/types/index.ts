@@ -238,6 +238,11 @@ export interface Tablero {
    * seleccionaron con prestación (F/N/H) suficiente para cubrirla.
    */
   iccBarraKa?: number;
+  /**
+   * Interruptor general del CCM (opción main breaker; RIC N°02 — medio de
+   * seccionamiento). undefined = main lugs (protección aguas arriba).
+   */
+  principal?: Proteccion;
   /** Barra principal sugerida (undefined si la corriente excede el catálogo). */
   barra?: Barra;
   /** Dimensiones totales en mm. */
@@ -359,6 +364,11 @@ export interface TableroCcmNema {
   factorDerrateoAltura: number;
   /** Corriente con que se seleccionó la barra: corrienteTotalA / F2. */
   corrienteSeleccionBarraA: number;
+  /**
+   * Interruptor general del CCM (opción main breaker; tabla de mains del
+   * switchgear BT). undefined = main lugs.
+   */
+  principal?: SwitchgearBtMainNema;
   barra: BarraNemaCatalogo;
   altoTotalMm: number;
   anchoTotalMm: number;

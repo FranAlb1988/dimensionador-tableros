@@ -33,6 +33,12 @@ export interface CcmTablero {
    * o del trafo/CDC aguas arriba. Define la prestación (F/N/H) del aparellaje.
    */
   iccBarraKa?: number;
+  /**
+   * Interruptor general en el incoming (main breaker). false/undefined =
+   * main lugs — el CCM se protege aguas arriba (RIC N°02: el medio de
+   * seccionamiento queda en el CDC).
+   */
+  interruptorGeneral?: boolean;
   cargas: Carga[];
 }
 
@@ -53,6 +59,7 @@ interface CcmState {
   setNorma: (n: Norma) => void;
   setMarca: (m: MarcaProteccion) => void;
   setIccBarra: (kA: number | undefined) => void;
+  setInterruptorGeneral: (v: boolean) => void;
   agregar: () => void;
   duplicar: (cargaId: string) => void;
   eliminar: (cargaId: string) => void;
@@ -115,6 +122,7 @@ export const useCcmStore = create<CcmState>()(
             nuevo.norma = orig.norma;
             nuevo.marca = orig.marca;
             nuevo.iccBarraKa = orig.iccBarraKa;
+            nuevo.interruptorGeneral = orig.interruptorGeneral;
             nuevo.cargas = orig.cargas.map((c) => ({ ...c, id: nuevoId('c') }));
             return { tableros: [...s.tableros, nuevo], activoId: nuevo.id };
           });
@@ -159,6 +167,9 @@ export const useCcmStore = create<CcmState>()(
         setIccBarra: (kA) => set((s) => modificarActivo(s, (t) => ({
           ...t,
           iccBarraKa: kA != null && Number.isFinite(kA) && kA > 0 ? kA : undefined,
+        }))),
+        setInterruptorGeneral: (v) => set((s) => modificarActivo(s, (t) => ({
+          ...t, interruptorGeneral: v || undefined,
         }))),
         agregar: () => set((s) => modificarActivo(s, (t) => ({
           ...t, cargas: [...t.cargas, cargaPorDefecto()],
@@ -226,6 +237,10 @@ export const useCcmMarca = (): MarcaProteccion =>
 /** Icc de barra del tablero activo en kA (0 = no declarada). */
 export const useCcmIccBarra = (): number =>
   useCcmStore((s) => s.tableros.find((t) => t.id === s.activoId)?.iccBarraKa ?? 0);
+
+/** Si el tablero activo lleva interruptor general (main breaker). */
+export const useCcmInterruptorGeneral = (): boolean =>
+  useCcmStore((s) => s.tableros.find((t) => t.id === s.activoId)?.interruptorGeneral ?? false);
 
 export const TIPOS_CARGA: readonly TipoCarga[] = ['motor', 'resistivo', 'iluminacion', 'tomas', 'otro'];
 export const FASES: readonly Fases[] = ['1F', '3F'];

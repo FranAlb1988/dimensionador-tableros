@@ -119,6 +119,37 @@ describe('dimensionarCcm', () => {
     expect(nm.proteccion.curva).toBe('TM-D');
   });
 
+  it('interruptor general opcional: main breaker con barra e incoming coordinados', () => {
+    const cargas = [motor('m1', 30), motor('m2', 22)];
+    // Sin interruptor general (default): main lugs, sin principal.
+    const lugs = dimensionarCcm(cargas);
+    expect(lugs.tablero.principal).toBeUndefined();
+
+    // Con interruptor general: principal con In ≥ FLC, barra ≥ In del
+    // principal e incoming forzado aunque no se alcancen los umbrales.
+    const conIg = dimensionarCcm(cargas, 1, 'Schneider', 0, 0, true);
+    const t = conIg.tablero;
+    expect(t.principal).toBeDefined();
+    expect(t.principal!.inA).toBeGreaterThanOrEqual(t.corrienteTotalA);
+    expect(t.barra!.inA).toBeGreaterThanOrEqual(t.principal!.inA);
+    expect(t.columnas[0]!.esIncoming).toBe(true);
+  });
+
+  it('el interruptor general eleva prestación por Icc y advierte si no alcanza', () => {
+    const cargas = [motor('m1', 30)];
+    // Icc 45 → NSX del principal elevado a N (50 kA), sin advertencia.
+    const r45 = dimensionarCcm(cargas, 1, 'Schneider', 0, 45, true);
+    expect(r45.tablero.principal!.icuKA).toBeGreaterThanOrEqual(45);
+    expect(r45.advertenciasIcu ?? []).toHaveLength(0);
+    // Icc 85 → ni H (70) ni Masterpact NT alcanzan para este In chico → NW o
+    // advertencia del interruptor general incluida.
+    const r85 = dimensionarCcm(cargas, 1, 'Schneider', 0, 85, true);
+    const p = r85.tablero.principal!;
+    if (p.icuKA < 85) {
+      expect(r85.advertenciasIcu!.some((a) => a.includes('Interruptor general'))).toBe(true);
+    }
+  });
+
   it('marca ABB usa interruptores Tmax en las gavetas', () => {
     const r = dimensionarCcm([motor('m1', 15)], 1, 'ABB');
     const a = r.asignaciones[0]!;

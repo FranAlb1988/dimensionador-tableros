@@ -2,6 +2,7 @@ import motoresData from '../data/nema/motores.json';
 import breakersFdrData from '../data/nema/breakers-fdr.json';
 import breakersElectronicData from '../data/nema/breakers-electronic.json';
 import barrasData from '../data/nema/barras.json';
+import mainsData from '../data/nema/switchgear-bt-mains.json';
 import envolventeData from '../data/nema/envolvente-ccm.json';
 import type {
   AsignacionCcmNema,
@@ -13,6 +14,7 @@ import type {
   ColumnaCcmNema,
   EnvolventeCcmNemaCatalogo,
   MotorNemaCatalogo,
+  SwitchgearBtMainNema,
   TableroCcmNema,
   TipoArranque,
 } from '../types';
@@ -34,6 +36,8 @@ const ELEC_RATINGS: readonly BreakerNemaRating[] = (breakersElectronicData.ratin
   .toSorted((a, b) => (a.settingA ?? 0) - (b.settingA ?? 0));
 const BARRAS: readonly BarraNemaCatalogo[] = (barrasData.barras as BarraNemaCatalogo[])
   .toSorted((a, b) => a.capacidadA - b.capacidadA);
+const MAINS: readonly SwitchgearBtMainNema[] = (mainsData.mains as SwitchgearBtMainNema[])
+  .toSorted((a, b) => a.flcMin - b.flcMin);
 export const ENVOLVENTE_CCM_NEMA: EnvolventeCcmNemaCatalogo = envolventeData as EnvolventeCcmNemaCatalogo;
 
 const UMBRAL_ELECTRONIC_AF = 400;
@@ -77,6 +81,7 @@ export function dimensionarCcmNema(
   factorDerrateo = 1,
   reservaPorcentaje = 0,
   iccBarraKa = 0,
+  conInterruptorGeneral = false,
 ): ResultadoCcmNema {
   const f = factorDerrateo > 0 ? factorDerrateo : 1;
   const asignaciones: AsignacionCcmNema[] = [];
@@ -122,21 +127,30 @@ export function dimensionarCcmNema(
 
   const columnasFeeders = empaquetarEnColumnas(asignacionesConReserva, ENVOLVENTE_CCM_NEMA.altoUtilXEspacios);
   const corrienteTotalA = asignaciones.reduce((s, a) => s + a.corrienteDisenoA, 0);
-  // Incoming/acometida dedicada cuando hay ≥4 gavetas o I ≥ 250 A.
-  const columnas: ColumnaCcmNema[] = necesitaColumnaIncoming(asignaciones.length, corrienteTotalA)
-    ? [
-        {
-          indice: 1,
-          altoUtilXEspacios: ENVOLVENTE_CCM_NEMA.altoUtilXEspacios,
-          asignaciones: [],
-          espaciosUsados: 0,
-          espaciosLibres: ENVOLVENTE_CCM_NEMA.altoUtilXEspacios,
-          esIncoming: true,
-        },
-        ...columnasFeeders.map((c, i) => ({ ...c, indice: i + 2 })),
-      ]
-    : columnasFeeders;
   const corrienteSeleccionBarraA = corrienteTotalA / f;
+
+  // Interruptor general opcional (main breaker de la tabla de mains del
+  // switchgear BT). Sin él, el CCM es main lugs protegido aguas arriba.
+  const principal = conInterruptorGeneral
+    ? MAINS.find((m) => corrienteSeleccionBarraA <= m.flcMax)
+    : undefined;
+
+  // Incoming/acometida dedicada cuando hay ≥4 gavetas, I ≥ 250 A o hay
+  // interruptor general (necesita el compartimento de entrada).
+  const columnas: ColumnaCcmNema[] =
+    necesitaColumnaIncoming(asignaciones.length, corrienteTotalA) || principal != null
+      ? [
+          {
+            indice: 1,
+            altoUtilXEspacios: ENVOLVENTE_CCM_NEMA.altoUtilXEspacios,
+            asignaciones: [],
+            espaciosUsados: 0,
+            espaciosLibres: ENVOLVENTE_CCM_NEMA.altoUtilXEspacios,
+            esIncoming: true,
+          },
+          ...columnasFeeders.map((c, i) => ({ ...c, indice: i + 2 })),
+        ]
+      : columnasFeeders;
   const barra = sugerirBarraNema(corrienteSeleccionBarraA);
   if (!barra) {
     const maxFlcA = Math.max(...BARRAS.map((b) => b.flcMax));
@@ -160,6 +174,7 @@ export function dimensionarCcmNema(
     medida: MEDIDA_CCM_DEFAULT,
     factorDerrateoAltura: f,
     corrienteSeleccionBarraA,
+    ...(principal ? { principal } : {}),
     barra,
     altoTotalMm: ENVOLVENTE_CCM_NEMA.altoTotalMm,
     anchoTotalMm: columnas.length * ENVOLVENTE_CCM_NEMA.anchoColumnaMm,
