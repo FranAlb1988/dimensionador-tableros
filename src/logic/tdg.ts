@@ -1,7 +1,7 @@
 import prismaData from '../data/iec/prisma.json';
-import type { Carga, EnvolventePrismaCatalogo, MarcaProteccion, SalidaAsignada, TableroTdg } from '../types';
+import type { Carga, EnvolventePrismaCatalogo, MarcaProteccion, Proteccion, SalidaAsignada, TableroTdg } from '../types';
 import { corrienteDiseno } from './corriente';
-import { sugerirProteccionFeeder } from './proteccion';
+import { elevarPrestacion, sugerirProteccionFeeder } from './proteccion';
 import { sugerirInterruptorPrincipal } from './principal';
 import { sugerirBarra } from './barra';
 import { MAX_BARRA_CDC_A } from './limites-barra';
@@ -26,6 +26,28 @@ export interface ResultadoTdg {
 
 const FACTOR_SIMULTANEIDAD_MIN = 0.1;
 const FACTOR_SIMULTANEIDAD_MAX = 1;
+
+/**
+ * Protección de una salida del CDC. Hasta 630 A: MCCB del catálogo de
+ * alimentadores (NSX/Tmax, margen 1.25). Sobre eso, la salida pasa a un ACB
+ * del pool del principal (Masterpact/Emax/NA1) con el mismo margen — antes
+ * caía a "sin asignar" con un mensaje engañoso.
+ */
+function proteccionSalidaCdc(
+  c: Carga,
+  marca: MarcaProteccion,
+  f: number,
+): Proteccion | undefined {
+  const mccb = sugerirProteccionFeeder(c, marca, f);
+  if (mccb) return mccb;
+  const I = corrienteDiseno(c);
+  const frameForzado = c.corrienteProteccionA && c.corrienteProteccionA > 0
+    ? c.corrienteProteccionA
+    : 0;
+  if (I <= 0 && frameForzado <= 0) return undefined;
+  const Imin = Math.max((I * 1.25) / f, frameForzado);
+  return sugerirInterruptorPrincipal(Imin, marca);
+}
 
 /**
  * Datos del transformador que alimentaría el CDC con esta configuración y
@@ -74,7 +96,7 @@ export function dimensionarTdg(
   const cargasSinAsignar: Carga[] = [];
 
   for (const c of cargas) {
-    const proteccion = sugerirProteccionFeeder(c, marca, f);
+    const proteccion = proteccionSalidaCdc(c, marca, f);
     const corrienteDisenoA = corrienteDiseno(c);
     if (!proteccion || corrienteDisenoA <= 0) {
       cargasSinAsignar.push(c);
@@ -102,6 +124,15 @@ export function dimensionarTdg(
   const datos = trafo ? datosTrafo(trafo, corrienteTotalA) : undefined;
   const trafoInSecundarioA = datos?.inSecundarioA;
   const iccBarraKa = datos?.iccKa;
+  // Segunda pasada sobre las salidas: la Icc del trafo (que depende de la
+  // carga total, por eso no puede aplicarse al asignar) eleva la prestación
+  // F→N→H de los MCCB. No cambia In ni márgenes, solo Icu y referencia; las
+  // salidas que ni así alcanzan quedan en las advertencias de más abajo.
+  if (iccBarraKa != null && iccBarraKa > 0) {
+    for (const s of salidasAsignadas) {
+      s.proteccion = elevarPrestacion(s.proteccion, iccBarraKa);
+    }
+  }
   // El derrateo por altura reduce la capacidad útil del equipo: la selección
   // se hace contra la exigencia (carga o trafo, la mayor) dividida por F2.
   const corrienteSeleccionA = Math.max(corrienteTotalA, trafoInSecundarioA ?? 0) / f;

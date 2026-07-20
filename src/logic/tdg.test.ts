@@ -109,19 +109,31 @@ describe('dimensionarTdg', () => {
     expect(t.barra.inA).toBeGreaterThanOrEqual(t.trafoInSecundarioA!);
   });
 
-  it('la Icc de barra del trafo filtra el Icu del principal y advierte sobre las salidas', () => {
+  it('la Icc de barra del trafo filtra el Icu del principal y eleva las salidas (F→N)', () => {
     // 4 × 250 kW @ 400 V, fs 0.8 → I total ≈ 1364 A → trafo 1250 kVA (Ucc 5%)
-    // → In sec ≈ 1804 A, Icc ≈ 36.1 kA. El principal debe tener Icu ≥ 36.1
-    // (NW, 65 kA — el NT de 42 kA cumple pero no llega a 1804 A) y las salidas
-    // NSX F (36 kA) quedan bajo la Icc → 4 advertencias.
+    // → In sec ≈ 1804 A, Icc ≈ 36.1 kA. El principal debe tener Icu ≥ 36.1 y
+    // las salidas NSX F (36 kA) se elevan a N (50 kA) — sin advertencias.
     const cargas = [salida3F('1', 250), salida3F('2', 250), salida3F('3', 250), salida3F('4', 250)];
     const r = dimensionarTdg(cargas, 0.8, 'Schneider', CONFIG_TRAFO_DEFAULT);
     const t = r.tablero!;
     expect(t.iccBarraKa).toBeCloseTo(36.1, 0);
     expect(t.principal.icuKA).toBeGreaterThanOrEqual(t.iccBarraKa!);
+    for (const s of r.salidasAsignadas) {
+      expect(s.proteccion.referencia).toContain('NSX630N');
+      expect(s.proteccion.icuKA).toBe(50);
+    }
+    expect(r.advertenciasIcu).toBeUndefined();
+  });
+
+  it('cuando ni la prestación H alcanza, las salidas quedan en las advertencias', () => {
+    // 9 × 300 kW → trafo 4000 kVA (Ucc 7%) → Icc ≈ 82.5 kA: salidas elevadas
+    // a H (70 kA) siguen bajo la Icc → 9 advertencias.
+    const cargas = Array.from({ length: 9 }, (_, i) => salida3F(String(i + 1), 300));
+    const r = dimensionarTdg(cargas, 1, 'Schneider', CONFIG_TRAFO_DEFAULT);
+    expect(r.tablero!.iccBarraKa).toBeGreaterThan(70);
     expect(r.advertenciasIcu).toBeDefined();
-    expect(r.advertenciasIcu).toHaveLength(4);
-    expect(r.advertenciasIcu![0]).toContain('Icu 36 kA');
+    expect(r.advertenciasIcu).toHaveLength(9);
+    expect(r.advertenciasIcu![0]).toContain('Icu 70 kA');
   });
 
   it('sin superar el Icu de las salidas no hay advertencias', () => {
@@ -137,6 +149,28 @@ describe('dimensionarTdg', () => {
     expect(r.tablero!.iccBarraKa).toBeUndefined();
     expect(r.advertenciasIcu).toBeUndefined();
     expect(r.tablero!.principal.inA).toBeGreaterThanOrEqual(r.tablero!.corrienteTotalA);
+  });
+
+  it('salidas > 630 A caen a un ACB del pool del principal (antes: sin asignar)', () => {
+    // 400 kW @ 400 V ≈ 641.7 A × 1.25 = 802 → sobre el NSX630: Masterpact
+    // NT10 (1000 A). Y una salida chica sigue en MCCB.
+    const r = dimensionarTdg([salida3F('1', 400), salida3F('2', 50)], 1);
+    expect(r.cargasSinAsignar).toHaveLength(0);
+    const grande = r.salidasAsignadas.find((s) => s.carga.id === '1')!;
+    const chica = r.salidasAsignadas.find((s) => s.carga.id === '2')!;
+    expect(grande.proteccion.familia.startsWith('Masterpact')).toBe(true);
+    expect(grande.proteccion.inA).toBeGreaterThanOrEqual(802);
+    expect(chica.proteccion.familia.startsWith('NSX')).toBe(true);
+  });
+
+  it('una salida imposible (> 6300 A de catálogo) queda sin asignar', () => {
+    const gigante: Carga = {
+      id: 'x', descripcion: 'x', tipo: 'otro',
+      corrienteA: 8000, tensionV: 400, fases: '3F', factorServicio: 1,
+    };
+    const r = dimensionarTdg([gigante, salida3F('2', 50)], 1);
+    expect(r.cargasSinAsignar).toHaveLength(1);
+    expect(r.cargasSinAsignar[0]!.id).toBe('x');
   });
 
   it('CDC grande (4000–6000 A) dimensiona con Masterpact b y barra al tope', () => {

@@ -224,7 +224,11 @@ export function TdgPage() {
             <div className="font-medium text-amber-800 dark:text-amber-200">Salidas sin asignar</div>
             <ul className="mt-1 list-disc list-inside text-amber-900 dark:text-amber-100">
               {(norma === 'IEC' ? resultadoIec?.cargasSinAsignar : resultadoNema?.cargasSinAsignar)?.map((c) => (
-                <li key={c.id}>{c.descripcion || c.id} — verifica potencia/corriente.</li>
+                <li key={c.id}>
+                  {c.descripcion || c.id} — datos incompletos, o su corriente excede el
+                  catálogo de salidas ({norma === 'IEC' ? 'ACB hasta 6.300 A' : 'electrónico hasta 2.500 A'});
+                  en ese caso divide la carga o modela un tablero dedicado.
+                </li>
               ))}
             </ul>
           </div>
