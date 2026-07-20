@@ -119,8 +119,13 @@ export function dimensionarTdg(
   // del interruptor principal — el breaker deja pasar hasta su In sin
   // disparar, y una barra menor quedaría sobrecargable (IEC 61439-1).
   // CDC: la barra principal puede llegar hasta 6000 A (alimenta CCMs y CDCs
-  // aguas abajo).
-  const corrienteBarraA = Math.max(corrienteSeleccionA, principal.inA);
+  // aguas abajo). El piso del principal se topa en ese máximo: los ACB
+  // grandes (p. ej. NW63, 6300 A) llevan Ir ajustable que se fija <= a la
+  // capacidad de la barra.
+  const corrienteBarraA = Math.max(
+    corrienteSeleccionA,
+    Math.min(principal.inA, MAX_BARRA_CDC_A),
+  );
   const barra = sugerirBarra(corrienteBarraA, MAX_BARRA_CDC_A);
   if (!barra) {
     return {

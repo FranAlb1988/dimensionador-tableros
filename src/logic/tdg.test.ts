@@ -139,6 +139,25 @@ describe('dimensionarTdg', () => {
     expect(r.tablero!.principal.inA).toBeGreaterThanOrEqual(r.tablero!.corrienteTotalA);
   });
 
+  it('CDC grande (4000–6000 A) dimensiona con Masterpact b y barra al tope', () => {
+    // 12 × 300 kW @ 400 V (I ≈ 481.3 c/u, Σ ≈ 5776 A, fs 1) → antes:
+    // "sin interruptor principal Schneider". Ahora: NW63 (6300 A) con la
+    // barra en el tope CDC (6000 A, Ir del ACB ajustado a la barra).
+    const cargas = Array.from({ length: 12 }, (_, i) => salida3F(String(i + 1), 300));
+    const r = dimensionarTdg(cargas, 1);
+    expect(r.tablero).toBeDefined();
+    const t = r.tablero!;
+    expect(t.principal.referencia).toContain('NW63');
+    expect(t.barra.inA).toBe(6000);
+
+    // 10 × 300 kW ≈ 4813 A → NW50b (5000) con barra 2×(200×10) de 5000 A.
+    const r10 = dimensionarTdg(
+      Array.from({ length: 10 }, (_, i) => salida3F(String(i + 1), 300)), 1,
+    );
+    expect(r10.tablero!.principal.referencia).toContain('NW50b');
+    expect(r10.tablero!.barra.inA).toBe(5000);
+  });
+
   it('la barra nunca queda bajo el In del principal', () => {
     // 2 × 150 kW @ 400 V (I ≈ 240.6 c/u, Σ = 481.3, fs 1) → principal NSX630.
     // Antes la barra se elegía solo por la corriente (Cu 50×5, 500 A < 630 A

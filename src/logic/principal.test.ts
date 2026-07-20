@@ -75,6 +75,25 @@ describe('sugerirInterruptorPrincipal', () => {
     expect(sugerirInterruptorPrincipal(7000, 'Chint')).toBeUndefined();
   });
 
+  it('Schneider cubre 4000–6300 A con los frames b (NW50b / NW63)', () => {
+    const p45 = sugerirInterruptorPrincipal(4500);
+    expect(p45).toBeDefined();
+    expect(p45!.referencia).toContain('NW50b');
+    expect(p45!.inA).toBe(5000);
+    const p55 = sugerirInterruptorPrincipal(5500);
+    expect(p55!.referencia).toContain('NW63');
+    expect(p55!.inA).toBe(6300);
+    expect(sugerirInterruptorPrincipal(7000)).toBeUndefined();
+  });
+
+  it('los frames b aportan Icu 100 kA cuando el filtro lo exige', () => {
+    // 3800 A con Icu >= 80: NW40 (65 kA) no alcanza → NW40b (100 kA).
+    const p = sugerirInterruptorPrincipal(3800, 'Schneider', 80);
+    expect(p).toBeDefined();
+    expect(p!.referencia).toContain('NW40b');
+    expect(p!.icuKA).toBe(100);
+  });
+
   it('expone las tres marcas disponibles', () => {
     expect(MARCAS_PRINCIPAL).toEqual(['Schneider', 'ABB', 'Chint']);
   });
