@@ -53,8 +53,20 @@ export function MenuProyecto() {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      await cargarDesdeArchivo(file);
-      setMensaje({ tipo: 'ok', texto: `Cargado: ${file.name}` });
+      const avisos = await cargarDesdeArchivo(file);
+      if (avisos.length > 0) {
+        // El archivo se cargó, pero traía valores que hubo que reparar. Se
+        // avisa en vez de dejar que se propaguen como NaN a los cálculos.
+        console.warn('[Abrir proyecto] contenido reparado:', avisos);
+        const detalle = avisos.slice(0, 3).join(' ');
+        const resto = avisos.length > 3 ? ` (+${avisos.length - 3} más, ver consola)` : '';
+        setMensaje({
+          tipo: 'error',
+          texto: `Cargado con ${avisos.length} corrección(es): ${detalle}${resto}`,
+        });
+      } else {
+        setMensaje({ tipo: 'ok', texto: `Cargado: ${file.name}` });
+      }
     } catch (err) {
       setMensaje({
         tipo: 'error',

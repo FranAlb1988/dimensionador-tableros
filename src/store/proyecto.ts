@@ -7,6 +7,7 @@ import { useCcmStore, type CcmTablero } from './ccm';
 import { useTdgStore, type SubtipoTdg, type TdgTablero } from './tdg';
 import { useCdcStore, type CdcTablero, type SubtipoCdc } from './cdc';
 import { useAuxiliaresStore } from './auxiliares';
+import { sanearCargas } from './sanear';
 import {
   DERRATEO_DEFAULT,
   METADATOS_VACIOS,
@@ -56,13 +57,18 @@ export function capturarProyecto(): ProyectoSerializado {
   };
 }
 
-export function aplicarProyecto(data: unknown): void {
+/**
+ * Aplica un proyecto ya leído. Devuelve los avisos de contenido reparado
+ * (array vacío si el archivo venía limpio).
+ */
+export function aplicarProyecto(data: unknown): string[] {
   const p = validar(data);
   useMetaStore.setState({ metadatos: p.metadatos, derrateo: p.derrateo });
   useCcmStore.setState({ tableros: p.ccm.tableros, activoId: p.ccm.activoId });
   useTdgStore.setState({ tableros: p.tdg.tableros, activoId: p.tdg.activoId });
   useCdcStore.setState({ tableros: p.cdc.tableros, activoId: p.cdc.activoId });
   useAuxiliaresStore.setState({ equipos: p.auxiliares.equipos });
+  return avisosUltimaCarga;
 }
 
 export function nuevoProyecto(): void {
@@ -91,10 +97,11 @@ export function descargarProyecto(nombre: string = nombreArchivoPorDefecto()): v
   URL.revokeObjectURL(url);
 }
 
-export async function cargarDesdeArchivo(file: File): Promise<void> {
+/** Devuelve los avisos de contenido reparado (vacío si el archivo venía bien). */
+export async function cargarDesdeArchivo(file: File): Promise<string[]> {
   const txt = await file.text();
   const data = JSON.parse(txt);
-  aplicarProyecto(data);
+  return aplicarProyecto(data);
 }
 
 function nombreArchivoPorDefecto(): string {
@@ -128,7 +135,28 @@ interface ProyectoV3Like {
   auxiliares?: { equipos?: EquipoAuxiliar[] };
 }
 
+/** Avisos del último validar(): contenido reparado al abrir el archivo. */
+let avisosUltimaCarga: string[] = [];
+
+/**
+ * Aplica sanearCargas() a cada tablero y acumula los avisos en
+ * `avisosUltimaCarga`. Devuelve los tableros con las cargas ya saneadas.
+ */
+function sanearTableros<T extends { nombre?: string }>(
+  tableros: T[],
+  clave: 'cargas' | 'salidas',
+  contexto: string,
+): T[] {
+  return tableros.map((t, i) => {
+    const nombre = t.nombre ?? `${contexto} ${i + 1}`;
+    const r = sanearCargas((t as Record<string, unknown>)[clave], `${contexto} "${nombre}"`);
+    avisosUltimaCarga.push(...r.avisos);
+    return { ...t, [clave]: r.valor };
+  });
+}
+
 function validar(data: unknown): ProyectoSerializado {
+  avisosUltimaCarga = [];
   if (!data || typeof data !== 'object') throw new Error('Archivo inválido: no es un objeto JSON.');
   const d = data as ProyectoV1Like & ProyectoV3Like;
   if (d.app !== META_APP) {
@@ -170,9 +198,18 @@ function validar(data: unknown): ProyectoSerializado {
       exportadoEn: d.exportadoEn ?? new Date().toISOString(),
       metadatos,
       derrateo,
-      ccm: { tableros: ccmTableros, activoId: d.ccm?.activoId ?? ccmTableros[0]!.id },
-      tdg: { tableros: tdgTableros, activoId: d.tdg?.activoId ?? tdgTableros[0]!.id },
-      cdc: { tableros: cdcTableros, activoId: d.cdc?.activoId ?? cdcTableros[0]!.id },
+      ccm: {
+        tableros: sanearTableros(ccmTableros, 'cargas', 'CCM'),
+        activoId: d.ccm?.activoId ?? ccmTableros[0]!.id,
+      },
+      tdg: {
+        tableros: sanearTableros(tdgTableros, 'salidas', 'TDG'),
+        activoId: d.tdg?.activoId ?? tdgTableros[0]!.id,
+      },
+      cdc: {
+        tableros: sanearTableros(cdcTableros, 'cargas', 'CDC'),
+        activoId: d.cdc?.activoId ?? cdcTableros[0]!.id,
+      },
       auxiliares: { equipos: auxEquipos },
     };
   }
@@ -194,9 +231,14 @@ function validar(data: unknown): ProyectoSerializado {
     reservaPorFila: typeof d.cdc?.opciones?.reservaPorFila === 'number' ? d.cdc!.opciones!.reservaPorFila : OPCIONES_CDC_DEFAULT.reservaPorFila,
   };
 
-  const ccmT: CcmTablero = { id: nuevoIdMig('ccm'), nombre: 'Tablero 1', norma: ccmNorma, cargas: d.ccm.cargas };
-  const tdgT: TdgTablero = { id: nuevoIdMig('tdg'), nombre: 'Tablero 1', subtipo: 'general', norma: tdgNorma, factorSimultaneidad: fs, salidas: d.tdg.salidas };
-  const cdcT: CdcTablero = { id: nuevoIdMig('cdc'), nombre: 'Tablero 1', subtipo: 'general', opciones: cdcOpciones, cargas: cdcCargas };
+  const ccmSane = sanearCargas(d.ccm.cargas, 'CCM');
+  const tdgSane = sanearCargas(d.tdg.salidas, 'TDG');
+  const cdcSane = sanearCargas(cdcCargas, 'CDC');
+  avisosUltimaCarga.push(...ccmSane.avisos, ...tdgSane.avisos, ...cdcSane.avisos);
+
+  const ccmT: CcmTablero = { id: nuevoIdMig('ccm'), nombre: 'Tablero 1', norma: ccmNorma, cargas: ccmSane.valor };
+  const tdgT: TdgTablero = { id: nuevoIdMig('tdg'), nombre: 'Tablero 1', subtipo: 'general', norma: tdgNorma, factorSimultaneidad: fs, salidas: tdgSane.valor };
+  const cdcT: CdcTablero = { id: nuevoIdMig('cdc'), nombre: 'Tablero 1', subtipo: 'general', opciones: cdcOpciones, cargas: cdcSane.valor };
 
   return {
     app: META_APP,
