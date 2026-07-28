@@ -37,14 +37,17 @@ export function parsearTipo(raw: string, fallback: TipoCarga): TipoCarga {
 export function parsearArranque(raw: string): TipoArranque | undefined {
   const v = norm(raw);
   if (!v) return undefined;
-  // Partida Directa (DOL): DOL, MCP, pleno voltaje, directo, "partida directa"
-  if (v === 'dol' || v === 'mcp' || v.includes('partida') || v.includes('pleno') || v.includes('directo')) return 'DOL';
+  // OJO con el orden: la tecnología concreta se evalúa ANTES que "partida",
+  // porque los unilineales rotulan las salidas como "Partida VSD", "Partida
+  // suave", etc. Si "partida" ganara, todo caería en DOL.
   // VSD / Variador: VFD, VDF, ATV, variador, drive
-  if (v === 'vsd' || v === 'vdf' || v === 'vfd' || v.includes('variad') || v.includes('atv') || v.includes('drive')) return 'variador';
+  if (v.includes('vsd') || v.includes('vdf') || v.includes('vfd') || v.includes('variad') || v.includes('atv') || v.includes('drive')) return 'variador';
   // PSV / Suave: ATS, soft starter, suave
   if (v === 'psv' || v.includes('suav') || v === 'sst' || v.includes('ats') || v.includes('soft')) return 'suave';
   // Estrella-Triángulo
   if (v === 'yd' || v === 'y-d' || v === 'y-delta' || v.includes('estrella') || v.includes('triangulo')) return 'YD';
+  // Partida Directa (DOL): DOL, MCP, pleno voltaje, directo, "partida directa"
+  if (v === 'dol' || v === 'mcp' || v.includes('partida') || v.includes('pleno') || v.includes('directo')) return 'DOL';
   return undefined;
 }
 

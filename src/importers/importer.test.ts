@@ -46,6 +46,19 @@ describe('normalizadores', () => {
     expect(parsearArranque('vsd')).toBe('variador');
   });
 
+  it('parsearArranque no confunde "Partida VSD/suave/YD" con partida directa', () => {
+    // La planilla de unilineales rotula las salidas con el prefijo "Partida",
+    // así que la tecnología concreta debe ganarle al genérico → DOL.
+    expect(parsearArranque('Partida VSD')).toBe('variador');
+    expect(parsearArranque('Partida VSD Reserva')).toBe('variador');
+    expect(parsearArranque('Partida suave')).toBe('suave');
+    expect(parsearArranque('Partida estrella-triangulo')).toBe('YD');
+    // y las variantes de partida directa siguen siendo DOL
+    expect(parsearArranque('Partida Directa')).toBe('DOL');
+    expect(parsearArranque('Partida Directa Reversible')).toBe('DOL');
+    expect(parsearArranque('Partida Directa Reserva')).toBe('DOL');
+  });
+
   it('parsearFases reconoce 3F, III, trifásico', () => {
     expect(parsearFases('3F', '1F')).toBe('3F');
     expect(parsearFases('III', '1F')).toBe('3F');
@@ -73,6 +86,17 @@ describe('autoMapear', () => {
     expect(m.arranque).toBe('PARTIDOR');
     expect(m.tensionV).toBe('V');
     expect(m.fases).toBe('FASES');
+  });
+
+  it('detecta las columnas de la planilla de unilineales (HQR)', () => {
+    const m = autoMapear([
+      'N° Nodo', 'No Plano', 'Tipo de salida', 'Tag Motor', 'Descripción 1',
+      'Descripción  2', 'Tag Equipo', 'Tag VSD', 'Potencia kW', 'Nema', 'MCP',
+    ]);
+    expect(m.tag).toBe('Tag Motor');
+    expect(m.descripcion).toBe('Descripción 1');
+    expect(m.potencia).toBe('Potencia kW');
+    expect(m.arranque).toBe('Tipo de salida');
   });
 
   it('detecta variantes en inglés', () => {
