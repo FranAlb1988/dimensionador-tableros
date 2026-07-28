@@ -56,6 +56,11 @@ export function ImportarCargasModal({ abierto, onCerrar }: Props) {
   );
 
   // Recalcula candidatas cuando cambian mapeo o globales.
+  // No se puede derivar con useMemo: `candidatas` no es estado puramente
+  // derivado, porque toggleIncluir() modifica la marca `incluir` de cada fila.
+  // Al cambiar el mapeo esas marcas deben resetearse, que es justo lo que hace
+  // este efecto. Por eso se silencia la regla en lugar de refactorizar.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!hojaActual) {
       setCandidatas([]);
@@ -63,6 +68,7 @@ export function ImportarCargasModal({ abierto, onCerrar }: Props) {
     }
     setCandidatas(construirCandidatas(hojaActual, mapeo, globales));
   }, [hojaActual, mapeo, globales]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   if (!abierto) return null;
 

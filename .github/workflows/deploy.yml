@@ -24,6 +24,11 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      # Controles de calidad ANTES de compilar: si algo falla, no se publica.
+      - name: Lint
+        run: npm run lint
+      - name: Tests
+        run: npm test
       - run: npm run build
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
