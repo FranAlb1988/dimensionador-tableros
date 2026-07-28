@@ -3,6 +3,7 @@ import {
   autoMapear,
   candidataACarga,
   construirCandidatas,
+  construirHoja,
   parsearArchivo,
   VALORES_GLOBALES_DEFAULT,
   type ArchivoParseado,
@@ -102,6 +103,22 @@ export function ImportarCargasModal({ abierto, onCerrar }: Props) {
     if (h) setMapeo(autoMapear(h.headers));
   }
 
+  /**
+   * Cambia la fila que se usa como encabezados y rearma la hoja. Hace falta
+   * cuando la planilla trae título y parámetros arriba y la tabla empieza más
+   * abajo, y la detección automática no acertó.
+   */
+  function onFilaHeaderChange(fila1Based: number) {
+    if (!archivo || !hojaActual?.matriz) return;
+    const idx = Math.max(1, fila1Based) - 1;
+    const nueva = construirHoja(hojaActual.nombre, hojaActual.matriz, idx);
+    setArchivo({
+      ...archivo,
+      hojas: archivo.hojas.map((h) => (h.nombre === nueva.nombre ? nueva : h)),
+    });
+    setMapeo(autoMapear(nueva.headers));
+  }
+
   function onMapeoChange(campo: CampoMapeable, value: string) {
     setMapeo((prev) => ({ ...prev, [campo]: value || undefined }));
   }
@@ -148,7 +165,13 @@ export function ImportarCargasModal({ abierto, onCerrar }: Props) {
             <PanelSubir cargando={cargando} error={error} onChange={onArchivoSeleccionado} />
           ) : (
             <>
-              <PanelArchivo archivo={archivo} hojaSel={hojaSel} onHojaChange={onHojaChange} />
+              <PanelArchivo
+                archivo={archivo}
+                hojaSel={hojaSel}
+                onHojaChange={onHojaChange}
+                hoja={hojaActual}
+                onFilaHeaderChange={onFilaHeaderChange}
+              />
               <PanelMapeo
                 hoja={hojaActual!}
                 mapeo={mapeo}
@@ -278,8 +301,14 @@ function AyudaAutoCad() {
 }
 
 function PanelArchivo({
-  archivo, hojaSel, onHojaChange,
-}: { archivo: ArchivoParseado; hojaSel: string; onHojaChange: (n: string) => void }) {
+  archivo, hojaSel, onHojaChange, hoja, onFilaHeaderChange,
+}: {
+  archivo: ArchivoParseado;
+  hojaSel: string;
+  onHojaChange: (n: string) => void;
+  hoja?: HojaArchivo;
+  onFilaHeaderChange: (fila1Based: number) => void;
+}) {
   return (
     <div className="border border-slate-200 dark:border-slate-800 rounded-lg p-3 text-sm flex items-center gap-3 flex-wrap">
       <span className="text-slate-500">Archivo:</span>
@@ -298,6 +327,23 @@ function PanelArchivo({
             <option key={h.nombre} value={h.nombre}>{h.nombre} ({h.filas.length} filas)</option>
           ))}
         </select>
+      )}
+      {hoja?.matriz && (
+        <>
+          <span className="text-slate-400">·</span>
+          <label className="text-slate-500" htmlFor="fila-header">Fila de encabezados:</label>
+          <input
+            id="fila-header"
+            type="number"
+            min={1}
+            value={(hoja.filaHeader ?? 0) + 1}
+            onChange={(e) => onFilaHeaderChange(Number(e.target.value))}
+            className="w-20 border border-slate-300 dark:border-slate-700 rounded px-2 py-1 bg-white dark:bg-slate-900 tabular-nums"
+          />
+          <span className="text-xs text-slate-400">
+            Cámbiala si la app tomó la fila equivocada (el título del proyecto, por ejemplo).
+          </span>
+        </>
       )}
     </div>
   );

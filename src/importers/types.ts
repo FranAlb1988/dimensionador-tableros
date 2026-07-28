@@ -49,6 +49,14 @@ export interface HojaArchivo {
   nombre: string;
   headers: string[];
   filas: FilaCruda[];
+  /**
+   * Matriz completa de la hoja tal como vino del archivo. Se conserva para
+   * poder rearmar la hoja con otra fila de encabezados sin releer el archivo.
+   * Opcional: una hoja armada a mano (tests) no la necesita.
+   */
+  matriz?: unknown[][];
+  /** Índice 0-based de la fila que se está usando como encabezados. */
+  filaHeader?: number;
 }
 
 export interface ArchivoParseado {

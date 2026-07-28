@@ -8,6 +8,7 @@ import {
   parsearUnidadPotencia,
 } from './normalizar';
 import { construirCandidatas } from './index';
+import { construirHoja, detectarFilaHeader } from './excel';
 import { VALORES_GLOBALES_DEFAULT, type HojaArchivo } from './types';
 
 describe('normalizadores', () => {
@@ -180,5 +181,66 @@ describe('construirCandidatas — flujo end-to-end', () => {
     const cs = construirCandidatas(hoja, map, { ...VALORES_GLOBALES_DEFAULT, unidadPotencia: 'HP' });
     expect(cs[0]!.unidadPotencia).toBe('kW');
     expect(cs[0]!.potenciaKw).toBe(15);
+  });
+});
+
+describe('detectarFilaHeader', () => {
+  // Reproduce la estructura real de la planilla de unilineales: titulo arriba,
+  // parametros del proyecto, y la tabla de equipos recien en la fila 29.
+  function matrizPlanilla(): unknown[][] {
+    const m: unknown[][] = [];
+    m.push([]);                                             // fila 1 vacia
+    m.push(['', 'PLANILLA UNILINEAL CMP V1.0']);            // fila 2: titulo
+    m.push([]); m.push([]);
+    m.push([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);            // fila 5: indices
+    while (m.length < 28) m.push([]);
+    m.push(['', 'N° Nodo', 'No Plano', 'Tipo de salida', 'Tag Motor',
+            'Descripción 1', 'Descripción  2', 'Tag Equipo', 'Potencia kW']); // fila 29
+    m.push(['', '', '', '', 'TAG_MOTOR', 'DESC_1', 'DESC_2', 'TAG_EQUIP', 'K_W']); // fila 30
+    m.push(['', 1, 1, 'Partida Directa', '5767-MTR-3416', 'BOMBA', 'AGUA', '5767-TEC-3520', 7.5]);
+    m.push(['', 2, 1, 'Partida VSD', '5767-MTR-3419', 'BOMBA', 'ACEITE', '5767-TEC-3523', 15]);
+    return m;
+  }
+
+  it('encuentra la fila de encabezados aunque no sea la primera con contenido', () => {
+    const m = matrizPlanilla();
+    // indice 0-based: la fila 29 de Excel es el indice 28
+    expect(detectarFilaHeader(m)).toBe(28);
+  });
+
+  it('no se queda con el titulo del proyecto', () => {
+    const m = matrizPlanilla();
+    expect(detectarFilaHeader(m)).not.toBe(1);
+  });
+
+  it('sigue funcionando con archivos normales (encabezados en la primera fila)', () => {
+    const m: unknown[][] = [
+      ['TAG', 'DESCRIPCIÓN', 'HP', 'PARTIDOR', 'V'],
+      ['M-01', 'Bomba', 10, 'MCP', 400],
+    ];
+    expect(detectarFilaHeader(m)).toBe(0);
+  });
+
+  it('construirHoja arma los datos desde la fila indicada', () => {
+    const m = matrizPlanilla();
+    const hoja = construirHoja('Principal', m, detectarFilaHeader(m));
+    expect(hoja.filaHeader).toBe(28);
+    expect(hoja.headers).toContain('Tipo de salida');
+    expect(hoja.headers).toContain('Potencia kW');
+    // fila 30 (nombres de atributo) + las 2 de datos
+    expect(hoja.filas).toHaveLength(3);
+    const ultima = hoja.filas[2]!;
+    expect(ultima['Tipo de salida']).toBe('Partida VSD');
+    expect(ultima['Potencia kW']).toBe(15);
+  });
+
+  it('el auto-mapeo sobre la hoja detectada reconoce las columnas de la planilla', () => {
+    const m = matrizPlanilla();
+    const hoja = construirHoja('Principal', m, detectarFilaHeader(m));
+    const mapa = autoMapear(hoja.headers);
+    expect(mapa.tag).toBe('Tag Motor');
+    expect(mapa.arranque).toBe('Tipo de salida');
+    expect(mapa.potencia).toBe('Potencia kW');
+    expect(mapa.descripcion).toBe('Descripción 1');
   });
 });

@@ -19,7 +19,7 @@ import type {
   ValoresGlobales,
 } from './types';
 
-export { parsearArchivo } from './excel';
+export { parsearArchivo, construirHoja, detectarFilaHeader } from './excel';
 export { autoMapear } from './auto-mapeo';
 export { VALORES_GLOBALES_DEFAULT } from './types';
 export type {
