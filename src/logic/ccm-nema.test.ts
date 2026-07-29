@@ -60,17 +60,23 @@ describe('sugerirBreakerNema', () => {
 });
 
 describe('sugerirBarraNema', () => {
-  it('para 100 A FLC (0-480) elige barra 600 A', () => {
+  // Criterio del catálogo: la barra se aprovecha al 100% de su capacidad,
+  // es decir flcMax = capacidadA (ver src/data/nema/barras.json).
+  it('para 100 A FLC (0-600) elige barra 600 A', () => {
     expect(sugerirBarraNema(100)?.capacidadA).toBe(600);
   });
-  it('para 600 A FLC (480-640) elige barra 800 A', () => {
-    expect(sugerirBarraNema(600)?.capacidadA).toBe(800);
+  it('para 600 A FLC agota la barra de 600 A', () => {
+    expect(sugerirBarraNema(600)?.capacidadA).toBe(600);
   });
-  it('para 700 A FLC (640-960) elige barra 1200 A', () => {
-    expect(sugerirBarraNema(700)?.capacidadA).toBe(1200);
+  it('para 700 A FLC (600-800) elige barra 800 A', () => {
+    expect(sugerirBarraNema(700)?.capacidadA).toBe(800);
   });
-  it('para 1500 A FLC (1280-1600) elige barra 2000 A', () => {
-    expect(sugerirBarraNema(1500)?.capacidadA).toBe(2000);
+  it('para 1500 A FLC (1200-1600) elige barra 1600 A', () => {
+    expect(sugerirBarraNema(1500)?.capacidadA).toBe(1600);
+  });
+  it('la barra mayor admite FLC hasta su capacidad nominal (3200 A)', () => {
+    expect(sugerirBarraNema(3200)?.capacidadA).toBe(3200);
+    expect(sugerirBarraNema(3201)).toBeUndefined();
   });
 });
 
@@ -144,7 +150,7 @@ describe('dimensionarCcmNema', () => {
   it('FLC total selecciona barra correcta', () => {
     const r = dimensionarCcmNema([motor('1', 100), motor('2', 50)]);
     // FLA a 480 V = tabla 400 V × 400/480: 100 HP → 119.2 A, 50 HP → 62.3 A
-    // → total ≈ 181.5 A → barra 600 A (rango 0–480).
+    // → total ≈ 181.5 A → barra 600 A (rango 0–600).
     expect(r.tablero!.corrienteTotalA).toBeGreaterThan(170);
     expect(r.tablero!.corrienteTotalA).toBeLessThan(200);
     expect(r.tablero!.barra.capacidadA).toBe(600);
@@ -210,7 +216,9 @@ describe('dimensionarCcmNema', () => {
   });
 
   it('el derrateo por altura sube la barra al seleccionar contra FLC / F2', () => {
-    const c = alimentador('1', 350); // ≈ 468 A @ 480 V 3F → barra 600
+    // ≈ 575 A @ 480 V 3F → entra en la barra de 600 A; al derratear por F2 la
+    // corriente de selección sube sobre 600 A y obliga a la barra siguiente.
+    const c = alimentador('1', 430);
     const base = dimensionarCcmNema([c]);
     expect(base.tablero!.barra.capacidadA).toBe(600);
 

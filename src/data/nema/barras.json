@@ -1,12 +1,13 @@
 {
   "_comment": "Capacidades estándar de barra principal horizontal para CCM NEMA, según FLC del tablero. Tiempo de cortocircuito barra: 3 s. Icoci sym se define respecto al Scoci aguas arriba. Cap del CCM NEMA: 3200 A (para corrientes mayores el tablero corresponde a un CDC).",
+  "_criterio": "La barra se aprovecha al 100% de su capacidad nominal: flcMax = capacidadA. Exige barra certificada para servicio continuo al 100%. Si un proyecto pide el margen de carga continua (dimensionar al 125%, equivalente a cargar al 80%), poner flcMax = 0.8 x capacidadA y correr los flcMin en consecuencia.",
   "barras": [
-    { "flcMin": 0,    "flcMax": 480,   "capacidadA": 600,  "tiempoCociS": 3 },
-    { "flcMin": 480,  "flcMax": 640,   "capacidadA": 800,  "tiempoCociS": 3 },
-    { "flcMin": 640,  "flcMax": 960,   "capacidadA": 1200, "tiempoCociS": 3 },
-    { "flcMin": 960,  "flcMax": 1280,  "capacidadA": 1600, "tiempoCociS": 3 },
-    { "flcMin": 1280, "flcMax": 1600,  "capacidadA": 2000, "tiempoCociS": 3 },
-    { "flcMin": 1600, "flcMax": 2000,  "capacidadA": 2500, "tiempoCociS": 3 },
-    { "flcMin": 2000, "flcMax": 2560,  "capacidadA": 3200, "tiempoCociS": 3 }
+    { "flcMin": 0,    "flcMax": 600,   "capacidadA": 600,  "tiempoCociS": 3 },
+    { "flcMin": 600,  "flcMax": 800,   "capacidadA": 800,  "tiempoCociS": 3 },
+    { "flcMin": 800,  "flcMax": 1200,  "capacidadA": 1200, "tiempoCociS": 3 },
+    { "flcMin": 1200, "flcMax": 1600,  "capacidadA": 1600, "tiempoCociS": 3 },
+    { "flcMin": 1600, "flcMax": 2000,  "capacidadA": 2000, "tiempoCociS": 3 },
+    { "flcMin": 2000, "flcMax": 2500,  "capacidadA": 2500, "tiempoCociS": 3 },
+    { "flcMin": 2500, "flcMax": 3200,  "capacidadA": 3200, "tiempoCociS": 3 }
   ]
 }
