@@ -303,6 +303,21 @@ export function CcmPage() {
         </>
       )}
 
+      {/*
+        Cuando el dimensionamiento no llega a un tablero (p. ej. la barra
+        requerida se sale del catálogo), hay que decir por qué. Antes la página
+        simplemente no mostraba nada y parecía que la app no calculaba.
+      */}
+      {!esMt && norma === 'NEMA' && resultadoNema && !resultadoNema.tablero && resultadoNema.motivo && (
+        <div className="border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 rounded p-3 text-sm text-amber-900 dark:text-amber-100">
+          <p className="font-medium">No se pudo dimensionar el CCM.</p>
+          <p>{resultadoNema.motivo}</p>
+          <p className="mt-1 text-amber-800 dark:text-amber-200">
+            Pruebe con menos reserva, reparta las cargas en más de un CCM o use la convención IEC.
+          </p>
+        </div>
+      )}
+
       {norma === 'NEMA' && resultadoNema && resultadoNema.tablero && (
         <>
           <section>
