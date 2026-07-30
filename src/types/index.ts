@@ -90,6 +90,12 @@ export interface Carga {
   proteccionFrameAF?: number;
   /** Calibre (trip/setting) del interruptor ya dimensionado, en A. */
   proteccionTripA?: number;
+  /**
+   * Servicio del variador: normal (ND) o pesado (HD). Si no se indica, se
+   * deduce del tipo de equipo — bombas y ventiladores ND; chancado, correas y
+   * molinos HD, por el par resistente y los arranques repetidos.
+   */
+  servicioVariador?: 'ND' | 'HD';
 }
 
 /** Tamaños relativos de gaveta Blokset. */
@@ -332,6 +338,20 @@ export interface EnvolventeCcmNemaCatalogo {
 
 export interface AsignacionCcmNema {
   carga: Carga;
+  /** Variador sugerido del catálogo Schneider, solo en salidas con VSD. */
+  variador?: {
+    referencia: string;
+    gama: string;
+    servicio: 'ND' | 'HD';
+    /** true si el servicio lo dedujo la app y no lo eligió el usuario. */
+    servicioDeducido: boolean;
+    potenciaKw?: number;
+    corrienteA?: number;
+    anchoMm?: number;
+    altoMm?: number;
+    profundidadMm?: number;
+    pesoKg?: number;
+  };
   /** Solo presente para tipo motor. */
   motor?: MotorNemaCatalogo;
   /** Solo presente para alimentador (no motor). */

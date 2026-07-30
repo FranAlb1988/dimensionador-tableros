@@ -1,6 +1,7 @@
 import type { AsignacionCcmNema, Carga } from '../types';
 import { ARRANQUE_LABEL } from '../types';
-import { fmtAmp } from '../util/format';
+import { useCcmStore } from '../store/ccm';
+import { fmtAmp, fmtKw, fmtNumero } from '../util/format';
 
 interface Props {
   asignaciones: readonly AsignacionCcmNema[];
@@ -63,11 +64,76 @@ function Tarjeta({ a }: { a: AsignacionCcmNema }) {
           </>
         )}
       </dl>
+      {a.variador && <Variador cargaId={carga.id} v={a.variador} />}
       {a.notas && (
         <div className="mt-2 text-[11px] text-amber-700 dark:text-amber-300">
           ⚠ {a.notas}
         </div>
       )}
+    </div>
+  );
+}
+
+/** Opciones del selector de servicio: Auto delega en la deducción por equipo. */
+const OPCIONES_SERVICIO: readonly { valor: 'ND' | 'HD' | undefined; label: string; title: string }[] = [
+  { valor: undefined, label: 'Auto', title: 'Deducir del tipo de equipo (bombas/ventiladores → ND; chancado/correas → HD).' },
+  { valor: 'ND', label: 'ND', title: 'Servicio normal: par cuadrático, sobrecarga 110–120%.' },
+  { valor: 'HD', label: 'HD', title: 'Servicio pesado: par constante, sobrecarga 150%.' },
+];
+
+/**
+ * Variador sugerido del catálogo Schneider. Antes esta salida solo mostraba una
+ * nota diciendo que el drive real no estaba incluido; ahora se nombra el modelo
+ * concreto con su corriente y tamaño. El selector Auto/ND/HD fija el servicio
+ * por carga: al cambiarlo se re-sugiere el modelo al instante.
+ */
+function Variador({ cargaId, v }: { cargaId: string; v: NonNullable<AsignacionCcmNema['variador']> }) {
+  const actualizar = useCcmStore((s) => s.actualizar);
+  const dims = [v.anchoMm, v.altoMm, v.profundidadMm];
+  const tieneDims = dims.every((d) => d != null);
+  return (
+    <div className="mt-2 border border-sky-200 dark:border-sky-900 bg-sky-50 dark:bg-sky-950/40 rounded p-2">
+      <div className="flex justify-between items-start gap-2">
+        <div>
+          <span className="text-[11px] uppercase tracking-wide text-sky-700 dark:text-sky-300">
+            Variador sugerido
+          </span>
+          <div className="font-mono text-xs">{v.referencia}</div>
+        </div>
+        <div
+          className="flex rounded border border-sky-300 dark:border-sky-800 overflow-hidden shrink-0"
+          role="group"
+          aria-label="Servicio del variador"
+        >
+          {OPCIONES_SERVICIO.map(({ valor, label, title }) => {
+            const activo = valor === undefined ? v.servicioDeducido : !v.servicioDeducido && v.servicio === valor;
+            return (
+              <button
+                key={label}
+                type="button"
+                title={title}
+                aria-pressed={activo}
+                onClick={() => actualizar(cargaId, { servicioVariador: valor })}
+                className={
+                  'px-1.5 py-0.5 text-[11px] font-medium transition-colors '
+                  + (activo
+                    ? 'bg-sky-600 text-white dark:bg-sky-500 dark:text-sky-950'
+                    : 'bg-white dark:bg-sky-950 text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900')
+                }
+              >
+                {valor === undefined && v.servicioDeducido ? `Auto (${v.servicio})` : label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      <div className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 space-x-2">
+        <span>{v.gama}</span>
+        {v.potenciaKw != null && <span>· {fmtKw(v.potenciaKw)}</span>}
+        {v.corrienteA != null && <span>· {fmtAmp(v.corrienteA)}</span>}
+        {tieneDims && <span>· {dims.join('×')} mm</span>}
+        {v.pesoKg != null && <span>· {fmtNumero(v.pesoKg)} kg</span>}
+      </div>
     </div>
   );
 }

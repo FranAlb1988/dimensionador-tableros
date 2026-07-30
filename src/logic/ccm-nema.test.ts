@@ -361,3 +361,38 @@ describe('interruptor especificado por el proyecto', () => {
     expect(a.breaker!.frameAF).not.toBe(999);
   });
 });
+
+describe('variador sugerido en las salidas con VSD', () => {
+  it('propone el modelo del catálogo Schneider', () => {
+    const c: Carga = { ...motor('1', 100, 1, 'variador'), tensionV: 400, descripcion: 'BOMBA IMPULSIÓN' };
+    const a = dimensionarCcmNema([c]).asignaciones[0]!;
+    expect(a.variador).toBeDefined();
+    expect(a.variador!.referencia).toMatch(/^ATV/);
+    expect(a.variador!.servicio).toBe('ND');       // bomba → normal
+    expect(a.variador!.servicioDeducido).toBe(true);
+    expect(a.variador!.potenciaKw!).toBeGreaterThanOrEqual(c.potenciaKw!);
+  });
+
+  it('deduce servicio pesado en chancado y correas', () => {
+    const c: Carga = { ...motor('1', 100, 1, 'variador'), tensionV: 400, descripcion: 'CORREA TRANSPORTADORA' };
+    const a = dimensionarCcmNema([c]).asignaciones[0]!;
+    expect(a.variador!.servicio).toBe('HD');
+  });
+
+  it('el servicio elegido por el usuario manda sobre el deducido', () => {
+    const c: Carga = {
+      ...motor('1', 100, 1, 'variador'), tensionV: 400,
+      descripcion: 'BOMBA IMPULSIÓN', servicioVariador: 'HD',
+    };
+    const a = dimensionarCcmNema([c]).asignaciones[0]!;
+    expect(a.variador!.servicio).toBe('HD');
+    expect(a.variador!.servicioDeducido).toBe(false);
+  });
+
+  it('las salidas sin variador no lo llevan', () => {
+    const dol = dimensionarCcmNema([motor('1', 100)]).asignaciones[0]!;
+    expect(dol.variador).toBeUndefined();
+    const fdr = dimensionarCcmNema([alimentador('2', 30)]).asignaciones[0]!;
+    expect(fdr.variador).toBeUndefined();
+  });
+});

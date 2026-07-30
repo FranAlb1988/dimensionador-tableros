@@ -23,6 +23,7 @@ import { MEDIDA_CCM_DEFAULT } from './medida-ccm';
 import { necesitaColumnaIncoming } from './columna';
 import { calcularReservas } from './reserva';
 import { kwToHp } from '../util/potencia';
+import { servicioSugerido, sugerirVariadorBt } from './variadores';
 
 const MOTORES: readonly MotorNemaCatalogo[] = (motoresData.filas as MotorNemaCatalogo[])
   .toSorted((a, b) => a.hp - b.hp);
@@ -247,8 +248,8 @@ const NOTA_ARRANQUE_NEMA: Record<Exclude<TipoArranque, 'DOL'>, string> = {
     + 'CENTERLINE) no está incluido en el conteo.',
   suave: 'Espacio ampliado por partidor suave — RVSS (SMC Flex / SMC-50). El partidor '
     + 'no está incluido en el conteo (tabla FVNR).',
-  variador: 'Espacio ampliado por variador — PowerFlex. El drive no está incluido en el '
-    + 'conteo (tabla FVNR); frames grandes pueden requerir sección completa y '
+  variador: 'Espacio ampliado por variador (tabla FVNR + 2 escalones). El X no sale de las '
+    + 'dimensiones del drive sugerido; frames grandes pueden requerir sección completa y '
     + 'ventilación adicional.',
 };
 
@@ -318,6 +319,7 @@ function asignarAlimentador(c: Carga, factorDerrateo: number): AsignacionCcmNema
         espaciosX: especificado.espaciosX,
         version: especificado.frameAF >= UMBRAL_ELECTRONIC_AF ? 'fijo' : 'extraible',
         corrienteDisenoA: I,
+        ...variadorDe(c),
       };
     }
   }
@@ -334,6 +336,36 @@ function asignarAlimentador(c: Carga, factorDerrateo: number): AsignacionCcmNema
     espaciosX: breaker.espaciosX,
     version: breaker.frameAF >= UMBRAL_ELECTRONIC_AF ? 'fijo' : 'extraible',
     corrienteDisenoA: I,
+    ...variadorDe(c),
+  };
+}
+
+/**
+ * Variador sugerido para una salida con VSD. El servicio lo elige el usuario;
+ * si no lo fijó, se deduce del equipo (bombas/ventiladores ND, chancado y
+ * correas HD) y queda marcado como deducido para poder avisarlo en pantalla.
+ */
+function variadorDe(c: Carga): Pick<AsignacionCcmNema, 'variador'> {
+  if (c.arranque !== 'variador') return {};
+  if (!(c.potenciaKw != null && c.potenciaKw > 0)) return {};
+  const servicioDeducido = c.servicioVariador == null;
+  const servicio = c.servicioVariador ?? servicioSugerido(c.descripcion);
+  const m = sugerirVariadorBt(c.potenciaKw, c.tensionV, { servicio, soloChile: true })
+    ?? sugerirVariadorBt(c.potenciaKw, c.tensionV, { servicio });
+  if (!m) return {};
+  return {
+    variador: {
+      referencia: m.referencia,
+      gama: m.gama,
+      servicio,
+      servicioDeducido,
+      ...(m.ndKwVMin != null ? { potenciaKw: m.ndKwVMin } : {}),
+      ...(m.iSalidaNdA != null ? { corrienteA: m.iSalidaNdA } : {}),
+      ...(m.anchoMm != null ? { anchoMm: m.anchoMm } : {}),
+      ...(m.altoMm != null ? { altoMm: m.altoMm } : {}),
+      ...(m.profundidadMm != null ? { profundidadMm: m.profundidadMm } : {}),
+      ...(m.pesoKg != null ? { pesoKg: m.pesoKg } : {}),
+    },
   };
 }
 
