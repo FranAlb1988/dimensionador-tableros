@@ -23,12 +23,23 @@ const TENSIONES_MT: readonly { v: number; label: string }[] = [
 
 const TENSIONES_TODAS: readonly number[] = [...TENSIONES_BT, ...TENSIONES_MT.map((m) => m.v)];
 
-const inputCls =
-  'w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded ' +
+const inputBase =
+  'bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded ' +
   'px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-500 ' +
   'text-sm tabular-nums';
 
+const inputCls = `w-full ${inputBase}`;
+
 const inputTexto = inputCls.replace('tabular-nums', '');
+
+// Los <input type="number"> sin atributo `max` toman el ancho intrínseco por
+// defecto del navegador (~154 px en Chrome), y como la tabla es `min-w-max` ese
+// ancho manda sobre el min-w del encabezado: la columna de potencia llegaba a
+// 250 px para mostrar tres dígitos. Se les fija un ancho acorde al dato.
+/** Corrientes y potencias: hasta 6 caracteres (p.ej. "1234,5"). */
+const numAncho = `w-20 text-right ${inputBase}`;
+/** Factores adimensionales: 4 caracteres (p.ej. "1,15"). */
+const numCorto = `w-16 text-right ${inputBase}`;
 
 export function TablaCargas() {
   const cargas = useCcmCargas();
@@ -236,7 +247,7 @@ function FilaCarga({ carga, zebra, onChange, onDuplicar, onEliminar }: FilaProps
       <td className={cellCls}>
         <div className="flex gap-1.5 items-stretch">
           <input
-            className={`${inputCls} text-right flex-1 min-w-0`}
+            className={numAncho}
             type="number"
             step="0.1"
             min="0"
@@ -291,7 +302,7 @@ function FilaCarga({ carga, zebra, onChange, onDuplicar, onEliminar }: FilaProps
       </td>
       <td className={cellCls}>
         <input
-          className={`${inputCls} text-right`}
+          className={numCorto}
           type="number" step="0.05" min="1"
           value={carga.factorServicio}
           onChange={onNumber('factorServicio')}
@@ -299,7 +310,7 @@ function FilaCarga({ carga, zebra, onChange, onDuplicar, onEliminar }: FilaProps
       </td>
       <td className={cellCls}>
         <input
-          className={`${inputCls} text-right`}
+          className={numCorto}
           type="number" step="0.01" min="0.1" max="1"
           value={carga.cosPhi ?? ''}
           onChange={onNumber('cosPhi')}
@@ -310,7 +321,7 @@ function FilaCarga({ carga, zebra, onChange, onDuplicar, onEliminar }: FilaProps
       <td className={cellCls}>
         {carga.tipo === 'motor' ? (
           <input
-            className={`${inputCls} text-right`}
+            className={numCorto}
             type="number" step="0.01" min="0.1" max="1"
             value={carga.rendimiento ?? ''}
             onChange={onNumber('rendimiento')}
@@ -323,7 +334,7 @@ function FilaCarga({ carga, zebra, onChange, onDuplicar, onEliminar }: FilaProps
       </td>
       <td className={cellCls}>
         <input
-          className={`${inputCls} text-right`}
+          className={numAncho}
           type="number" step="0.1" min="0"
           value={carga.corrienteA ?? ''}
           onChange={onNumber('corrienteA')}
@@ -339,7 +350,7 @@ function FilaCarga({ carga, zebra, onChange, onDuplicar, onEliminar }: FilaProps
       </td>
       <td className={cellCls}>
         <input
-          className={`${inputCls} text-right`}
+          className={numAncho}
           type="number" step="1" min="0"
           value={carga.corrienteProteccionA ?? ''}
           onChange={onNumber('corrienteProteccionA')}
