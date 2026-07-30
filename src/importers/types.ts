@@ -10,7 +10,8 @@ export type CampoMapeable =
   | 'arranque'
   | 'tensionV'
   | 'fases'
-  | 'factorServicio';
+  | 'factorServicio'
+  | 'proteccion';
 
 /** Mapeo "header del archivo → campo de Carga". Las llaves son nombres exactos de columna del archivo. */
 export type MapeoColumnas = Partial<Record<CampoMapeable, string>>;

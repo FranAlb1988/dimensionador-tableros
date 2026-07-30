@@ -327,3 +327,37 @@ describe('dimensionarCcmNema', () => {
     expect(r.asignaciones[0]!.corrienteDisenoA).toBeCloseTo(8.5, 0);
   });
 });
+
+describe('interruptor especificado por el proyecto', () => {
+  it('respeta el frame y el calibre en vez de recalcularlos', () => {
+    // 134.8 A: la app sola elegiría 175AT (margen 1.25). El proyecto dice 150AT.
+    const c: Carga = {
+      ...alimentador('1', 100),
+      corrienteA: 134.8,
+      proteccionFrameAF: 225,
+      proteccionTripA: 150,
+    };
+    const a = dimensionarCcmNema([c]).asignaciones[0]!;
+    expect(a.breaker?.frameAF).toBe(225);
+    expect(a.breaker?.ratingA).toBe(150);
+    expect(a.espaciosX).toBe(3);
+  });
+
+  it('sin interruptor especificado sigue sugiriéndolo con el margen de carga continua', () => {
+    const c: Carga = { ...alimentador('1', 100), corrienteA: 134.8 };
+    const a = dimensionarCcmNema([c]).asignaciones[0]!;
+    expect(a.breaker!.ratingA).toBeGreaterThanOrEqual(134.8 * 1.25);
+  });
+
+  it('si el frame no está en el catálogo cae en la sugerencia normal', () => {
+    const c: Carga = {
+      ...alimentador('1', 100),
+      corrienteA: 134.8,
+      proteccionFrameAF: 999,
+      proteccionTripA: 150,
+    };
+    const a = dimensionarCcmNema([c]).asignaciones[0]!;
+    expect(a.breaker).toBeDefined();
+    expect(a.breaker!.frameAF).not.toBe(999);
+  });
+});

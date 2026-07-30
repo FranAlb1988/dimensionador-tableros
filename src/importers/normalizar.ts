@@ -69,3 +69,18 @@ export function parsearNumero(raw: string | number | boolean | null | undefined)
   const n = Number(s);
   return Number.isFinite(n) ? n : undefined;
 }
+
+/**
+ * Lee un interruptor ya dimensionado escrito como "225AF/150AT" (frame/calibre).
+ * Tolera espacios y minúsculas. Devuelve undefined si no reconoce el formato.
+ */
+export function parsearProteccion(raw: unknown): { frameAF: number; tripA: number } | undefined {
+  const s = String(raw ?? '').trim();
+  if (!s) return undefined;
+  const m = /(\d+)\s*af\s*[/-]\s*(\d+)\s*a[ts]/i.exec(s);
+  if (!m) return undefined;
+  const frameAF = Number(m[1]);
+  const tripA = Number(m[2]);
+  if (!Number.isFinite(frameAF) || !Number.isFinite(tripA)) return undefined;
+  return { frameAF, tripA };
+}

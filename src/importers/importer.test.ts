@@ -4,6 +4,7 @@ import {
   parsearArranque,
   parsearFases,
   parsearNumero,
+  parsearProteccion,
   parsearTipo,
   parsearUnidadPotencia,
 } from './normalizar';
@@ -242,5 +243,33 @@ describe('detectarFilaHeader', () => {
     expect(mapa.arranque).toBe('Tipo de salida');
     expect(mapa.potencia).toBe('Potencia kW');
     expect(mapa.descripcion).toBe('Descripción 1');
+  });
+});
+
+describe('interruptor ya dimensionado en el origen', () => {
+  it('parsearProteccion lee el formato "225AF/150AT"', () => {
+    expect(parsearProteccion('225AF/150AT')).toEqual({ frameAF: 225, tripA: 150 });
+    expect(parsearProteccion('100AF/15AT')).toEqual({ frameAF: 100, tripA: 15 });
+    expect(parsearProteccion(' 400af / 300as ')).toEqual({ frameAF: 400, tripA: 300 });
+    expect(parsearProteccion('')).toBeUndefined();
+    expect(parsearProteccion('-')).toBeUndefined();
+    expect(parsearProteccion('225AF')).toBeUndefined();
+  });
+
+  it('autoMapear reconoce la columna "Feeder" de la planilla', () => {
+    const m = autoMapear(['Tipo de salida', 'Potencia kW', 'Feeder', 'Corriente (A)']);
+    expect(m.proteccion).toBe('Feeder');
+  });
+
+  it('la carga lleva el interruptor del archivo cuando viene', () => {
+    const headers = ['Tag Motor', 'Potencia kW', 'Corriente (A)', 'Feeder'];
+    const hoja: HojaArchivo = {
+      nombre: 'P',
+      headers,
+      filas: [{ 'Tag Motor': 'M-1', 'Potencia kW': 75, 'Corriente (A)': 134.8, Feeder: '225AF/150AT' }],
+    };
+    const c = construirCandidatas(hoja, autoMapear(headers), VALORES_GLOBALES_DEFAULT)[0]!;
+    expect(c.proteccionFrameAF).toBe(225);
+    expect(c.proteccionTripA).toBe(150);
   });
 });

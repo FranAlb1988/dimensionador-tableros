@@ -82,6 +82,14 @@ export interface Carga {
   rendimiento?: number;
   /** Solo aplica a motores. */
   arranque?: TipoArranque;
+  /**
+   * Interruptor de alimentador ya dimensionado en el proyecto (p. ej. de la
+   * planilla de cálculo). Si viene, se respeta tal cual en vez de recalcularlo:
+   * lo que ya decidió el proyectista manda sobre la sugerencia de la app.
+   */
+  proteccionFrameAF?: number;
+  /** Calibre (trip/setting) del interruptor ya dimensionado, en A. */
+  proteccionTripA?: number;
 }
 
 /** Tamaños relativos de gaveta Blokset. */

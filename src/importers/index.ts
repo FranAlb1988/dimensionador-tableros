@@ -7,6 +7,7 @@ import {
   parsearArranque,
   parsearFases,
   parsearNumero,
+  parsearProteccion,
   parsearTipo,
   parsearUnidadPotencia,
 } from './normalizar';
@@ -98,6 +99,10 @@ function construirUna(
   if (tipo === 'motor' && potencia != null && potencia <= 0)
     warnings.push('Potencia 0 para un motor.');
 
+  // Interruptor ya dimensionado en el archivo de origen ("225AF/150AT"): si
+  // viene, se respeta y la app no vuelve a elegirlo.
+  const proteccion = mapeo.proteccion ? parsearProteccion(cell(fila, mapeo.proteccion)) : undefined;
+
   const carga: Omit<Carga, 'id'> = {
     descripcion,
     tipo,
@@ -107,6 +112,7 @@ function construirUna(
     ...(potenciaKw != null ? { potenciaKw, unidadPotencia } : {}),
     ...(corrienteA != null ? { corrienteA } : {}),
     ...(arranque ? { arranque } : {}),
+    ...(proteccion ? { proteccionFrameAF: proteccion.frameAF, proteccionTripA: proteccion.tripA } : {}),
   };
 
   return {
@@ -135,6 +141,9 @@ export function candidataACarga(c: CargaCandidata, id: string): Carga {
     ...(c.corrienteA != null ? { corrienteA: c.corrienteA } : {}),
     ...(c.corrienteProteccionA != null ? { corrienteProteccionA: c.corrienteProteccionA } : {}),
     ...(c.arranque ? { arranque: c.arranque } : {}),
+    ...(c.proteccionFrameAF != null && c.proteccionTripA != null
+      ? { proteccionFrameAF: c.proteccionFrameAF, proteccionTripA: c.proteccionTripA }
+      : {}),
   };
   return carga;
 }

@@ -25,6 +25,8 @@ const REGLAS: readonly Regla[] = [
   { campo: 'tensionV', patrones: [/tensi[oó]n/, /voltaje/, /voltage/, /^v$/, /\bvolts?\b/] },
   { campo: 'fases', patrones: [/fase/, /phase/, /φ/, /^ph$/] },
   { campo: 'factorServicio', patrones: [/factor\s*serv/, /service\s*factor/, /^fs$/, /^sf$/] },
+  // Interruptor ya dimensionado por el proyecto: "225AF/150AT".
+  { campo: 'proteccion', patrones: [/^feeder$/, /^cb$/, /interruptor/, /protecci/, /breaker/] },
 ];
 
 /** Detecta automáticamente el mapeo de columnas a campos del modelo. */

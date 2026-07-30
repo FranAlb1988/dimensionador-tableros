@@ -305,6 +305,23 @@ const MARGEN_ALIMENTADOR_NEMA = 1.25;
 
 function asignarAlimentador(c: Carga, factorDerrateo: number): AsignacionCcmNema | undefined {
   const I = corrienteDiseno(c);
+
+  // Si el proyecto ya dimensionó el interruptor, se respeta: la app no vuelve a
+  // elegirlo. Evita que el margen de carga continua suba un calibre sobre lo
+  // que el proyectista ya decidió.
+  if (c.proteccionFrameAF != null && c.proteccionTripA != null) {
+    const especificado = breakerEspecificadoNema(c.proteccionFrameAF, c.proteccionTripA);
+    if (especificado) {
+      return {
+        carga: c,
+        breaker: especificado,
+        espaciosX: especificado.espaciosX,
+        version: especificado.frameAF >= UMBRAL_ELECTRONIC_AF ? 'fijo' : 'extraible',
+        corrienteDisenoA: I,
+      };
+    }
+  }
+
   // El breaker pierde capacidad con la altura/temperatura → (I × margen) / F.
   // El frame forzado (corrienteProteccionA) no se escala — elección explícita.
   const Imin = Math.max((I * MARGEN_ALIMENTADOR_NEMA) / factorDerrateo, c.corrienteProteccionA ?? 0);
@@ -329,6 +346,33 @@ function hpDeCarga(c: Carga): number | null {
 }
 
 /** Selecciona el breaker NEMA mínimo con rating ≥ I (FDR si Imin ≤ 400AF, electronic en otro caso). */
+/**
+ * Arma el interruptor que el proyecto ya dimensionó (frame + calibre) en vez de
+ * volver a elegirlo. El frame define el espacio de la gaveta, así que se busca
+ * en el catálogo; si no está, no se puede respetar y se devuelve undefined para
+ * que el llamador caiga en la sugerencia normal.
+ */
+export function breakerEspecificadoNema(
+  frameAF: number,
+  tripA: number,
+): BreakerNemaSeleccionado | undefined {
+  if (!(frameAF > 0) || !(tripA > 0)) return undefined;
+  const esElectronic = frameAF >= UMBRAL_ELECTRONIC_AF;
+  const frames = esElectronic ? ELEC_FRAMES : FDR_FRAMES;
+  const f = frames.find((x) => x.frameAF === frameAF)
+    ?? [...FDR_FRAMES, ...ELEC_FRAMES].find((x) => x.frameAF === frameAF);
+  if (!f) return undefined;
+  const tipo: 'AT' | 'AS' = f.frameAF >= UMBRAL_ELECTRONIC_AF ? 'AS' : 'AT';
+  return {
+    frameAF: f.frameAF,
+    rating: `${tripA}${tipo}`,
+    ratingA: tripA,
+    ratingTipo: tipo,
+    espaciosX: f.espaciosX,
+    icuRange: f.icuRange,
+  };
+}
+
 export function sugerirBreakerNema(Imin: number): BreakerNemaSeleccionado | undefined {
   if (Imin <= UMBRAL_ELECTRONIC_AF) {
     const r = FDR_RATINGS.find((x) => (x.tripA ?? 0) >= Imin);
