@@ -81,21 +81,23 @@ describe('sugerirBarraNema', () => {
 });
 
 describe('dimensionarCcmNema', () => {
-  it('motor de 10 HP → NEMA size 1, 1.5X, MCP 30 (AB CENTERLINE 2100)', () => {
+  it('motor de 10 HP → NEMA size 1, 2X, MCP 30 (AB CENTERLINE 2100)', () => {
     const r = dimensionarCcmNema([motor('1', 10)]);
     expect(r.tablero).toBeDefined();
     const a = r.asignaciones[0]!;
     expect(a.motor?.contactorSize).toBe(1);
-    expect(a.espaciosX).toBe(1.5);
+    // X por frame de MCP: 30 A ≤ 50 → 2X.
+    expect(a.espaciosX).toBe(2);
     expect(a.motor?.mcpFrameA).toBe(30);
     expect(a.version).toBe('extraible');
   });
 
-  it('motor de 100 HP → NEMA size 5, 3.5X, MCP 400 (AB CENTERLINE 2100)', () => {
+  it('motor de 100 HP → NEMA size 5, 6X, MCP 400 (AB CENTERLINE 2100)', () => {
     const r = dimensionarCcmNema([motor('1', 100)]);
     const a = r.asignaciones[0]!;
     expect(a.motor?.contactorSize).toBe(5);
-    expect(a.espaciosX).toBe(3.5);
+    // X por frame de MCP: 400 A > 250 → 6X.
+    expect(a.espaciosX).toBe(6);
     expect(a.motor?.mcpFrameA).toBe(400);
   });
 
@@ -241,25 +243,28 @@ describe('dimensionarCcmNema', () => {
     expect(r.tablero!.medida.instrumento).toBeTruthy();
   });
 
-  it('el tipo de arranque amplía el espacio: YD/PSV +1 escalón, VSD +2 (tabla FVNR)', () => {
-    // 15 HP FVNR = 1.5X. Con partidor suave → 2X; con variador → 2.5X.
+  it('el partidor suave sigue ampliando el espacio un escalón', () => {
+    // 15 HP FVNR = 2X (MCP 50). Con partidor suave sube un escalón → 2.5X.
     const dol = dimensionarCcmNema([motor('1', 15)]).asignaciones[0]!;
     const psv = dimensionarCcmNema([motor('1', 15, 1, 'suave')]).asignaciones[0]!;
-    const vsd = dimensionarCcmNema([motor('1', 15, 1, 'variador')]).asignaciones[0]!;
-    expect(dol.espaciosX).toBe(1.5);
+    expect(dol.espaciosX).toBe(2);
     // El DOL a 480 V lleva la nota de escalado de tensión, pero no la de arranque.
     expect(dol.notas ?? '').not.toContain('Espacio ampliado');
-    expect(psv.espaciosX).toBe(2);
+    expect(psv.espaciosX).toBe(2.5);
     expect(psv.notas).toContain('SMC');
-    expect(vsd.espaciosX).toBe(2.5);
-    expect(vsd.notas).toContain('PowerFlex');
   });
 
-  it('VSD grande llega a 6X (media sección) y pasa a unidad fija', () => {
-    // 100 HP FVNR = 3.5X extraíble; con variador +2 escalones → 6X fijo.
-    const a = dimensionarCcmNema([motor('1', 100, 1, 'variador')]).asignaciones[0]!;
-    expect(a.espaciosX).toBe(6);
-    expect(a.version).toBe('fijo');
+  it('la salida con variador es un alimentador: el X sale del frame, no del motor', () => {
+    // El drive va fuera del CCM; el cubículo solo lleva el interruptor que lo
+    // alimenta. 15 HP → frame 100AF → 2X; 125 HP → frame 225AF → 3X.
+    const chico = dimensionarCcmNema([motor('1', 15, 1, 'variador')]).asignaciones[0]!;
+    expect(chico.breaker?.frameAF).toBe(100);
+    expect(chico.espaciosX).toBe(2);
+    expect(chico.motor).toBeUndefined();
+
+    const grande = dimensionarCcmNema([motor('2', 125, 1, 'variador')]).asignaciones[0]!;
+    expect(grande.breaker?.frameAF).toBe(225);
+    expect(grande.espaciosX).toBe(3);
   });
 
   it('el escalado por arranque se topa en 6X', () => {

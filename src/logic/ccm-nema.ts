@@ -217,7 +217,11 @@ function minIcuKa(icuRange: string): number {
 }
 
 function asignar(c: Carga, factorDerrateo: number): AsignacionCcmNema | undefined {
-  if (c.tipo === 'motor') return asignarMotor(c);
+  // Un motor con variador NO ocupa una unidad de partida en el CCM: el drive va
+  // fuera del tablero y el cubículo solo lleva el interruptor que lo alimenta.
+  // Así lo trata la planilla de cálculo del proyecto, que rotula esas salidas
+  // como "Alimentador" y les asigna el X del frame (100AF → 2X, 225AF → 3X).
+  if (c.tipo === 'motor' && c.arranque !== 'variador') return asignarMotor(c);
   return asignarAlimentador(c, factorDerrateo);
 }
 
