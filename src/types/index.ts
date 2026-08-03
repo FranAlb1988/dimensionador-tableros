@@ -120,35 +120,40 @@ export interface Gaveta {
 /** Marca/fabricante del interruptor. */
 export type MarcaProteccion = 'Schneider' | 'ABB' | 'Chint';
 
-export type FamiliaProteccion =
-  // Schneider
-  | 'NSXm'
-  | 'NSX100'
-  | 'NSX160'
-  | 'NSX250'
-  | 'NSX400'
-  | 'NSX630'
-  | 'MasterpactNT'
-  | 'MasterpactNW'
-  | 'iC60N'
-  | 'iC60H'
-  | 'iC60L'
-  | 'C120N'
-  | 'C120H'
+/**
+ * Familia o bastidor del interruptor (NSX100, NSXm160, NS1000, iC60N, GV2L…).
+ *
+ * Es `string` a propósito: las familias salen de los catálogos reales
+ * (mcb.json, mccb.json, mcp.json, más las tablas ABB y Chint), que juntos
+ * pasan de las 60 y crecen con cada base que se incorpora. Una unión escrita a
+ * mano no puede seguirles el ritmo, y mantenerla obligaba a castear con `as`
+ * en cada adaptador — un `as` que no valida nada y que además dejó salidas
+ * fuera del resumen del TDG cuando aparecieron bastidores nuevos.
+ *
+ * Para ordenar familias en la interfaz, usar FAMILIAS_ORDEN como preferencia,
+ * nunca como filtro.
+ */
+export type FamiliaProteccion = string;
+
+/**
+ * Orden de presentación preferido. Las familias que no estén aquí se muestran
+ * igual, después de estas y en orden alfabético — el listado es una
+ * preferencia de orden, no una lista blanca.
+ */
+export const FAMILIAS_ORDEN: readonly string[] = [
+  // Schneider MCCB y ACB
+  'NSXm', 'NSXm100', 'NSXm160',
+  'NSX100', 'NSX160', 'NSX250', 'NSX400', 'NSX630',
+  'NS630', 'NS800', 'NS1000', 'NS1250', 'NS1600', 'NS1600b', 'NS2000', 'NS2500', 'NS3200',
+  'MasterpactNT', 'MasterpactNW',
+  // Schneider MCB (CDC)
+  'iC60N', 'iC60H', 'iC60L', 'C120N', 'C120H',
   // ABB Tmax (MCCB) y Emax 2 (ACB)
-  | 'TmaxXT2'
-  | 'TmaxXT4'
-  | 'TmaxT4'
-  | 'TmaxT5'
-  | 'EmaxE1.2'
-  | 'EmaxE2.2'
-  | 'EmaxE4.2'
-  | 'EmaxE6.2'
+  'TmaxXT2', 'TmaxXT4', 'TmaxT4', 'TmaxT5',
+  'EmaxE1.2', 'EmaxE2.2', 'EmaxE4.2', 'EmaxE6.2',
   // Chint NA1 (ACB)
-  | 'NA1-2000'
-  | 'NA1-3200'
-  | 'NA1-4000'
-  | 'NA1-6300';
+  'NA1-2000', 'NA1-3200', 'NA1-4000', 'NA1-6300',
+];
 
 export interface Proteccion {
   id: string;

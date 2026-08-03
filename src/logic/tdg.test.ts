@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { dimensionarTdg, salidasPorColumna } from './tdg';
 import { CONFIG_TRAFO_DEFAULT, calcularTransformador } from './transformador';
-import type { Carga } from '../types';
+import { FAMILIAS_ORDEN, type Carga } from '../types';
 
 function salida3F(id: string, kW: number, fs = 1): Carga {
   return {
@@ -229,5 +229,15 @@ describe('dimensionarTdg', () => {
     const r = dimensionarTdg(cargas, 1);
     // 1 columna principal + 2 columnas de salidas = 3
     expect(r.tablero!.columnas).toBe(3);
+  });
+
+  it('toda familia asignada está en FAMILIAS_ORDEN, para no perderse del resumen', () => {
+    // ResumenTdg ordena por FAMILIAS_ORDEN y las desconocidas van al final,
+    // así que ninguna se pierde. Aun así conviene que el listado cubra lo que
+    // el catálogo puede asignar: si no, el resumen las agrupa sin orden útil.
+    const cargas = [salida3F('1', 400), salida3F('2', 50), salida3F('3', 120)];
+    const familias = dimensionarTdg(cargas, 1).tablero!.salidas.map((s) => s.proteccion.familia);
+    expect(familias.length).toBe(3);
+    for (const f of familias) expect(FAMILIAS_ORDEN, f).toContain(f);
   });
 });

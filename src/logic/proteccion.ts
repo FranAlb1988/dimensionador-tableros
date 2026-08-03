@@ -1,9 +1,13 @@
 import abbTmaxData from '../data/iec/abb-tmax.json';
 import abbTmaxMaData from '../data/iec/abb-tmax-ma.json';
-import type { Carga, FamiliaProteccion, MarcaProteccion, Proteccion } from '../types';
+import type { Carga, MarcaProteccion, Proteccion } from '../types';
 import { corrienteDiseno } from './corriente';
 import { capacidadMcbKa, sugerirMcb, type Mcb } from './mcb';
 import { capacidadMccbKa, sugerirMccb, type Mccb, type OpcionesMccb } from './mccb';
+import {
+  ajusteMagneticoSugerido, capacidadMcpKa, esAjustable, MCP_DISPONIBLES, sugerirMcp,
+  toleranciaMagnetica, type Mcp, type OpcionesMcp,
+} from './mcp';
 
 const ABB_TMAX: readonly Proteccion[] = (abbTmaxData.interruptores as Proteccion[]);
 const ABB_TMAX_MA: readonly Proteccion[] = (abbTmaxMaData.interruptores as Proteccion[]);
@@ -67,10 +71,11 @@ const FAMILIAS_MCCB_INDUSTRIAL = ['ComPacT NSXm', 'ComPacT NSX', 'ComPacT NS'];
 const ICU_MINIMA_POR_DEFECTO = 36;
 
 /** Adapta una referencia del catálogo MCCB al tipo Proteccion del tablero. */
-function mccbAProteccion(m: Mccb, tensionV: number): Proteccion {
-  const familia = m.bastidor as FamiliaProteccion;
+function mccbAProteccion(m: Mccb, tensionV: number, corrienteMotorA?: number): Proteccion {
+  const familia = m.bastidor;
+  const esMagnetica = m.tecnologia === 'Magnética';
   const curva: Proteccion['curva'] | undefined =
-    m.tecnologia === 'Magnética' ? 'MA' : m.tecnologia === 'Termomagnética' ? 'TM-D' : undefined;
+    esMagnetica ? 'MA' : m.tecnologia === 'Termomagnética' ? 'TM-D' : undefined;
   return {
     id: m.referencia.toLowerCase(),
     familia,
@@ -80,7 +85,41 @@ function mccbAProteccion(m: Mccb, tensionV: number): Proteccion {
     icuKA: capacidadMccbKa(m, tensionV) ?? m.icu415Ka ?? 0,
     polos: m.polos,
     ...(curva ? { curva } : {}),
+    // Una unidad MA no protege sobrecarga venga del catálogo que venga: la
+    // advertencia no puede depender de cuál de los dos la sirvió.
+    ...(esMagnetica ? { notas: notaUnidadMagnetica(m.referencia, corrienteMotorA) } : {}),
   };
+}
+
+/**
+ * Nota de una unidad solo magnética. El catálogo MCP publica el rango de
+ * ajuste de 68 referencias que también están en el MCCB (las NSX/CVS MA), así
+ * que se cruza por SKU para no perder ese dato en la vía MCCB.
+ */
+function notaUnidadMagnetica(referencia: string, corrienteMotorA?: number): string {
+  const partes = ['Relé térmico externo obligatorio (MCP sin sobrecarga).'];
+  const enMcp = MCP_DISPONIBLES.find((x) => x.referencia === referencia);
+  const umbral = enMcp ? notaUmbralMagnetico(enMcp, corrienteMotorA) : undefined;
+  if (umbral) partes.push(umbral);
+  return partes.join(' ');
+}
+
+/**
+ * Frase del umbral magnético: el ajuste sugerido si la unidad es ajustable, o
+ * el valor fijo por calibre si no. En ambos casos se arrastra la tolerancia
+ * declarada — la banda real de disparo es la que entra a la coordinación, no
+ * el valor nominal.
+ */
+function notaUmbralMagnetico(m: Mcp, corrienteMotorA?: number): string | undefined {
+  if (corrienteMotorA == null) return undefined;
+  const ajuste = ajusteMagneticoSugerido(m, corrienteMotorA);
+  if (ajuste == null) return undefined;
+  const tol = toleranciaMagnetica(m);
+  const sufijo = tol ? `, tolerancia ${tol}` : '';
+  return esAjustable(m)
+    ? `Ajuste magnético sugerido ${Math.round(ajuste)} A `
+      + `(rango ${m.ajusteScMinA}-${m.ajusteScMaxA} A, ≈8 × In motor${sufijo}).`
+    : `Disparo magnético fijo en ${ajuste} A por calibre${sufijo ? ` (${sufijo.slice(2)})` : ''}.`;
 }
 
 /**
@@ -224,6 +263,15 @@ function desdeCatalogoMccb(
   minIcuKA: number,
 ): Proteccion | undefined {
   const tensionV = carga.tensionV > 0 ? carga.tensionV : 400;
+
+  // Motor con arrancador: el catálogo MCP tiene las gamas compactas TeSys GV,
+  // que hacen el mismo trabajo que un NSX MA en menos de la mitad del frente
+  // (GV2L: 45 mm vs NSX100: 105 mm). Si ninguna cubre el motor, sigue por la
+  // vía MCCB, que llega hasta 500 A en unidades MA.
+  if (esMotorMa) {
+    const p = desdeCatalogoMcp(Imin, tensionV, minIcuKA);
+    if (p) return p;
+  }
   const base: OpcionesMccb = {
     polos: carga.fases === '1F' ? 2 : 3,
     tensionV,
@@ -244,7 +292,7 @@ function desdeCatalogoMccb(
   ];
   for (const opciones of intentos) {
     const m = sugerirMccb(Imin, opciones);
-    if (m) return mccbAProteccion(m, tensionV);
+    if (m) return mccbAProteccion(m, tensionV, esMotorMa ? Imin : undefined);
   }
   // Ninguna clase alcanza la Icc pedida (o el piso por defecto: a 690 V los
   // frames chicos no llegan a 36 kA). Mejor esfuerzo — la mayor Icu dentro de
@@ -255,7 +303,48 @@ function desdeCatalogoMccb(
     preferirMayorIcu: true,
     familias: FAMILIAS_MCCB_INDUSTRIAL,
   }) ?? sugerirMccb(Imin, { ...base, iccKa: undefined, preferirMayorIcu: true });
-  return mejor ? mccbAProteccion(mejor, tensionV) : undefined;
+  return mejor ? mccbAProteccion(mejor, tensionV, esMotorMa ? Imin : undefined) : undefined;
+}
+
+/**
+ * Gamas MCP compactas para la gaveta de un CCM. Se excluyen las referencias
+ * ComPacT NSX y EasyPact CVS del catálogo MCP: son las mismas unidades MA que
+ * ya trae mccb.json, y dejarlas aquí duplicaría la selección.
+ */
+const FAMILIAS_MCP_COMPACTAS = [
+  'TeSys Deca GV2L', 'TeSys Deca GV2LE', 'TeSys Deca GV3L',
+  'TeSys Deca GV4L', 'TeSys Deca GV4LE', 'TeSys BV4',
+];
+
+/** Adapta una referencia MCP al tipo Proteccion, con su ajuste magnético. */
+function mcpAProteccion(m: Mcp, corrienteMotorA: number, tensionV: number): Proteccion {
+  const partes = ['Relé térmico externo obligatorio (MCP sin sobrecarga).'];
+  const umbral = notaUmbralMagnetico(m, corrienteMotorA);
+  if (umbral) partes.push(umbral);
+  return {
+    id: m.referencia.toLowerCase(),
+    familia: m.bastidor,
+    marca: 'Schneider',
+    referencia: `${m.familia.replace('TeSys Deca ', '').replace('TeSys ', '')} `
+      + `${m.inA}A 3P — ${m.referencia}`,
+    inA: m.inA,
+    icuKA: capacidadMcpKa(m, tensionV) ?? 0,
+    polos: 3,
+    curva: 'MA',
+    notas: partes.join(' '),
+  };
+}
+
+/** Selección de MCP compacto: Chile primero, luego el resto del rango. */
+function desdeCatalogoMcp(Imin: number, tensionV: number, minIcuKA: number): Proteccion | undefined {
+  const base: OpcionesMcp = {
+    tensionV,
+    familias: FAMILIAS_MCP_COMPACTAS,
+    soloReferenciaCompleta: true,
+    ...(minIcuKA > 0 ? { iccKa: minIcuKA } : {}),
+  };
+  const m = sugerirMcp(Imin, { ...base, soloChile: true }) ?? sugerirMcp(Imin, base);
+  return m ? mcpAProteccion(m, Imin, tensionV) : undefined;
 }
 
 /** Compatibilidad: alimentador Schneider (NSX). */
@@ -272,7 +361,7 @@ const FAMILIAS_CDC = ['Acti9 iC60N', 'Acti9 iC60H', 'Acti9 iC60L', 'Acti9 C120N'
 
 /** Adapta una referencia del catálogo MCB al tipo Proteccion del CDC. */
 function mcbAProteccion(m: Mcb, tensionV: number, fases: '1F' | '3F'): Proteccion {
-  const familia = m.familia.replace('Acti9 ', '') as FamiliaProteccion;
+  const familia = m.familia.replace('Acti9 ', '');
   return {
     id: m.referencia.toLowerCase(),
     familia,

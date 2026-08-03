@@ -23,10 +23,13 @@ describe('dimensionarCcm', () => {
     expect(r.tablero.altoTotalMm).toBeGreaterThan(0);
   });
 
-  it('cada asignación trae protección NSX y, para motor, arrancador TeSys', () => {
+  it('cada asignación trae protección y, para motor, arrancador TeSys', () => {
     const r = dimensionarCcm([motor('m1', 15)]);
     const a = r.asignaciones[0]!;
-    expect(a.proteccion.familia.startsWith('NSX')).toBe(true);
+    // Motor con arrancador en la gaveta: MCP compacto TeSys GV (Frame 2),
+    // no un NSX — el relé térmico del arrancador cubre la sobrecarga.
+    expect(a.proteccion.curva).toBe('MA');
+    expect(a.proteccion.referencia).toMatch(/^GV/);
     expect(a.arrancador?.contactor.startsWith('LC1')).toBe(true);
     expect(a.gaveta.protecciones).toHaveLength(1);
   });
@@ -182,9 +185,9 @@ describe('dimensionarCcm', () => {
     expect(a.arrancador?.contactor.startsWith('LC1')).toBe(true);
   });
 
-  it('marca por defecto (Schneider) usa NSX', () => {
+  it('marca por defecto (Schneider) usa catálogo Schneider', () => {
     const r = dimensionarCcm([motor('m1', 15)]);
-    expect(r.asignaciones[0]!.proteccion.familia.startsWith('NSX')).toBe(true);
+    expect(r.asignaciones[0]!.proteccion.marca).toBe('Schneider');
   });
 
   it('IDs de gavetas y columnas son deterministas entre llamadas', () => {

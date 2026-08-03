@@ -208,8 +208,50 @@ describe('clase de corte según la Icc de barra', () => {
   it('también aplica a las unidades MA (motor con arrancador)', () => {
     const p = sugerirProteccionFeeder(motor11kW, 'Schneider', 1, true, 45);
     expect(p!.curva).toBe('MA');
-    expect(p!.icuKA).toBe(50);
-    expect(p!.referencia).toContain('NSX100N MA');
+    expect(p!.icuKA).toBeGreaterThanOrEqual(45);
+  });
+});
+
+describe('MCP compacto para motor con arrancador', () => {
+  const motor = (kw: number): Carga => ({ ...motor11kW, potenciaKw: kw });
+
+  it('un motor chico usa TeSys GV, no un NSX de 105 mm', () => {
+    const p = sugerirProteccionFeeder(motor(1.5), 'Schneider', 1, true);
+    expect(p!.referencia).toMatch(/^GV2L/);
+    expect(p!.curva).toBe('MA');
+  });
+
+  it('escala GV2L → GV3L → GV4L → NSX según la corriente', () => {
+    const familia = (kw: number) =>
+      sugerirProteccionFeeder(motor(kw), 'Schneider', 1, true)!.referencia.split(' ')[0]!;
+    expect(familia(4)).toMatch(/^GV2L/);
+    expect(familia(22)).toBe('GV3L');
+    expect(familia(55)).toBe('GV4L');
+    // Sobre los 115 A del GV4L vuelve a la vía MCCB (unidades MA).
+    expect(familia(75)).toMatch(/^NSX/);
+  });
+
+  it('siempre declara que el relé térmico es obligatorio', () => {
+    for (const kw of [1.5, 11, 22, 55, 75]) {
+      const p = sugerirProteccionFeeder(motor(kw), 'Schneider', 1, true)!;
+      expect(p.notas, `${kw} kW`).toContain('Relé térmico externo obligatorio');
+    }
+  });
+
+  it('declara el umbral magnético: ajustable en GV4L, fijo en GV2L/GV3L', () => {
+    // GV2L y GV3L son de disparo instantáneo fijo; GV4L y las MA son ajustables.
+    const fijo = sugerirProteccionFeeder(motor(11), 'Schneider', 1, true)!;
+    expect(fijo.notas).toMatch(/Disparo magnético fijo en \d+(\.\d+)? A/);
+
+    const ajustable = sugerirProteccionFeeder(motor(55), 'Schneider', 1, true)!;
+    expect(ajustable.notas).toContain('Ajuste magnético sugerido');
+    expect(ajustable.notas).toContain('≈8 × In motor');
+  });
+
+  it('sin arrancador no se usa MCP: la salida conserva su protección térmica', () => {
+    const p = sugerirProteccionFeeder(motor(11), 'Schneider', 1, false)!;
+    expect(p.referencia).not.toMatch(/GV/);
+    expect(p.curva).toBe('TM-D');
   });
 });
 

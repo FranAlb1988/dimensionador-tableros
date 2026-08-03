@@ -1,18 +1,23 @@
 import type { ResultadoTdg } from '../logic/tdg';
 import { fmtAmp, fmtMm } from '../util/format';
-import type { FamiliaProteccion } from '../types';
+import { FAMILIAS_ORDEN, type FamiliaProteccion } from '../types';
 import { MedidaCard } from './MedidaCard';
 import { TransformadorCard } from './TransformadorCard';
 import { useTdgTransformador } from '../store/tdg';
 
-const ORDEN_FAMILIA: readonly FamiliaProteccion[] = [
-  'NSXm', 'NSX100', 'NSX160', 'NSX250', 'NSX400', 'NSX630',
-  'MasterpactNT', 'MasterpactNW',
-  'iC60N', 'iC60H',
-  'TmaxXT2', 'TmaxXT4', 'TmaxT4', 'TmaxT5',
-  'EmaxE1.2', 'EmaxE2.2', 'EmaxE4.2', 'EmaxE6.2',
-  'NA1-2000', 'NA1-3200', 'NA1-4000', 'NA1-6300',
-];
+/**
+ * Familias presentes en las salidas, en el orden de FAMILIAS_ORDEN y con las
+ * desconocidas al final en orden alfabético. Se ordena la lista real en vez de
+ * filtrar una lista fija: con un filtro, todo bastidor nuevo del catálogo
+ * (NS1000, NSXm160…) desaparecía del resumen sin que el total lo delatara.
+ */
+function familiasOrdenadas(familias: Iterable<FamiliaProteccion>): FamiliaProteccion[] {
+  const rango = (f: FamiliaProteccion) => {
+    const i = FAMILIAS_ORDEN.indexOf(f);
+    return i < 0 ? FAMILIAS_ORDEN.length : i;
+  };
+  return [...familias].sort((a, b) => rango(a) - rango(b) || a.localeCompare(b));
+}
 
 export function ResumenTdg({ resultado }: { resultado: ResultadoTdg }) {
   const t = resultado.tablero;
@@ -47,7 +52,7 @@ export function ResumenTdg({ resultado }: { resultado: ResultadoTdg }) {
       <div className="border border-slate-200 dark:border-slate-800 rounded-lg p-4">
         <div className="text-sm font-medium text-slate-500 mb-2">Salidas por familia</div>
         <ul className="space-y-1 text-sm">
-          {ORDEN_FAMILIA.filter((f) => conteo.has(f)).map((f) => (
+          {familiasOrdenadas(conteo.keys()).map((f) => (
             <li key={f} className="flex justify-between">
               <span>{f}</span>
               <span className="font-medium tabular-nums">{conteo.get(f)}</span>
