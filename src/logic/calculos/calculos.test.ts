@@ -9,9 +9,9 @@ function calc(id: string) {
 }
 
 describe('registro de calculadoras', () => {
-  it('expone 12 calculadoras con id único', () => {
-    expect(CALCULADORAS).toHaveLength(12);
-    expect(new Set(CALCULADORAS.map((c) => c.id)).size).toBe(12);
+  it('expone 13 calculadoras con id único', () => {
+    expect(CALCULADORAS).toHaveLength(13);
+    expect(new Set(CALCULADORAS.map((c) => c.id)).size).toBe(13);
   });
 });
 

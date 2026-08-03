@@ -11,16 +11,47 @@ import {
   sugerirDucto, type TipoDucto,
 } from './canalizaciones-catalogo';
 import { factorDerrateoAltura, type NivelTension } from '../derrateo';
+import {
+  datosTipo, itmNormalizadoRic, metodosDe, metodosInstalacionRic,
+  seccionPorAmpacidad, tiposConductorRic,
+} from './ric-conductores';
 
 const SQRT3 = Math.sqrt(3);
 
+/** Norma con la que se aplica el factor de agrupamiento. */
+export type NormaAgrupamiento = 'RIC' | 'NEC';
+
 /**
- * Factor de corrección por apilamiento (F3) según RIC N°4, Tabla 4.6.
- * Hasta 3 conductores activos no hay corrección.
+ * Factor de corrección por agrupamiento (F3) de conductores en una misma
+ * canalización. Las dos normas que usa la app agrupan distinto y no son
+ * intercambiables:
+ *
+ *   Conductores    RIC N°4 Tabla 4.6    NEC 310.15(B)(3)(a)
+ *   1 a 3                  1,00                 1,00
+ *   4 a 6                  0,80                 0,80
+ *   7 a 9                  0,70                 0,70
+ *   10 a 20                0,70                 0,50
+ *   21 a 24                0,70                 0,45
+ *   25 a 30                0,60                 0,45
+ *   31 a 40                0,60                 0,40
+ *   41 a 42                0,60                 0,35
+ *   más de 42              0,50                 0,35
+ *
+ * A partir de 10 conductores el NEC derratea mucho más, y aplicarlo a un
+ * proyecto RIC sube el conductor uno o dos calibres sin necesidad. Antes esta
+ * función tenía la tabla del NEC citando RIC N°4 Tabla 4.6.
  */
-export function factorApilamiento(nConductores: number): number {
+export function factorApilamiento(
+  nConductores: number,
+  norma: NormaAgrupamiento = 'RIC',
+): number {
   if (nConductores <= 3) return 1;
   if (nConductores <= 6) return 0.8;
+  if (norma === 'RIC') {
+    if (nConductores <= 24) return 0.7;
+    if (nConductores <= 42) return 0.6;
+    return 0.5;
+  }
   if (nConductores <= 9) return 0.7;
   if (nConductores <= 20) return 0.5;
   if (nConductores <= 30) return 0.45;
@@ -157,7 +188,15 @@ const corrienteDiseno: Calculadora = {
       key: 'nivel', label: 'Nivel de tensión', tipo: 'select', defecto: 'BT',
       opciones: [{ value: 'BT', label: 'Baja tensión' }, { value: 'MT', label: 'Media tensión' }],
     },
-    { key: 'nConductores', label: 'Conductores activos agrupados', unidad: '', defecto: 1, ayuda: 'Para el factor de apilamiento F3 (RIC N°4).' },
+    { key: 'nConductores', label: 'Conductores activos agrupados', unidad: '', defecto: 1, ayuda: 'Para el factor de agrupamiento F3.' },
+    {
+      key: 'normaF3', label: 'Norma del factor de agrupamiento', tipo: 'select', defecto: 'RIC',
+      opciones: [
+        { value: 'RIC', label: 'RIC N°4 Tabla 4.6 (Chile)' },
+        { value: 'NEC', label: 'NEC 310.15(B)(3)(a)' },
+      ],
+      ayuda: 'Sobre 9 conductores las tablas divergen: con 12 en un ducto, RIC da 0,70 y NEC 0,50.',
+    },
   ],
   salidas: [
     { key: 'F2', label: 'Factor por altura (F2)', unidad: '', decimales: 3 },
@@ -177,7 +216,8 @@ const corrienteDiseno: Calculadora = {
     }
     if (nConductores < 1) return { valores: {}, error: 'El número de conductores debe ser ≥ 1.' };
     const F2 = factorDerrateoAltura(altitud, nivel);
-    const F3 = factorApilamiento(Math.round(nConductores));
+    const normaF3: NormaAgrupamiento = (e['normaF3'] ?? 'RIC') === 'NEC' ? 'NEC' : 'RIC';
+    const F3 = factorApilamiento(Math.round(nConductores), normaF3);
     const corregida = In * F1;
     const base = Number.isFinite(Ip) ? Math.max(corregida, Ip) : corregida;
     const I = base / (F2 * F3);
@@ -367,10 +407,118 @@ const anchoEscalerilla: Calculadora = {
   visualizacion: 'escalerilla',
 };
 
+/**
+ * Sección de conductor por ampacidad (RIC N°04).
+ *
+ * Cierra el cálculo que `corrienteDiseno` dejaba a medias: aquella entrega la
+ * corriente a buscar en la tabla, y esta trae la tabla y devuelve la sección.
+ */
+const seccionConductor: Calculadora = {
+  id: 'seccion-conductor-ric',
+  grupo: 'conductores',
+  nombre: 'Sección de conductor por ampacidad (RIC)',
+  descripcion: 'Menor sección cuya capacidad de corriente, corregida por temperatura '
+    + 'ambiente y agrupamiento, cubre la corriente de diseño. Usa las tablas de '
+    + 'capacidad del RIC N°04 por tipo de conductor y método de instalación.',
+  norma: 'RIC N°4 · Tablas 4.1, 4.4, 4.6',
+  formula: 'Iz corregida = Iz tabla · ft · fn ≥ I diseño',
+  campos: [
+    { key: 'I', label: 'Corriente de diseño', unidad: 'A' },
+    {
+      key: 'tipo', label: 'Tipo de conductor', tipo: 'select', defecto: 'RZ1-K',
+      opciones: tiposConductorRic().map((t) => ({
+        value: t.tipo,
+        label: `${t.tipo} (${t.tServicioC ?? 70} °C${t.aptoReunion ? ', apto reunión' : ''})`,
+      })),
+    },
+    {
+      key: 'metodo', label: 'Método de instalación', tipo: 'select', defecto: 'B1',
+      opciones: metodosInstalacionRic().map((m) => ({
+        value: m.metodo,
+        label: `${m.metodo} — ${(m.descripcion ?? '').slice(0, 48)}`,
+      })),
+      ayuda: 'D1 y D2 son enterrados: su referencia térmica es 20 °C de suelo, no 30 °C de aire.',
+    },
+    { key: 'temperatura', label: 'Temperatura ambiente', unidad: '°C', defecto: 30 },
+    { key: 'nConductores', label: 'Conductores activos agrupados', unidad: '', defecto: 3 },
+    {
+      key: 'reunion', label: 'Local de reunión de personas', tipo: 'select', defecto: 'no',
+      opciones: [
+        { value: 'no', label: 'No' },
+        { value: 'si', label: 'Sí — exigir conductor apto' },
+      ],
+      ayuda: 'RIC N°04 Tabla 4.2: exige libre de halógenos, baja opacidad y baja toxicidad.',
+    },
+  ],
+  salidas: [
+    { key: 'ft', label: 'Factor por temperatura (ft)', unidad: '', decimales: 2 },
+    { key: 'fn', label: 'Factor por agrupamiento (fn)', unidad: '', decimales: 2 },
+    { key: 'izTabla', label: 'Iz de tabla', unidad: 'A' },
+    { key: 'izCorregida', label: 'Iz corregida', unidad: 'A' },
+    // Las secciones comerciales son 1,5 / 2,5 / 4 / 6…: un decimal basta.
+    { key: 'seccion', label: 'Sección mínima', unidad: 'mm²', destacado: true, decimales: 1 },
+    { key: 'itm', label: 'ITM normalizado', unidad: 'A', decimales: 0 },
+  ],
+  calcular: (e): ResultadoCalc => {
+    const I = num(e, 'I');
+    const temperatura = num(e, 'temperatura');
+    const nConductores = num(e, 'nConductores');
+    const tipo = e['tipo'] ?? 'RZ1-K';
+    const metodo = e['metodo'] ?? 'B1';
+    if (![I, temperatura, nConductores].every(Number.isFinite)) {
+      return { valores: {}, error: 'Completa corriente, temperatura y número de conductores.' };
+    }
+    if (I <= 0) return { valores: {}, error: 'La corriente de diseño debe ser mayor que 0.' };
+    if (nConductores < 1) return { valores: {}, error: 'El número de conductores debe ser ≥ 1.' };
+
+    const aptoReunion = e['reunion'] === 'si';
+    const r = seccionPorAmpacidad(I, {
+      tipo, metodo, temperaturaC: temperatura,
+      nConductores: Math.round(nConductores), aptoReunion,
+    });
+    if (!r) {
+      const t = datosTipo(tipo);
+      if (aptoReunion && t && !t.aptoReunion) {
+        return {
+          valores: {},
+          error: `${tipo} no es apto para locales de reunión de personas (RIC N°04 Tabla 4.2). `
+            + 'Usa H07Z1-K o RZ1-K.',
+        };
+      }
+      const disponibles = metodosDe(tipo);
+      if (!disponibles.includes(metodo)) {
+        return {
+          valores: {},
+          error: `El método ${metodo} no está tabulado para ${tipo}. `
+            + `Disponibles: ${disponibles.join(', ')}.`,
+        };
+      }
+      return {
+        valores: {},
+        error: `Ninguna sección tabulada de ${tipo} en método ${metodo} cubre ${I} A `
+          + 'con esos factores. Divide el circuito o cambia el método de instalación.',
+      };
+    }
+
+    const itm = itmNormalizadoRic(I);
+    const nota = itm == null
+      ? 'Sobre 100 A el RIC no enumera calibres de ITM: tómalo del catálogo del fabricante.'
+      : undefined;
+    return {
+      valores: {
+        ft: r.ft, fn: r.fn, izTabla: r.izTablaA, izCorregida: r.izCorregidaA,
+        seccion: r.seccionMm2, ...(itm != null ? { itm } : {}),
+      },
+      ...(nota ? { nota } : {}),
+    };
+  },
+};
+
 export const CALCULADORAS_CONDUCTORES: readonly Calculadora[] = [
   caidaPermanente,
   caidaPartida,
   corrienteDiseno,
+  seccionConductor,
   tamanoDucto,
   anchoEscalerilla,
 ];

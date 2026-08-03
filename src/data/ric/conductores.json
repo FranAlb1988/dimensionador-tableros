@@ -1,0 +1,888 @@
+{
+"_comment": "Conductores y factores del RIC N°04 (Chile). Extraído de Plantilla_Cuadro_de_Carga_RIC.xlsx. `ampacidades` es la tabla Iz por tipo × sección × método de instalación (A1/A2/B1/B2/D1/D2/E/F); `tipos` y `secciones` guardan lo que no depende del método (T° de servicio, R20, diámetro, aptitud para reunión de personas). `ft` corrige por temperatura ambiente y `agrupamiento` por número de conductores activos (Tabla 4.6). `itmNormalizado` da el calibre comercial de protección según la corriente de diseño.",
+"tipos": [
+ {
+  "tipo": "H07V-K",
+  "tServicioC": 70,
+  "tensionV": "450/750 o 600",
+  "condicionUso": 0,
+  "fuente": 1
+ },
+ {
+  "tipo": "H07Z1-K",
+  "tServicioC": 70,
+  "tensionV": "450/750 o 600",
+  "libreHalogenos": true,
+  "retardanteLlama": true,
+  "bajaOpacidad": true,
+  "bajaToxicidad": true,
+  "aptoReunion": true,
+  "condicionUso": 2,
+  "fuente": 1
+ },
+ {
+  "tipo": "RV-K",
+  "tServicioC": 90,
+  "tensionV": "600/1000",
+  "condicionUso": 3,
+  "fuente": 1
+ },
+ {
+  "tipo": "RZ1-K",
+  "tServicioC": 90,
+  "tensionV": "600/1000",
+  "libreHalogenos": true,
+  "retardanteLlama": true,
+  "bajaOpacidad": true,
+  "bajaToxicidad": true,
+  "aptoReunion": true,
+  "condicionUso": 4,
+  "fuente": 1
+ },
+ {
+  "tipo": "RZ1-K (AS+)",
+  "tServicioC": 90,
+  "tensionV": "600/1000",
+  "libreHalogenos": true,
+  "retardanteLlama": true,
+  "bajaOpacidad": true,
+  "bajaToxicidad": true,
+  "aptoReunion": true,
+  "condicionUso": 4,
+  "fuente": 1
+ },
+ {
+  "tipo": "THHN",
+  "tServicioC": 90,
+  "tensionV": "600/1000",
+  "condicionUso": 6,
+  "fuente": 1
+ },
+ {
+  "tipo": "THWN",
+  "tServicioC": 70,
+  "tensionV": "450/750 o 600",
+  "condicionUso": 5,
+  "fuente": 1
+ }
+],
+"secciones": [
+ {
+  "tipo": "H07V-K",
+  "seccionMm2": 1.5,
+  "r20OhmKm": 13.3,
+  "diametroMm": 3
+ },
+ {
+  "tipo": "H07Z1-K",
+  "seccionMm2": 1.5,
+  "r20OhmKm": 13.3,
+  "diametroMm": 3
+ },
+ {
+  "tipo": "RV-K",
+  "seccionMm2": 1.5,
+  "r20OhmKm": 13.3,
+  "diametroMm": 5.7
+ },
+ {
+  "tipo": "RZ1-K",
+  "seccionMm2": 1.5,
+  "r20OhmKm": 13.3,
+  "diametroMm": 5.7
+ },
+ {
+  "tipo": "RZ1-K (AS+)",
+  "seccionMm2": 1.5,
+  "r20OhmKm": 13.3,
+  "diametroMm": 5.7
+ },
+ {
+  "tipo": "H07V-K",
+  "seccionMm2": 2.5,
+  "r20OhmKm": 7.98,
+  "diametroMm": 3.7
+ },
+ {
+  "tipo": "H07Z1-K",
+  "seccionMm2": 2.5,
+  "r20OhmKm": 7.98,
+  "diametroMm": 3.7
+ },
+ {
+  "tipo": "RV-K",
+  "seccionMm2": 2.5,
+  "r20OhmKm": 7.98,
+  "diametroMm": 6.2
+ },
+ {
+  "tipo": "RZ1-K",
+  "seccionMm2": 2.5,
+  "r20OhmKm": 7.98,
+  "diametroMm": 6.2
+ },
+ {
+  "tipo": "RZ1-K (AS+)",
+  "seccionMm2": 2.5,
+  "r20OhmKm": 7.98,
+  "diametroMm": 6.2
+ },
+ {
+  "tipo": "H07V-K",
+  "seccionMm2": 4,
+  "r20OhmKm": 4.95,
+  "diametroMm": 4.2
+ },
+ {
+  "tipo": "H07Z1-K",
+  "seccionMm2": 4,
+  "r20OhmKm": 4.95,
+  "diametroMm": 4.2
+ },
+ {
+  "tipo": "RV-K",
+  "seccionMm2": 4,
+  "r20OhmKm": 4.95,
+  "diametroMm": 6.6
+ },
+ {
+  "tipo": "RZ1-K",
+  "seccionMm2": 4,
+  "r20OhmKm": 4.95,
+  "diametroMm": 6.6
+ },
+ {
+  "tipo": "RZ1-K (AS+)",
+  "seccionMm2": 4,
+  "r20OhmKm": 4.95,
+  "diametroMm": 6.6
+ },
+ {
+  "tipo": "H07V-K",
+  "seccionMm2": 6,
+  "r20OhmKm": 3.3,
+  "diametroMm": 4.7
+ },
+ {
+  "tipo": "H07Z1-K",
+  "seccionMm2": 6,
+  "r20OhmKm": 3.3,
+  "diametroMm": 4.7
+ },
+ {
+  "tipo": "RV-K",
+  "seccionMm2": 6,
+  "r20OhmKm": 3.3,
+  "diametroMm": 7.2
+ },
+ {
+  "tipo": "RZ1-K",
+  "seccionMm2": 6,
+  "r20OhmKm": 3.3,
+  "diametroMm": 7.2
+ },
+ {
+  "tipo": "RZ1-K (AS+)",
+  "seccionMm2": 6,
+  "r20OhmKm": 3.3,
+  "diametroMm": 7.2
+ },
+ {
+  "tipo": "H07V-K",
+  "seccionMm2": 10,
+  "r20OhmKm": 1.91,
+  "diametroMm": 6.2
+ },
+ {
+  "tipo": "H07Z1-K",
+  "seccionMm2": 10,
+  "r20OhmKm": 1.91,
+  "diametroMm": 6.2
+ },
+ {
+  "tipo": "RV-K",
+  "seccionMm2": 10,
+  "r20OhmKm": 1.91,
+  "diametroMm": 8.2
+ },
+ {
+  "tipo": "RZ1-K",
+  "seccionMm2": 10,
+  "r20OhmKm": 1.91,
+  "diametroMm": 8.2
+ },
+ {
+  "tipo": "RZ1-K (AS+)",
+  "seccionMm2": 10,
+  "r20OhmKm": 1.91,
+  "diametroMm": 8.2
+ },
+ {
+  "tipo": "H07V-K",
+  "seccionMm2": 16,
+  "r20OhmKm": 1.21,
+  "diametroMm": 7.3
+ },
+ {
+  "tipo": "H07Z1-K",
+  "seccionMm2": 16,
+  "r20OhmKm": 1.21,
+  "diametroMm": 7.3
+ },
+ {
+  "tipo": "RV-K",
+  "seccionMm2": 16,
+  "r20OhmKm": 1.21,
+  "diametroMm": 9.3
+ },
+ {
+  "tipo": "RZ1-K",
+  "seccionMm2": 16,
+  "r20OhmKm": 1.21,
+  "diametroMm": 9.3
+ },
+ {
+  "tipo": "RZ1-K (AS+)",
+  "seccionMm2": 16,
+  "r20OhmKm": 1.21,
+  "diametroMm": 9.3
+ },
+ {
+  "tipo": "H07V-K",
+  "seccionMm2": 25,
+  "r20OhmKm": 0.78,
+  "diametroMm": 9
+ },
+ {
+  "tipo": "H07Z1-K",
+  "seccionMm2": 25,
+  "r20OhmKm": 0.78,
+  "diametroMm": 9
+ },
+ {
+  "tipo": "RV-K",
+  "seccionMm2": 25,
+  "r20OhmKm": 0.78,
+  "diametroMm": 10.9
+ },
+ {
+  "tipo": "RZ1-K",
+  "seccionMm2": 25,
+  "r20OhmKm": 0.78,
+  "diametroMm": 10.9
+ },
+ {
+  "tipo": "RZ1-K (AS+)",
+  "seccionMm2": 25,
+  "r20OhmKm": 0.78,
+  "diametroMm": 10.9
+ },
+ {
+  "tipo": "H07V-K",
+  "seccionMm2": 35,
+  "r20OhmKm": 0.55,
+  "diametroMm": 10.1
+ },
+ {
+  "tipo": "H07Z1-K",
+  "seccionMm2": 35,
+  "r20OhmKm": 0.55,
+  "diametroMm": 10.1
+ },
+ {
+  "tipo": "RV-K",
+  "seccionMm2": 35,
+  "r20OhmKm": 0.55,
+  "diametroMm": 12
+ },
+ {
+  "tipo": "RZ1-K",
+  "seccionMm2": 35,
+  "r20OhmKm": 0.55,
+  "diametroMm": 12
+ },
+ {
+  "tipo": "RZ1-K (AS+)",
+  "seccionMm2": 35,
+  "r20OhmKm": 0.55,
+  "diametroMm": 12
+ },
+ {
+  "tipo": "THWN",
+  "seccionMm2": 2.08,
+  "awg": 14,
+  "r20OhmKm": 9.58,
+  "diametroMm": 3
+ },
+ {
+  "tipo": "THHN",
+  "seccionMm2": 2.08,
+  "awg": 14,
+  "r20OhmKm": 9.58,
+  "diametroMm": 3
+ },
+ {
+  "tipo": "THWN",
+  "seccionMm2": 3.31,
+  "awg": 12,
+  "r20OhmKm": 5.98,
+  "diametroMm": 3.5
+ },
+ {
+  "tipo": "THHN",
+  "seccionMm2": 3.31,
+  "awg": 12,
+  "r20OhmKm": 5.98,
+  "diametroMm": 3.5
+ },
+ {
+  "tipo": "THWN",
+  "seccionMm2": 5.26,
+  "awg": 10,
+  "r20OhmKm": 3.76,
+  "diametroMm": 4.3
+ },
+ {
+  "tipo": "THHN",
+  "seccionMm2": 5.26,
+  "awg": 10,
+  "r20OhmKm": 3.76,
+  "diametroMm": 4.3
+ },
+ {
+  "tipo": "THWN",
+  "seccionMm2": 8.37,
+  "awg": 8,
+  "r20OhmKm": 2.28,
+  "diametroMm": 5.5
+ },
+ {
+  "tipo": "THHN",
+  "seccionMm2": 8.37,
+  "awg": 8,
+  "r20OhmKm": 2.28,
+  "diametroMm": 5.5
+ },
+ {
+  "tipo": "THWN",
+  "seccionMm2": 13.3,
+  "awg": 6,
+  "r20OhmKm": 1.46,
+  "diametroMm": 6.4
+ },
+ {
+  "tipo": "THHN",
+  "seccionMm2": 13.3,
+  "awg": 6,
+  "r20OhmKm": 1.46,
+  "diametroMm": 6.4
+ },
+ {
+  "tipo": "THWN",
+  "seccionMm2": 21.1,
+  "awg": 4,
+  "r20OhmKm": 0.92,
+  "diametroMm": 8.3
+ },
+ {
+  "tipo": "THHN",
+  "seccionMm2": 21.1,
+  "awg": 4,
+  "r20OhmKm": 0.92,
+  "diametroMm": 8.3
+ },
+ {
+  "tipo": "THWN",
+  "seccionMm2": 33.6,
+  "awg": 2,
+  "r20OhmKm": 0.58,
+  "diametroMm": 9.7
+ },
+ {
+  "tipo": "THHN",
+  "seccionMm2": 33.6,
+  "awg": 2,
+  "r20OhmKm": 0.58,
+  "diametroMm": 9.7
+ }
+],
+"ampacidades": [
+{"tipo":"H07V-K","seccionMm2":1.5,"metodo":"A1","izA":14},
+{"tipo":"H07Z1-K","seccionMm2":1.5,"metodo":"A1","izA":14},
+{"tipo":"H07V-K","seccionMm2":1.5,"metodo":"B1","izA":16},
+{"tipo":"H07Z1-K","seccionMm2":1.5,"metodo":"B1","izA":16},
+{"tipo":"H07V-K","seccionMm2":1.5,"metodo":"E","izA":19},
+{"tipo":"H07Z1-K","seccionMm2":1.5,"metodo":"E","izA":19},
+{"tipo":"RV-K","seccionMm2":1.5,"metodo":"A1","izA":17},
+{"tipo":"RV-K","seccionMm2":1.5,"metodo":"A2","izA":17},
+{"tipo":"RV-K","seccionMm2":1.5,"metodo":"B1","izA":18},
+{"tipo":"RV-K","seccionMm2":1.5,"metodo":"B2","izA":19},
+{"tipo":"RV-K","seccionMm2":1.5,"metodo":"D1","izA":19},
+{"tipo":"RV-K","seccionMm2":1.5,"metodo":"D2","izA":23},
+{"tipo":"RV-K","seccionMm2":1.5,"metodo":"E","izA":19},
+{"tipo":"RZ1-K","seccionMm2":1.5,"metodo":"A1","izA":17},
+{"tipo":"RZ1-K","seccionMm2":1.5,"metodo":"A2","izA":17},
+{"tipo":"RZ1-K","seccionMm2":1.5,"metodo":"B1","izA":18},
+{"tipo":"RZ1-K","seccionMm2":1.5,"metodo":"B2","izA":19},
+{"tipo":"RZ1-K","seccionMm2":1.5,"metodo":"D1","izA":19},
+{"tipo":"RZ1-K","seccionMm2":1.5,"metodo":"D2","izA":23},
+{"tipo":"RZ1-K","seccionMm2":1.5,"metodo":"E","izA":19},
+{"tipo":"RZ1-K (AS+)","seccionMm2":1.5,"metodo":"A1","izA":17},
+{"tipo":"RZ1-K (AS+)","seccionMm2":1.5,"metodo":"A2","izA":17},
+{"tipo":"RZ1-K (AS+)","seccionMm2":1.5,"metodo":"B1","izA":18},
+{"tipo":"RZ1-K (AS+)","seccionMm2":1.5,"metodo":"B2","izA":19},
+{"tipo":"RZ1-K (AS+)","seccionMm2":1.5,"metodo":"D1","izA":19},
+{"tipo":"RZ1-K (AS+)","seccionMm2":1.5,"metodo":"D2","izA":23},
+{"tipo":"RZ1-K (AS+)","seccionMm2":1.5,"metodo":"E","izA":19},
+{"tipo":"H07V-K","seccionMm2":2.5,"metodo":"A1","izA":18},
+{"tipo":"H07Z1-K","seccionMm2":2.5,"metodo":"A1","izA":18},
+{"tipo":"H07V-K","seccionMm2":2.5,"metodo":"B1","izA":21},
+{"tipo":"H07Z1-K","seccionMm2":2.5,"metodo":"B1","izA":21},
+{"tipo":"H07V-K","seccionMm2":2.5,"metodo":"E","izA":24},
+{"tipo":"H07Z1-K","seccionMm2":2.5,"metodo":"E","izA":24},
+{"tipo":"RV-K","seccionMm2":2.5,"metodo":"A1","izA":23},
+{"tipo":"RV-K","seccionMm2":2.5,"metodo":"A2","izA":22},
+{"tipo":"RV-K","seccionMm2":2.5,"metodo":"B1","izA":24},
+{"tipo":"RV-K","seccionMm2":2.5,"metodo":"B2","izA":24},
+{"tipo":"RV-K","seccionMm2":2.5,"metodo":"D1","izA":33},
+{"tipo":"RV-K","seccionMm2":2.5,"metodo":"D2","izA":38},
+{"tipo":"RV-K","seccionMm2":2.5,"metodo":"E","izA":32},
+{"tipo":"RZ1-K","seccionMm2":2.5,"metodo":"A1","izA":23},
+{"tipo":"RZ1-K","seccionMm2":2.5,"metodo":"A2","izA":22},
+{"tipo":"RZ1-K","seccionMm2":2.5,"metodo":"B1","izA":24},
+{"tipo":"RZ1-K","seccionMm2":2.5,"metodo":"B2","izA":24},
+{"tipo":"RZ1-K","seccionMm2":2.5,"metodo":"D1","izA":33},
+{"tipo":"RZ1-K","seccionMm2":2.5,"metodo":"D2","izA":38},
+{"tipo":"RZ1-K","seccionMm2":2.5,"metodo":"E","izA":32},
+{"tipo":"RZ1-K (AS+)","seccionMm2":2.5,"metodo":"A1","izA":23},
+{"tipo":"RZ1-K (AS+)","seccionMm2":2.5,"metodo":"A2","izA":22},
+{"tipo":"RZ1-K (AS+)","seccionMm2":2.5,"metodo":"B1","izA":24},
+{"tipo":"RZ1-K (AS+)","seccionMm2":2.5,"metodo":"B2","izA":24},
+{"tipo":"RZ1-K (AS+)","seccionMm2":2.5,"metodo":"D1","izA":33},
+{"tipo":"RZ1-K (AS+)","seccionMm2":2.5,"metodo":"D2","izA":38},
+{"tipo":"RZ1-K (AS+)","seccionMm2":2.5,"metodo":"E","izA":32},
+{"tipo":"H07V-K","seccionMm2":4,"metodo":"A1","izA":24},
+{"tipo":"H07Z1-K","seccionMm2":4,"metodo":"A1","izA":24},
+{"tipo":"H07V-K","seccionMm2":4,"metodo":"B1","izA":28},
+{"tipo":"H07Z1-K","seccionMm2":4,"metodo":"B1","izA":28},
+{"tipo":"H07V-K","seccionMm2":4,"metodo":"E","izA":31},
+{"tipo":"H07Z1-K","seccionMm2":4,"metodo":"E","izA":31},
+{"tipo":"RV-K","seccionMm2":4,"metodo":"A1","izA":31},
+{"tipo":"RV-K","seccionMm2":4,"metodo":"A2","izA":30},
+{"tipo":"RV-K","seccionMm2":4,"metodo":"B1","izA":37},
+{"tipo":"RV-K","seccionMm2":4,"metodo":"B2","izA":35},
+{"tipo":"RV-K","seccionMm2":4,"metodo":"D1","izA":42},
+{"tipo":"RV-K","seccionMm2":4,"metodo":"D2","izA":59},
+{"tipo":"RV-K","seccionMm2":4,"metodo":"E","izA":42},
+{"tipo":"RV-K","seccionMm2":4,"metodo":"F","izA":42},
+{"tipo":"RZ1-K","seccionMm2":4,"metodo":"A1","izA":31},
+{"tipo":"RZ1-K","seccionMm2":4,"metodo":"A2","izA":30},
+{"tipo":"RZ1-K","seccionMm2":4,"metodo":"B1","izA":37},
+{"tipo":"RZ1-K","seccionMm2":4,"metodo":"B2","izA":35},
+{"tipo":"RZ1-K","seccionMm2":4,"metodo":"D1","izA":42},
+{"tipo":"RZ1-K","seccionMm2":4,"metodo":"D2","izA":59},
+{"tipo":"RZ1-K","seccionMm2":4,"metodo":"E","izA":42},
+{"tipo":"RZ1-K","seccionMm2":4,"metodo":"F","izA":42},
+{"tipo":"RZ1-K (AS+)","seccionMm2":4,"metodo":"A1","izA":31},
+{"tipo":"RZ1-K (AS+)","seccionMm2":4,"metodo":"A2","izA":30},
+{"tipo":"RZ1-K (AS+)","seccionMm2":4,"metodo":"B1","izA":37},
+{"tipo":"RZ1-K (AS+)","seccionMm2":4,"metodo":"B2","izA":35},
+{"tipo":"RZ1-K (AS+)","seccionMm2":4,"metodo":"D1","izA":42},
+{"tipo":"RZ1-K (AS+)","seccionMm2":4,"metodo":"D2","izA":59},
+{"tipo":"RZ1-K (AS+)","seccionMm2":4,"metodo":"E","izA":42},
+{"tipo":"RZ1-K (AS+)","seccionMm2":4,"metodo":"F","izA":42},
+{"tipo":"H07V-K","seccionMm2":6,"metodo":"A1","izA":31},
+{"tipo":"H07Z1-K","seccionMm2":6,"metodo":"A1","izA":31},
+{"tipo":"H07V-K","seccionMm2":6,"metodo":"B1","izA":36},
+{"tipo":"H07Z1-K","seccionMm2":6,"metodo":"B1","izA":36},
+{"tipo":"H07V-K","seccionMm2":6,"metodo":"E","izA":43},
+{"tipo":"H07Z1-K","seccionMm2":6,"metodo":"E","izA":43},
+{"tipo":"RV-K","seccionMm2":6,"metodo":"A1","izA":40},
+{"tipo":"RV-K","seccionMm2":6,"metodo":"A2","izA":38},
+{"tipo":"RV-K","seccionMm2":6,"metodo":"B1","izA":48},
+{"tipo":"RV-K","seccionMm2":6,"metodo":"B2","izA":44},
+{"tipo":"RV-K","seccionMm2":6,"metodo":"D1","izA":52},
+{"tipo":"RV-K","seccionMm2":6,"metodo":"D2","izA":74},
+{"tipo":"RV-K","seccionMm2":6,"metodo":"E","izA":54},
+{"tipo":"RV-K","seccionMm2":6,"metodo":"F","izA":55},
+{"tipo":"RZ1-K","seccionMm2":6,"metodo":"A1","izA":40},
+{"tipo":"RZ1-K","seccionMm2":6,"metodo":"A2","izA":38},
+{"tipo":"RZ1-K","seccionMm2":6,"metodo":"B1","izA":48},
+{"tipo":"RZ1-K","seccionMm2":6,"metodo":"B2","izA":44},
+{"tipo":"RZ1-K","seccionMm2":6,"metodo":"D1","izA":52},
+{"tipo":"RZ1-K","seccionMm2":6,"metodo":"D2","izA":74},
+{"tipo":"RZ1-K","seccionMm2":6,"metodo":"E","izA":54},
+{"tipo":"RZ1-K","seccionMm2":6,"metodo":"F","izA":55},
+{"tipo":"RZ1-K (AS+)","seccionMm2":6,"metodo":"A1","izA":40},
+{"tipo":"RZ1-K (AS+)","seccionMm2":6,"metodo":"A2","izA":38},
+{"tipo":"RZ1-K (AS+)","seccionMm2":6,"metodo":"B1","izA":48},
+{"tipo":"RZ1-K (AS+)","seccionMm2":6,"metodo":"B2","izA":44},
+{"tipo":"RZ1-K (AS+)","seccionMm2":6,"metodo":"D1","izA":52},
+{"tipo":"RZ1-K (AS+)","seccionMm2":6,"metodo":"D2","izA":74},
+{"tipo":"RZ1-K (AS+)","seccionMm2":6,"metodo":"E","izA":54},
+{"tipo":"RZ1-K (AS+)","seccionMm2":6,"metodo":"F","izA":55},
+{"tipo":"H07V-K","seccionMm2":10,"metodo":"A1","izA":42},
+{"tipo":"H07Z1-K","seccionMm2":10,"metodo":"A1","izA":42},
+{"tipo":"H07V-K","seccionMm2":10,"metodo":"B1","izA":50},
+{"tipo":"H07Z1-K","seccionMm2":10,"metodo":"B1","izA":50},
+{"tipo":"H07V-K","seccionMm2":10,"metodo":"E","izA":60},
+{"tipo":"H07Z1-K","seccionMm2":10,"metodo":"E","izA":60},
+{"tipo":"RV-K","seccionMm2":10,"metodo":"A1","izA":54},
+{"tipo":"RV-K","seccionMm2":10,"metodo":"A2","izA":51},
+{"tipo":"RV-K","seccionMm2":10,"metodo":"B1","izA":66},
+{"tipo":"RV-K","seccionMm2":10,"metodo":"B2","izA":60},
+{"tipo":"RV-K","seccionMm2":10,"metodo":"D1","izA":68},
+{"tipo":"RV-K","seccionMm2":10,"metodo":"D2","izA":98},
+{"tipo":"RV-K","seccionMm2":10,"metodo":"E","izA":75},
+{"tipo":"RV-K","seccionMm2":10,"metodo":"F","izA":77},
+{"tipo":"RZ1-K","seccionMm2":10,"metodo":"A1","izA":54},
+{"tipo":"RZ1-K","seccionMm2":10,"metodo":"A2","izA":51},
+{"tipo":"RZ1-K","seccionMm2":10,"metodo":"B1","izA":66},
+{"tipo":"RZ1-K","seccionMm2":10,"metodo":"B2","izA":60},
+{"tipo":"RZ1-K","seccionMm2":10,"metodo":"D1","izA":68},
+{"tipo":"RZ1-K","seccionMm2":10,"metodo":"D2","izA":98},
+{"tipo":"RZ1-K","seccionMm2":10,"metodo":"E","izA":75},
+{"tipo":"RZ1-K","seccionMm2":10,"metodo":"F","izA":77},
+{"tipo":"RZ1-K (AS+)","seccionMm2":10,"metodo":"A1","izA":54},
+{"tipo":"RZ1-K (AS+)","seccionMm2":10,"metodo":"A2","izA":51},
+{"tipo":"RZ1-K (AS+)","seccionMm2":10,"metodo":"B1","izA":66},
+{"tipo":"RZ1-K (AS+)","seccionMm2":10,"metodo":"B2","izA":60},
+{"tipo":"RZ1-K (AS+)","seccionMm2":10,"metodo":"D1","izA":68},
+{"tipo":"RZ1-K (AS+)","seccionMm2":10,"metodo":"D2","izA":98},
+{"tipo":"RZ1-K (AS+)","seccionMm2":10,"metodo":"E","izA":75},
+{"tipo":"RZ1-K (AS+)","seccionMm2":10,"metodo":"F","izA":77},
+{"tipo":"H07V-K","seccionMm2":16,"metodo":"A1","izA":56},
+{"tipo":"H07Z1-K","seccionMm2":16,"metodo":"A1","izA":56},
+{"tipo":"H07V-K","seccionMm2":16,"metodo":"B1","izA":68},
+{"tipo":"H07Z1-K","seccionMm2":16,"metodo":"B1","izA":68},
+{"tipo":"H07V-K","seccionMm2":16,"metodo":"E","izA":80},
+{"tipo":"H07Z1-K","seccionMm2":16,"metodo":"E","izA":80},
+{"tipo":"RV-K","seccionMm2":16,"metodo":"A1","izA":73},
+{"tipo":"RV-K","seccionMm2":16,"metodo":"A2","izA":68},
+{"tipo":"RV-K","seccionMm2":16,"metodo":"B1","izA":88},
+{"tipo":"RV-K","seccionMm2":16,"metodo":"B2","izA":80},
+{"tipo":"RV-K","seccionMm2":16,"metodo":"D1","izA":89},
+{"tipo":"RV-K","seccionMm2":16,"metodo":"D2","izA":126},
+{"tipo":"RV-K","seccionMm2":16,"metodo":"E","izA":100},
+{"tipo":"RV-K","seccionMm2":16,"metodo":"F","izA":105},
+{"tipo":"RZ1-K","seccionMm2":16,"metodo":"A1","izA":73},
+{"tipo":"RZ1-K","seccionMm2":16,"metodo":"A2","izA":68},
+{"tipo":"RZ1-K","seccionMm2":16,"metodo":"B1","izA":88},
+{"tipo":"RZ1-K","seccionMm2":16,"metodo":"B2","izA":80},
+{"tipo":"RZ1-K","seccionMm2":16,"metodo":"D1","izA":89},
+{"tipo":"RZ1-K","seccionMm2":16,"metodo":"D2","izA":126},
+{"tipo":"RZ1-K","seccionMm2":16,"metodo":"E","izA":100},
+{"tipo":"RZ1-K","seccionMm2":16,"metodo":"F","izA":105},
+{"tipo":"RZ1-K (AS+)","seccionMm2":16,"metodo":"A1","izA":73},
+{"tipo":"RZ1-K (AS+)","seccionMm2":16,"metodo":"A2","izA":68},
+{"tipo":"RZ1-K (AS+)","seccionMm2":16,"metodo":"B1","izA":88},
+{"tipo":"RZ1-K (AS+)","seccionMm2":16,"metodo":"B2","izA":80},
+{"tipo":"RZ1-K (AS+)","seccionMm2":16,"metodo":"D1","izA":89},
+{"tipo":"RZ1-K (AS+)","seccionMm2":16,"metodo":"D2","izA":126},
+{"tipo":"RZ1-K (AS+)","seccionMm2":16,"metodo":"E","izA":100},
+{"tipo":"RZ1-K (AS+)","seccionMm2":16,"metodo":"F","izA":105},
+{"tipo":"H07V-K","seccionMm2":25,"metodo":"A1","izA":73},
+{"tipo":"H07Z1-K","seccionMm2":25,"metodo":"A1","izA":73},
+{"tipo":"H07V-K","seccionMm2":25,"metodo":"B1","izA":89},
+{"tipo":"H07Z1-K","seccionMm2":25,"metodo":"B1","izA":89},
+{"tipo":"H07V-K","seccionMm2":25,"metodo":"E","izA":101},
+{"tipo":"H07Z1-K","seccionMm2":25,"metodo":"E","izA":101},
+{"tipo":"RV-K","seccionMm2":25,"metodo":"A1","izA":95},
+{"tipo":"RV-K","seccionMm2":25,"metodo":"A2","izA":89},
+{"tipo":"RV-K","seccionMm2":25,"metodo":"B1","izA":117},
+{"tipo":"RV-K","seccionMm2":25,"metodo":"B2","izA":105},
+{"tipo":"RV-K","seccionMm2":25,"metodo":"D1","izA":113},
+{"tipo":"RV-K","seccionMm2":25,"metodo":"D2","izA":161},
+{"tipo":"RV-K","seccionMm2":25,"metodo":"E","izA":127},
+{"tipo":"RV-K","seccionMm2":25,"metodo":"F","izA":141},
+{"tipo":"RZ1-K","seccionMm2":25,"metodo":"A1","izA":95},
+{"tipo":"RZ1-K","seccionMm2":25,"metodo":"A2","izA":89},
+{"tipo":"RZ1-K","seccionMm2":25,"metodo":"B1","izA":117},
+{"tipo":"RZ1-K","seccionMm2":25,"metodo":"B2","izA":105},
+{"tipo":"RZ1-K","seccionMm2":25,"metodo":"D1","izA":113},
+{"tipo":"RZ1-K","seccionMm2":25,"metodo":"D2","izA":161},
+{"tipo":"RZ1-K","seccionMm2":25,"metodo":"E","izA":127},
+{"tipo":"RZ1-K","seccionMm2":25,"metodo":"F","izA":141},
+{"tipo":"RZ1-K (AS+)","seccionMm2":25,"metodo":"A1","izA":95},
+{"tipo":"RZ1-K (AS+)","seccionMm2":25,"metodo":"A2","izA":89},
+{"tipo":"RZ1-K (AS+)","seccionMm2":25,"metodo":"B1","izA":117},
+{"tipo":"RZ1-K (AS+)","seccionMm2":25,"metodo":"B2","izA":105},
+{"tipo":"RZ1-K (AS+)","seccionMm2":25,"metodo":"D1","izA":113},
+{"tipo":"RZ1-K (AS+)","seccionMm2":25,"metodo":"D2","izA":161},
+{"tipo":"RZ1-K (AS+)","seccionMm2":25,"metodo":"E","izA":127},
+{"tipo":"RZ1-K (AS+)","seccionMm2":25,"metodo":"F","izA":141},
+{"tipo":"H07V-K","seccionMm2":35,"metodo":"A1","izA":89},
+{"tipo":"H07Z1-K","seccionMm2":35,"metodo":"A1","izA":89},
+{"tipo":"H07V-K","seccionMm2":35,"metodo":"B1","izA":110},
+{"tipo":"H07Z1-K","seccionMm2":35,"metodo":"B1","izA":110},
+{"tipo":"H07V-K","seccionMm2":35,"metodo":"E","izA":126},
+{"tipo":"H07Z1-K","seccionMm2":35,"metodo":"E","izA":126},
+{"tipo":"RV-K","seccionMm2":35,"metodo":"A1","izA":117},
+{"tipo":"RV-K","seccionMm2":35,"metodo":"A2","izA":109},
+{"tipo":"RV-K","seccionMm2":35,"metodo":"B1","izA":144},
+{"tipo":"RV-K","seccionMm2":35,"metodo":"B2","izA":128},
+{"tipo":"RV-K","seccionMm2":35,"metodo":"D1","izA":136},
+{"tipo":"RV-K","seccionMm2":35,"metodo":"D2","izA":194},
+{"tipo":"RV-K","seccionMm2":35,"metodo":"E","izA":158},
+{"tipo":"RV-K","seccionMm2":35,"metodo":"F","izA":176},
+{"tipo":"RZ1-K","seccionMm2":35,"metodo":"A1","izA":117},
+{"tipo":"RZ1-K","seccionMm2":35,"metodo":"A2","izA":109},
+{"tipo":"RZ1-K","seccionMm2":35,"metodo":"B1","izA":144},
+{"tipo":"RZ1-K","seccionMm2":35,"metodo":"B2","izA":128},
+{"tipo":"RZ1-K","seccionMm2":35,"metodo":"D1","izA":136},
+{"tipo":"RZ1-K","seccionMm2":35,"metodo":"D2","izA":194},
+{"tipo":"RZ1-K","seccionMm2":35,"metodo":"E","izA":158},
+{"tipo":"RZ1-K","seccionMm2":35,"metodo":"F","izA":176},
+{"tipo":"RZ1-K (AS+)","seccionMm2":35,"metodo":"A1","izA":117},
+{"tipo":"RZ1-K (AS+)","seccionMm2":35,"metodo":"A2","izA":109},
+{"tipo":"RZ1-K (AS+)","seccionMm2":35,"metodo":"B1","izA":144},
+{"tipo":"RZ1-K (AS+)","seccionMm2":35,"metodo":"B2","izA":128},
+{"tipo":"RZ1-K (AS+)","seccionMm2":35,"metodo":"D1","izA":136},
+{"tipo":"RZ1-K (AS+)","seccionMm2":35,"metodo":"D2","izA":194},
+{"tipo":"RZ1-K (AS+)","seccionMm2":35,"metodo":"E","izA":158},
+{"tipo":"RZ1-K (AS+)","seccionMm2":35,"metodo":"F","izA":176},
+{"tipo":"THWN","seccionMm2":2.08,"metodo":"A1","izA":16},
+{"tipo":"THWN","seccionMm2":2.08,"metodo":"B1","izA":19},
+{"tipo":"THWN","seccionMm2":2.08,"metodo":"E","izA":22},
+{"tipo":"THHN","seccionMm2":2.08,"metodo":"A1","izA":21},
+{"tipo":"THHN","seccionMm2":2.08,"metodo":"B1","izA":24},
+{"tipo":"THWN","seccionMm2":3.31,"metodo":"A1","izA":21},
+{"tipo":"THWN","seccionMm2":3.31,"metodo":"B1","izA":25},
+{"tipo":"THWN","seccionMm2":3.31,"metodo":"E","izA":30},
+{"tipo":"THHN","seccionMm2":3.31,"metodo":"A1","izA":28},
+{"tipo":"THHN","seccionMm2":3.31,"metodo":"B1","izA":31},
+{"tipo":"THWN","seccionMm2":5.26,"metodo":"A1","izA":28},
+{"tipo":"THWN","seccionMm2":5.26,"metodo":"B1","izA":34},
+{"tipo":"THWN","seccionMm2":5.26,"metodo":"E","izA":38},
+{"tipo":"THHN","seccionMm2":5.26,"metodo":"A1","izA":37},
+{"tipo":"THHN","seccionMm2":5.26,"metodo":"B1","izA":39},
+{"tipo":"THWN","seccionMm2":8.37,"metodo":"A1","izA":38},
+{"tipo":"THWN","seccionMm2":8.37,"metodo":"B1","izA":45},
+{"tipo":"THWN","seccionMm2":8.37,"metodo":"E","izA":53},
+{"tipo":"THHN","seccionMm2":8.37,"metodo":"A1","izA":49},
+{"tipo":"THHN","seccionMm2":8.37,"metodo":"B1","izA":59},
+{"tipo":"THWN","seccionMm2":13.3,"metodo":"A1","izA":50},
+{"tipo":"THWN","seccionMm2":13.3,"metodo":"B1","izA":60},
+{"tipo":"THWN","seccionMm2":13.3,"metodo":"E","izA":71},
+{"tipo":"THHN","seccionMm2":13.3,"metodo":"A1","izA":65},
+{"tipo":"THHN","seccionMm2":13.3,"metodo":"B1","izA":79},
+{"tipo":"THWN","seccionMm2":21.1,"metodo":"A1","izA":66},
+{"tipo":"THWN","seccionMm2":21.1,"metodo":"B1","izA":80},
+{"tipo":"THWN","seccionMm2":21.1,"metodo":"E","izA":91},
+{"tipo":"THHN","seccionMm2":21.1,"metodo":"A1","izA":86},
+{"tipo":"THHN","seccionMm2":21.1,"metodo":"B1","izA":105},
+{"tipo":"THWN","seccionMm2":33.6,"metodo":"A1","izA":87},
+{"tipo":"THWN","seccionMm2":33.6,"metodo":"B1","izA":108},
+{"tipo":"THWN","seccionMm2":33.6,"metodo":"E","izA":122},
+{"tipo":"THHN","seccionMm2":33.6,"metodo":"A1","izA":114},
+{"tipo":"THHN","seccionMm2":33.6,"metodo":"B1","izA":141}
+],
+"ft": [
+ {
+  "desdeC": 5,
+  "ft70": 1.22,
+  "ft90ABEF": 1.15,
+  "ft90D": 1.07
+ },
+ {
+  "desdeC": 11,
+  "ft70": 1.17,
+  "ft90ABEF": 1.12,
+  "ft90D": 1.04
+ },
+ {
+  "desdeC": 16,
+  "ft70": 1.12,
+  "ft90ABEF": 1.08,
+  "ft90D": 1
+ },
+ {
+  "desdeC": 21,
+  "ft70": 1.06,
+  "ft90ABEF": 1.04,
+  "ft90D": 0.96
+ },
+ {
+  "desdeC": 26,
+  "ft70": 1,
+  "ft90ABEF": 1,
+  "ft90D": 0.93
+ },
+ {
+  "desdeC": 31,
+  "ft70": 0.94,
+  "ft90ABEF": 0.96,
+  "ft90D": 0.89
+ },
+ {
+  "desdeC": 36,
+  "ft70": 0.87,
+  "ft90ABEF": 0.91,
+  "ft90D": 0.85
+ },
+ {
+  "desdeC": 41,
+  "ft70": 0.79,
+  "ft90ABEF": 0.87,
+  "ft90D": 0.8
+ },
+ {
+  "desdeC": 46,
+  "ft70": 0.71,
+  "ft90ABEF": 0.82,
+  "ft90D": 0.76
+ },
+ {
+  "desdeC": 51,
+  "ft70": 0.61,
+  "ft90ABEF": 0.76,
+  "ft90D": 0.71
+ },
+ {
+  "desdeC": 56,
+  "ft70": 0.5,
+  "ft90ABEF": 0.71,
+  "ft90D": 0.65
+ }
+],
+"agrupamiento": [
+ {
+  "rango": "1 a 3",
+  "fn": 1
+ },
+ {
+  "rango": "4 a 6",
+  "fn": 0.8
+ },
+ {
+  "rango": "7 a 24",
+  "fn": 0.7
+ },
+ {
+  "rango": "25 a 42",
+  "fn": 0.6
+ },
+ {
+  "rango": "Sobre 42",
+  "fn": 0.5
+ }
+],
+"itmNormalizado": [
+ {
+  "desdeA": 0,
+  "inA": 6
+ },
+ {
+  "desdeA": 6.0,
+  "inA": 10
+ },
+ {
+  "desdeA": 10.0,
+  "inA": 13
+ },
+ {
+  "desdeA": 13.0,
+  "inA": 16
+ },
+ {
+  "desdeA": 16.0,
+  "inA": 20
+ },
+ {
+  "desdeA": 20.0,
+  "inA": 25
+ },
+ {
+  "desdeA": 25.0,
+  "inA": 32
+ },
+ {
+  "desdeA": 32.0,
+  "inA": 40
+ },
+ {
+  "desdeA": 40.0,
+  "inA": 50
+ },
+ {
+  "desdeA": 50.0,
+  "inA": 63
+ },
+ {
+  "desdeA": 63.0,
+  "inA": 80
+ },
+ {
+  "desdeA": 80.0,
+  "inA": 100
+ }
+],
+"seccionesNormalizadas": [
+ 1.5,
+ 2.08,
+ 2.5,
+ 3.31,
+ 4,
+ 5.26,
+ 6,
+ 8.37,
+ 10,
+ 13.3,
+ 16,
+ 21.1,
+ 25,
+ 33.6,
+ 35
+],
+"metodos": [
+ {
+  "metodo": "A1",
+  "descripcion": "Hasta tres conductores monopolares con carga en ductos embutidos en paredes.",
+  "referenciaTermica": "30 °C"
+ },
+ {
+  "metodo": "A2",
+  "descripcion": "Cable multiconductor, tres conductores con carga, en ducto embutido en pared.",
+  "referenciaTermica": "30 °C"
+ },
+ {
+  "metodo": "B1",
+  "descripcion": "Hasta tres conductores monopolares en ductos o bandejas adosadas a paredes.",
+  "referenciaTermica": "30 °C"
+ },
+ {
+  "metodo": "B2",
+  "descripcion": "Cable multiconductor, tres conductores con carga, en ductos o bandejas adosadas.",
+  "referenciaTermica": "30 °C"
+ },
+ {
+  "metodo": "D1",
+  "descripcion": "Cable mono o multiconductor, tres conductores con carga, en ductos enterrados.",
+  "referenciaTermica": "20 °C suelo"
+ },
+ {
+  "metodo": "D2",
+  "descripcion": "Cable con cubierta, mono o multiconductor, directamente enterrado.",
+  "referenciaTermica": "20 °C suelo"
+ },
+ {
+  "metodo": "E",
+  "descripcion": "Cable multiconductor al aire, en escalerilla, canastillo o bandeja perforada.",
+  "referenciaTermica": "30 °C"
+ },
+ {
+  "metodo": "F",
+  "descripcion": "Tres cables monoconductores en contacto y disposición plana, libremente al aire.",
+  "referenciaTermica": "30 °C"
+ }
+],
+"notas": [
+ "Instalación fija en ductos/molduras; ambiente seco según Tabla 4.2.",
+ "https://www.sec.cl/sitio-web/wp-content/uploads/2021/01/RIC-N04-Conductores-y-Canalizaciones.pdf",
+ "Apto para reunión de personas; no usar como alimentador/subalimentador.",
+ "Alimentador/subalimentador flexible; verificar ambiente.",
+ "Apto para reunión de personas, aire y subterráneo según Tabla 4.2.",
+ "Apto en ductos/molduras/bandejas según Tabla 4.2; verificar ambiente húmedo/seco.",
+ "Uso en ambientes secos; confirmar condición y certificación del producto."
+]
+}
