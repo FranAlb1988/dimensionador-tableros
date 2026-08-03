@@ -132,6 +132,9 @@ export type FamiliaProteccion =
   | 'MasterpactNW'
   | 'iC60N'
   | 'iC60H'
+  | 'iC60L'
+  | 'C120N'
+  | 'C120H'
   // ABB Tmax (MCCB) y Emax 2 (ACB)
   | 'TmaxXT2'
   | 'TmaxXT4'

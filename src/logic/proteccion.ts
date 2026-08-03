@@ -1,14 +1,13 @@
 import nsxData from '../data/iec/nsx.json';
 import nsxMaData from '../data/iec/nsx-ma.json';
-import ic60Data from '../data/iec/ic60.json';
 import abbTmaxData from '../data/iec/abb-tmax.json';
 import abbTmaxMaData from '../data/iec/abb-tmax-ma.json';
-import type { Carga, MarcaProteccion, Proteccion } from '../types';
+import type { Carga, FamiliaProteccion, MarcaProteccion, Proteccion } from '../types';
 import { corrienteDiseno } from './corriente';
+import { capacidadMcbKa, sugerirMcb, type Mcb } from './mcb';
 
 const NSX: readonly Proteccion[] = (nsxData.interruptores as Proteccion[]);
 const NSX_MA: readonly Proteccion[] = (nsxMaData.interruptores as Proteccion[]);
-const IC60: readonly Proteccion[] = (ic60Data.interruptores as Proteccion[]);
 const ABB_TMAX: readonly Proteccion[] = (abbTmaxData.interruptores as Proteccion[]);
 const ABB_TMAX_MA: readonly Proteccion[] = (abbTmaxMaData.interruptores as Proteccion[]);
 
@@ -180,22 +179,52 @@ export function sugerirProteccionNsx(carga: Carga): Proteccion | undefined {
 }
 
 /**
- * Sugiere un iC60 para una carga de CDC.
- * Curva preferida: C para iluminación/tomas, D para cargas inductivas pequeñas (motor < 4 kW).
- * `factorDerrateo` (F2 por altura): el interruptor se selecciona contra I / F2.
+ * Familias del catálogo MCB aptas para un CDC industrial: Acti9 iC60 (hasta
+ * 63 A) y C120 (80-125 A). Quedan fuera las gamas domésticas (iK60N, Easy9)
+ * y NG125, que se reserva para cortocircuitos altos vía `iccKa`.
  */
-export function sugerirProteccionIc60(carga: Carga, factorDerrateo = 1): Proteccion | undefined {
+const FAMILIAS_CDC = ['Acti9 iC60N', 'Acti9 iC60H', 'Acti9 iC60L', 'Acti9 C120N', 'Acti9 C120H'];
+
+/** Adapta una referencia del catálogo MCB al tipo Proteccion del CDC. */
+function mcbAProteccion(m: Mcb, tensionV: number, fases: '1F' | '3F'): Proteccion {
+  const familia = m.familia.replace('Acti9 ', '') as FamiliaProteccion;
+  return {
+    id: m.referencia.toLowerCase(),
+    familia,
+    marca: 'Schneider',
+    referencia: `${familia} ${m.curva} ${m.inA}A ${m.polos} — ${m.referencia}`,
+    inA: m.inA,
+    icuKA: capacidadMcbKa(m, tensionV, fases) ?? 0,
+    polos: m.polosProtegidos,
+    curva: m.curva as Proteccion['curva'],
+    // El CDC cuenta módulos DIN de 18 mm; C120 1P (27 mm) ocupa 1,5.
+    ...(m.anchoMm != null ? { modulosDin: m.anchoMm / 18 } : {}),
+  };
+}
+
+/**
+ * Sugiere un MCB Acti9 para una carga de CDC.
+ * Curva C para iluminación/tomas y D para motores pequeños (inrush alto).
+ * `factorDerrateo` (F2 por altura): el interruptor se selecciona contra I / F2.
+ * `iccKa`: si se conoce el cortocircuito en la barra, exige capacidad ≥ Icc
+ * (sube de iC60N a iC60H/L o C120H automáticamente).
+ * Prefiere referencias publicadas en Chile; si ninguna alcanza, abre el rango.
+ */
+export function sugerirProteccionIc60(carga: Carga, factorDerrateo = 1, iccKa?: number): Proteccion | undefined {
   const I = corrienteDiseno(carga);
   if (I <= 0) return undefined;
   const f = factorDerrateo > 0 ? factorDerrateo : 1;
   const Imin = (I * MARGEN_IC60) / f;
-  const polosNecesarios = carga.fases === '3F' ? 3 : 1;
-  return IC60
-    .filter((p) => p.polos === polosNecesarios)
-    .toSorted((a, b) => a.inA - b.inA)
-    .find((p) => p.inA >= Imin);
+  const opciones = {
+    fases: carga.fases,
+    curva: carga.tipo === 'motor' ? 'D' as const : 'C' as const,
+    tensionV: carga.tensionV,
+    familias: FAMILIAS_CDC,
+    ...(iccKa != null ? { iccKa } : {}),
+  };
+  const m = sugerirMcb(Imin, { ...opciones, soloChile: true }) ?? sugerirMcb(Imin, opciones);
+  return m ? mcbAProteccion(m, carga.tensionV, carga.fases) : undefined;
 }
 
 export const NSX_DISPONIBLES = NSX;
-export const IC60_DISPONIBLES = IC60;
 export const ABB_TMAX_DISPONIBLES = ABB_TMAX;
