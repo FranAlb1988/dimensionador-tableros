@@ -151,16 +151,18 @@ describe('dimensionarTdg', () => {
     expect(r.tablero!.principal.inA).toBeGreaterThanOrEqual(r.tablero!.corrienteTotalA);
   });
 
-  it('salidas > 630 A caen a un ACB del pool del principal (antes: sin asignar)', () => {
-    // 400 kW @ 400 V ≈ 641.7 A × 1.25 = 802 → sobre el NSX630: Masterpact
-    // NT10 (1000 A). Y una salida chica sigue en MCCB.
+  it('salidas > 630 A usan un MCCB ComPacT NS, no un ACB', () => {
+    // 400 kW @ 400 V ≈ 641.7 A × 1.25 = 802 A. Con la tabla anterior el MCCB
+    // topaba en NSX630 y la salida caía al pool de ACB del principal; el
+    // catálogo real llega a NS3200, que es el equipo correcto para un
+    // alimentador de este calibre (el ACB se reserva al principal).
     const r = dimensionarTdg([salida3F('1', 400), salida3F('2', 50)], 1);
     expect(r.cargasSinAsignar).toHaveLength(0);
     const grande = r.salidasAsignadas.find((s) => s.carga.id === '1')!;
     const chica = r.salidasAsignadas.find((s) => s.carga.id === '2')!;
-    expect(grande.proteccion.familia.startsWith('Masterpact')).toBe(true);
+    expect(grande.proteccion.familia).toMatch(/^NS\d/);
     expect(grande.proteccion.inA).toBeGreaterThanOrEqual(802);
-    expect(chica.proteccion.familia.startsWith('NSX')).toBe(true);
+    expect(chica.proteccion.familia).toMatch(/^NSX/);
   });
 
   it('una salida imposible (> 6300 A de catálogo) queda sin asignar', () => {

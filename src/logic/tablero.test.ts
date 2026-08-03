@@ -94,11 +94,19 @@ describe('dimensionarCcm', () => {
     expect(r.advertenciasIcu).toBeUndefined();
   });
 
-  it('si ni la prestación H cubre la Icc, se advierte por salida', () => {
+  it('una Icc de 85 kA ya se cubre con el catálogo real (antes se advertía)', () => {
+    // La tabla anterior topaba en la clase H (70 kA) y obligaba a advertir.
+    // ComPacT NSX llega a S/L/R: 85 kA se resuelve con equipo de verdad.
     const r = dimensionarCcm([motor('m1', 11)], 1, 'Schneider', 0, 85);
-    expect(r.asignaciones[0]!.proteccion.icuKA).toBe(70);
+    expect(r.asignaciones[0]!.proteccion.icuKA).toBeGreaterThanOrEqual(85);
+    expect(r.advertenciasIcu).toBeUndefined();
+  });
+
+  it('sobre la mayor clase de catálogo sí se advierte por salida', () => {
+    const r = dimensionarCcm([motor('m1', 11)], 1, 'Schneider', 0, 250);
+    expect(r.asignaciones[0]!.proteccion.icuKA).toBeLessThan(250);
     expect(r.advertenciasIcu).toBeDefined();
-    expect(r.advertenciasIcu![0]).toContain('< Icc de barra 85.0 kA');
+    expect(r.advertenciasIcu![0]).toContain('< Icc de barra 250.0 kA');
   });
 
   it('el derrateo F selecciona los interruptores de salida contra I / F', () => {

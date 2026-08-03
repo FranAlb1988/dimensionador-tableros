@@ -1,13 +1,10 @@
-import nsxData from '../data/iec/nsx.json';
-import nsxMaData from '../data/iec/nsx-ma.json';
 import abbTmaxData from '../data/iec/abb-tmax.json';
 import abbTmaxMaData from '../data/iec/abb-tmax-ma.json';
 import type { Carga, FamiliaProteccion, MarcaProteccion, Proteccion } from '../types';
 import { corrienteDiseno } from './corriente';
 import { capacidadMcbKa, sugerirMcb, type Mcb } from './mcb';
+import { capacidadMccbKa, sugerirMccb, type Mccb, type OpcionesMccb } from './mccb';
 
-const NSX: readonly Proteccion[] = (nsxData.interruptores as Proteccion[]);
-const NSX_MA: readonly Proteccion[] = (nsxMaData.interruptores as Proteccion[]);
 const ABB_TMAX: readonly Proteccion[] = (abbTmaxData.interruptores as Proteccion[]);
 const ABB_TMAX_MA: readonly Proteccion[] = (abbTmaxMaData.interruptores as Proteccion[]);
 
@@ -24,17 +21,15 @@ const MARGEN_IC60 = 1.0;
 
 /**
  * Catálogo de interruptores de caja moldeada (MCCB) por marca para
- * alimentadores/salidas de CCM y CDC:
- *  - Schneider → NSX
- *  - ABB → Tmax (XT/T)
- *  - Chint → no dispone de MCCB en el catálogo incorporado (NA1 es solo ACB);
- *    se usa NSX como complemento de las salidas cuando la marca del principal
- *    es Chint.
+ * alimentadores/salidas de CCM y CDC. Schneider sale del catálogo real
+ * (mccb.ts, 1.577 referencias); ABB sigue con la tabla incorporada.
+ * Chint no dispone de MCCB en el catálogo (NA1 es solo ACB): se complementa
+ * con Schneider cuando la marca del principal es Chint.
  */
-const MCCB_POR_MARCA: Record<MarcaProteccion, readonly Proteccion[]> = {
-  Schneider: NSX,
+const MCCB_POR_MARCA: Record<MarcaProteccion, readonly Proteccion[] | 'catalogo'> = {
+  Schneider: 'catalogo',
   ABB: ABB_TMAX,
-  Chint: NSX,
+  Chint: 'catalogo',
 };
 
 /**
@@ -43,15 +38,50 @@ const MCCB_POR_MARCA: Record<MarcaProteccion, readonly Proteccion[]> = {
  * el relé térmico del arrancador cubre la sobrecarga y el interruptor corta
  * solo cortocircuito — un TM-D duplicaría la protección térmica con riesgo de
  * descoordinación con el LRD.
- *  - Schneider → NSX MA / Micrologic 1.3 M
+ *  - Schneider → unidades MA del catálogo real (60 referencias, 2,5-500 A)
  *  - ABB → Tmax MA / PR221DS-I
- *  - Chint → NSX MA (complemento, igual que en MCCB_POR_MARCA)
+ *  - Chint → Schneider MA (complemento, igual que en MCCB_POR_MARCA)
  */
-const MCCB_MOTOR_POR_MARCA: Record<MarcaProteccion, readonly Proteccion[]> = {
-  Schneider: NSX_MA,
+const MCCB_MOTOR_POR_MARCA: Record<MarcaProteccion, readonly Proteccion[] | 'catalogo'> = {
+  Schneider: 'catalogo',
   ABB: ABB_TMAX_MA,
-  Chint: NSX_MA,
+  Chint: 'catalogo',
 };
+
+/**
+ * Familias Schneider aptas para alimentadores y salidas de tablero
+ * industrial: ComPacT NSXm/NSX/NS. EasyPact (CVS, EZC) queda fuera por
+ * defecto — es la línea económica, con menor Icu y sin las unidades
+ * MicroLogic que el proyecto usa para selectividad.
+ */
+const FAMILIAS_MCCB_INDUSTRIAL = ['ComPacT NSXm', 'ComPacT NSX', 'ComPacT NS'];
+
+/**
+ * Icu mínima cuando el proyecto todavía no declaró la Icc de barra, en kA.
+ * El catálogo real ofrece clases desde E (16 kA) y, sin este piso, la
+ * selección por "menor capacidad" las elegiría: un tablero industrial con
+ * 16 kA de poder de corte es una apuesta, no un diseño. 36 kA es la clase F,
+ * el piso que la app usaba cuando el catálogo era una tabla de tres clases.
+ * Con `minIcuKA` explícito (Icc calculada) este piso no interviene.
+ */
+const ICU_MINIMA_POR_DEFECTO = 36;
+
+/** Adapta una referencia del catálogo MCCB al tipo Proteccion del tablero. */
+function mccbAProteccion(m: Mccb, tensionV: number): Proteccion {
+  const familia = m.bastidor as FamiliaProteccion;
+  const curva: Proteccion['curva'] | undefined =
+    m.tecnologia === 'Magnética' ? 'MA' : m.tecnologia === 'Termomagnética' ? 'TM-D' : undefined;
+  return {
+    id: m.referencia.toLowerCase(),
+    familia,
+    marca: 'Schneider',
+    referencia: `${m.bastidor}${m.clase} ${m.unidadDisparo} ${m.inA}A ${m.polosProtegidos} — ${m.referencia}`,
+    inA: m.inA,
+    icuKA: capacidadMccbKa(m, tensionV) ?? m.icu415Ka ?? 0,
+    polos: m.polos,
+    ...(curva ? { curva } : {}),
+  };
+}
 
 /**
  * Margen para unidades solo magnéticas: In ≥ I_diseño (sin 1.25 — el In del
@@ -162,15 +192,70 @@ export function sugerirProteccionFeeder(
     ? MARGEN_MA
     : (carga.tipo === 'motor' ? MARGEN_NSX_MOTOR : MARGEN_NSX_NO_MOTOR);
   const Imin = Math.max((I * margen) / f, frameForzado);
+
+  if (pool === 'catalogo') return desdeCatalogoMccb(carga, Imin, esMotorMa, minIcuKA);
+
   const p = pool
     .toSorted((a, b) => a.inA - b.inA)
     .find((x) => x.inA >= Imin);
   if (!p) return undefined;
   // Carga 1F → variante bipolar (F+N); luego, si la Icc de barra supera la
-  // prestación base, se sube F→N→H (NSX) o N→S→H (Tmax). Si ni la mayor
-  // alcanza, el caller advierte (icuKA < Icc).
+  // prestación base, se sube N→S→H (Tmax). Si ni la mayor alcanza, el caller
+  // advierte (icuKA < Icc).
   const conPolos = carga.fases === '1F' ? variante1F(p) : p;
   return elevarPrestacion(conPolos, minIcuKA);
+}
+
+/**
+ * Selección Schneider desde el catálogo real. A diferencia de la vía por
+ * tabla, aquí los polos y la clase de corte son referencias existentes: la
+ * carga 1F toma una referencia 2P de catálogo (no una fabricada por texto) y
+ * la Icc de barra se resuelve pidiendo Icu ≥ Icc a la tensión de servicio, que
+ * el propio filtro traduce a la clase correcta (F→N→H→S→L→R).
+ *
+ * Prefiere referencias publicadas en Chile y familias ComPacT; si nada alcanza
+ * abre el filtro por pasos antes de rendirse, para no dejar la salida sin
+ * protección solo por un tema de disponibilidad.
+ */
+function desdeCatalogoMccb(
+  carga: Carga,
+  Imin: number,
+  esMotorMa: boolean,
+  minIcuKA: number,
+): Proteccion | undefined {
+  const tensionV = carga.tensionV > 0 ? carga.tensionV : 400;
+  const base: OpcionesMccb = {
+    polos: carga.fases === '1F' ? 2 : 3,
+    tensionV,
+    // Motor con arrancador: unidad solo magnética (sin L, la sobrecarga la
+    // cubre el relé térmico). Cualquier otra salida exige la función L, o una
+    // unidad MA de 3 A ganaría por In y dejaría el cable sin protección.
+    ...(esMotorMa ? { tecnologia: 'magnetica' as const } : { protegeSobrecarga: true }),
+    soloCompletos: true,
+    iccKa: minIcuKA > 0 ? minIcuKA : ICU_MINIMA_POR_DEFECTO,
+  };
+  // De lo más restrictivo a lo más amplio: Chile + ComPacT → ComPacT →
+  // cualquier familia (incluye EasyPact) → sin exigir unidad integrada.
+  const intentos: OpcionesMccb[] = [
+    { ...base, soloChile: true, familias: FAMILIAS_MCCB_INDUSTRIAL },
+    { ...base, familias: FAMILIAS_MCCB_INDUSTRIAL },
+    { ...base },
+    { ...base, soloCompletos: false },
+  ];
+  for (const opciones of intentos) {
+    const m = sugerirMccb(Imin, opciones);
+    if (m) return mccbAProteccion(m, tensionV);
+  }
+  // Ninguna clase alcanza la Icc pedida (o el piso por defecto: a 690 V los
+  // frames chicos no llegan a 36 kA). Mejor esfuerzo — la mayor Icu dentro de
+  // las familias industriales — y el caller advierte comparando icuKA vs Icc.
+  const mejor = sugerirMccb(Imin, {
+    ...base,
+    iccKa: undefined,
+    preferirMayorIcu: true,
+    familias: FAMILIAS_MCCB_INDUSTRIAL,
+  }) ?? sugerirMccb(Imin, { ...base, iccKa: undefined, preferirMayorIcu: true });
+  return mejor ? mccbAProteccion(mejor, tensionV) : undefined;
 }
 
 /** Compatibilidad: alimentador Schneider (NSX). */
@@ -226,5 +311,4 @@ export function sugerirProteccionIc60(carga: Carga, factorDerrateo = 1, iccKa?: 
   return m ? mcbAProteccion(m, carga.tensionV, carga.fases) : undefined;
 }
 
-export const NSX_DISPONIBLES = NSX;
 export const ABB_TMAX_DISPONIBLES = ABB_TMAX;

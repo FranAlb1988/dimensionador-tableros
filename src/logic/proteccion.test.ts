@@ -17,8 +17,20 @@ describe('sugerirProteccionNsx', () => {
   it('elige siempre el menor In que cumpla', () => {
     const p = sugerirProteccionNsx({ ...motor11kW, potenciaKw: 1 });
     expect(p).toBeDefined();
-    // Para 1 kW (~1.9 A) cualquier NSX cumple, debe ser el más chico (16 A).
+    // Para 1 kW (~1.9 A) el menor TM-D de catálogo es el de 16 A. El catálogo
+    // baja hasta 3 A, pero solo en unidades MA (solo magnéticas), que no
+    // protegen sobrecarga y por eso quedan fuera de un alimentador.
     expect(p!.inA).toBe(16);
+    expect(p!.curva).toBe('TM-D');
+  });
+
+  it('un alimentador nunca recibe una unidad solo magnética', () => {
+    // El catálogo real tiene MA desde 2.5 A: si no se exigiera la función L,
+    // ganarían la selección por In y dejarían el cable sin protección térmica.
+    for (const kw of [0.5, 1, 3, 11, 45]) {
+      const p = sugerirProteccionNsx({ ...motor11kW, potenciaKw: kw });
+      expect(p!.curva).not.toBe('MA');
+    }
   });
 
   it('devuelve undefined si no hay corriente calculable', () => {
@@ -112,13 +124,16 @@ describe('variante bipolar para cargas 1F', () => {
     potenciaKw: 1.5, tensionV: 230, fases: '1F', factorServicio: 1,
   };
 
-  it('carga 1F recibe la variante 2P (F+N) con nota de verificación', () => {
+  it('carga 1F recibe una referencia 2P real de catálogo', () => {
     const p = sugerirProteccionFeeder(ilum1F, 'Schneider');
     expect(p).toBeDefined();
     expect(p!.polos).toBe(2);
-    expect(p!.referencia).toContain('2P 2D');
+    expect(p!.referencia).toContain('2P 2d');
     expect(p!.referencia).not.toContain('3P');
-    expect(p!.notas).toContain('1F');
+    // Ya no es una referencia fabricada por sustitución de texto: sale del
+    // catálogo con su SKU, así que no lleva nota de "verificar disponibilidad".
+    expect(p!.placeholder).toBeUndefined();
+    expect(p!.referencia).toMatch(/C\d{2}[A-Z]2TM\d+/);
   });
 
   it('carga 3F mantiene 3 polos', () => {
@@ -132,42 +147,56 @@ describe('variante bipolar para cargas 1F', () => {
     expect(p!.referencia).toContain('2P');
   });
 
-  it('la variante 2P compone con la elevación de prestación por Icc', () => {
+  it('la variante 2P compone con la clase de corte exigida por la Icc', () => {
     const p = sugerirProteccionFeeder(ilum1F, 'Schneider', 1, false, 45);
     expect(p!.polos).toBe(2);
-    expect(p!.icuKA).toBe(50);
-    expect(p!.referencia).toContain('NSX100N');
-    expect(p!.referencia).toContain('2P 2D');
+    // A 230 V (columna F-N) la clase F ya da 85 kA, de sobra para 45.
+    expect(p!.icuKA).toBeGreaterThanOrEqual(45);
+    expect(p!.referencia).toContain('2P 2d');
   });
 });
 
-describe('elevación de prestación por Icc de barra (F→N→H / N→S→H)', () => {
-  it('Icc dentro de la prestación base no cambia nada', () => {
-    const p = sugerirProteccionFeeder(motor11kW, 'Schneider', 1, false, 30);
+describe('clase de corte según la Icc de barra', () => {
+  it('sin Icc declarada aplica el piso de 36 kA (clase F)', () => {
+    const p = sugerirProteccionFeeder(motor11kW, 'Schneider');
     expect(p!.icuKA).toBe(36);
-    expect(p!.referencia).toContain('NSX100F');
+    expect(p!.referencia).toContain('F ');
   });
 
-  it('Icc 45 kA eleva el NSX de F (36) a N (50) manteniendo In y familia', () => {
+  it('Icc dentro del piso por defecto no sube de clase', () => {
+    const p = sugerirProteccionFeeder(motor11kW, 'Schneider', 1, false, 30);
+    expect(p!.icuKA).toBe(36);
+  });
+
+  it('Icc 45 kA sube a la clase N (50) manteniendo In y bastidor', () => {
     const base = sugerirProteccionFeeder(motor11kW, 'Schneider');
     const p = sugerirProteccionFeeder(motor11kW, 'Schneider', 1, false, 45);
     expect(p!.icuKA).toBe(50);
     expect(p!.inA).toBe(base!.inA);
     expect(p!.familia).toBe(base!.familia);
-    expect(p!.referencia).toContain('NSX100N');
-    expect(p!.notas).toContain('Prestación elevada');
+    expect(p!.referencia).toContain('N ');
   });
 
-  it('Icc 60 kA salta directo a H (70)', () => {
+  it('Icc 60 kA salta a la clase H (70)', () => {
     const p = sugerirProteccionFeeder(motor11kW, 'Schneider', 1, false, 60);
     expect(p!.icuKA).toBe(70);
-    expect(p!.referencia).toContain('NSX100H');
+    expect(p!.referencia).toContain('H ');
   });
 
-  it('Icc sobre la prestación mayor devuelve H y el caller debe advertir', () => {
+  it('el catálogo real cubre Icc que antes obligaban a advertir', () => {
+    // Con la tabla de tres clases, 85 kA topaba en H (70) y se advertía.
+    // El catálogo tiene clases S/L/R: 85 kA se cubre de verdad.
     const p = sugerirProteccionFeeder(motor11kW, 'Schneider', 1, false, 85);
+    expect(p!.icuKA).toBeGreaterThanOrEqual(85);
+  });
+
+  it('si ninguna clase alcanza, da la mayor Icu disponible sin bajar de gama', () => {
+    // 250 kA no existe en BT: mejor esfuerzo, pero dentro de ComPacT — nunca
+    // un EasyPact de menor capacidad solo por tener un In más chico.
+    const p = sugerirProteccionFeeder(motor11kW, 'Schneider', 1, false, 250);
     expect(p).toBeDefined();
-    expect(p!.icuKA).toBe(70); // < 85 → advertencia aguas arriba
+    expect(p!.icuKA).toBeLessThan(250); // el caller advierte
+    expect(p!.referencia).toMatch(/^NSX/);
   });
 
   it('ABB eleva por la escala Tmax (N→S→H)', () => {
