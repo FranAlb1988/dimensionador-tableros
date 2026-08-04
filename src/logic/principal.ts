@@ -49,9 +49,32 @@ export function sugerirInterruptorPrincipal(
 ): Proteccion | undefined {
   if (!Number.isFinite(corrienteTotalA) || corrienteTotalA <= 0) return undefined;
   const Imin = corrienteTotalA * MARGEN_PRINCIPAL;
-  return POOL_POR_MARCA[marca]
+  const porCorriente = POOL_POR_MARCA[marca]
     .toSorted((a, b) => a.inA - b.inA)
-    .find((p) => p.inA >= Imin && p.icuKA >= minIcuKA);
+    .filter((p) => p.inA >= Imin);
+  if (porCorriente.length === 0) return undefined;
+
+  // Buscar el Icu trepando la escalera de calibres entrega un interruptor
+  // absurdamente grande: un CCM de 170 A con Icc 85 kA recibía un ACB de
+  // 4000 A (23× la carga), porque en el catálogo el poder de corte solo sube
+  // al cambiar de bastidor. Se admite un escalón sobre el mínimo por corriente
+  // —cambiar de marco para ganar Icu es legítimo—, no cuatro.
+  const tope = siguienteEscalon(porCorriente);
+  return porCorriente.find((p) => p.inA <= tope && p.icuKA >= minIcuKA);
+  // Si nada dentro de ese tope alcanza la Icc se devuelve undefined a
+  // propósito: el caller informa "sin interruptor principal en catálogo para
+  // X A con Icu ≥ Y kA", que es la respuesta honesta. Devolver el mejor
+  // esfuerzo sería peor — ni el TDG ni el CDC revisan el Icu del principal
+  // después de elegirlo, así que un equipo insuficiente pasaría en silencio.
+}
+
+/**
+ * In del escalón inmediatamente superior al menor del pool ya filtrado por
+ * corriente. Es el tope de calibre que se acepta para ganar poder de corte.
+ */
+function siguienteEscalon(pool: readonly Proteccion[]): number {
+  const menor = pool[0]!.inA;
+  return pool.find((p) => p.inA > menor)?.inA ?? menor;
 }
 
 export const PRINCIPAL_DISPONIBLES: readonly Proteccion[] = [

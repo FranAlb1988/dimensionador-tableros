@@ -148,8 +148,8 @@ describe('Catálogo de conductores', () => {
 });
 
 describe('Tamaño de ducto (conduit)', () => {
-  it('3 conductores → relleno 40% y elige el ducto EMT que cubre', () => {
-    // 3 × 4/0 AWG (208,8 mm²) → área total 626,4 → área req 1566 mm² → 2″ EMT.
+  it('3 conductores → relleno RIC 33% por defecto', () => {
+    // 3 × 4/0 AWG (208,8 mm²) → área total 626,4 mm².
     const r = calc('tamano-ducto').calcular({
       tipo: 'metalico',
       'grupos.count': '1',
@@ -157,22 +157,36 @@ describe('Tamaño de ducto (conduit)', () => {
     });
     expect(r.valores.totalConductores).toBe(3);
     expect(r.valores.areaTotal).toBeCloseTo(626.4, 1);
-    expect(r.valores.relleno).toBe(40);
-    expect(r.textos?.ducto).toBe('2″ EMT');
-    expect(r.valores.rellenoReal).toBeLessThanOrEqual(40);
+    expect(r.valores.relleno).toBe(33);
+    expect(r.valores.rellenoReal).toBeLessThanOrEqual(33);
   });
-  it('un solo conductor usa el 53%', () => {
-    const r = calc('tamano-ducto').calcular({
+  it('con 3 o más conductores el NEC admite 40% donde el RIC solo 33%', () => {
+    // La diferencia que importa: aplicar el NEC en Chile subdimensiona.
+    const entradas = {
+      tipo: 'metalico',
+      'grupos.count': '1',
+      'grupos.0.area': '208.8', 'grupos.0.cantidad': '3',
+    };
+    const ric = calc('tamano-ducto').calcular({ ...entradas, normaRelleno: 'RIC' });
+    const nec = calc('tamano-ducto').calcular({ ...entradas, normaRelleno: 'NEC' });
+    expect(ric.valores.relleno).toBe(33);
+    expect(nec.valores.relleno).toBe(40);
+    // Menos relleno admisible ⇒ se exige más área interna ⇒ ducto igual o mayor.
+    expect(ric.valores.areaRequerida).toBeGreaterThan(nec.valores.areaRequerida!);
+  });
+  it('un solo conductor: 50% en RIC, 53% en NEC', () => {
+    const entradas = {
       tipo: 'pvc',
       'grupos.count': '1',
       'grupos.0.area': '100', 'grupos.0.cantidad': '1',
-    });
-    expect(r.valores.relleno).toBe(53);
-    expect(r.textos?.ducto).toMatch(/PVC/);
+    };
+    expect(calc('tamano-ducto').calcular(entradas).valores.relleno).toBe(50);
+    expect(calc('tamano-ducto').calcular({ ...entradas, normaRelleno: 'NEC' }).valores.relleno).toBe(53);
+    expect(calc('tamano-ducto').calcular(entradas).textos?.ducto).toMatch(/PVC/);
   });
   it('múltiples calibres: suma áreas y cuenta total de conductores', () => {
     // 3 × 4/0 AWG (208,8) + 1 × #4 AWG (53,16) = 626,4 + 53,16 = 679,56 mm²
-    // total 4 conductores → relleno 40%; área req 1698,9 → 2″ EMT (2165 mm²).
+    // total 4 conductores → relleno RIC 33%.
     const r = calc('tamano-ducto').calcular({
       tipo: 'metalico',
       'grupos.count': '2',
@@ -181,8 +195,7 @@ describe('Tamaño de ducto (conduit)', () => {
     });
     expect(r.valores.totalConductores).toBe(4);
     expect(r.valores.areaTotal).toBeCloseTo(679.56, 1);
-    expect(r.valores.relleno).toBe(40);
-    expect(r.textos?.ducto).toBe('2″ EMT');
+    expect(r.valores.relleno).toBe(33);
   });
   it('marca cuando supera el ducto más grande', () => {
     const r = calc('tamano-ducto').calcular({

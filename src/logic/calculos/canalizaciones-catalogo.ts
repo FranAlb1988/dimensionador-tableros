@@ -96,11 +96,28 @@ export function areaPermitidaEscalerilla(anchoMm: number): number {
   return AREA_PERMITIDA_ESCALERILLA[anchoMm] ?? 0;
 }
 
+/** Norma con la que se aplica el porcentaje de relleno del ducto. */
+export type NormaRelleno = 'RIC' | 'NEC';
+
 /**
- * Porcentaje de relleno admisible de un ducto según NEC Cap. 9, Tabla 1:
- * 1 conductor 53%, 2 conductores 31%, 3 o más 40%.
+ * Porcentaje de relleno admisible de una tubería. Las dos normas difieren:
+ *
+ *   Conductores    RIC N°4    NEC Cap. 9 Tabla 1
+ *   1                50 %          53 %
+ *   2                33 %          31 %
+ *   3 o más          33 %          40 %
+ *
+ * El caso que importa es el de 3 o más, que es el habitual: el NEC admite
+ * 40 % donde el RIC solo permite 33 %, así que aplicar el NEC a un proyecto
+ * chileno subdimensiona la tubería — se elige un diámetro que no cumple y en
+ * el que además cuesta pasar el cable. Antes esta función tenía la tabla del
+ * NEC y la calculadora declaraba "RIC N°4 · NEC Cap. 9".
  */
-export function porcentajeRelleno(nConductores: number): number {
+export function porcentajeRelleno(
+  nConductores: number,
+  norma: NormaRelleno = 'RIC',
+): number {
+  if (norma === 'RIC') return nConductores <= 1 ? 0.5 : 0.33;
   if (nConductores <= 1) return 0.53;
   if (nConductores === 2) return 0.31;
   return 0.4;

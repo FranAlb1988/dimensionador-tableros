@@ -8,6 +8,7 @@ import {
   areaDuctoMaxima, areaPermitidaEscalerilla, distribuirEnCapas, MAX_CAPAS_NORMATIVAS,
   maxCapasEnEscalerilla, maxCapasGeometrico,
   porcentajeRelleno, PROFUNDIDAD_ESCALERILLA_MM, sugerirAnchoEscalerilla,
+  type NormaRelleno,
   sugerirDucto, type TipoDucto,
 } from './canalizaciones-catalogo';
 import { factorDerrateoAltura, type NivelTension } from '../derrateo';
@@ -230,7 +231,9 @@ const tamanoDucto: Calculadora = {
   id: 'tamano-ducto',
   grupo: 'conductores',
   nombre: 'Tamaño de ducto (conduit)',
-  descripcion: 'Diámetro mínimo de tubería metálica (EMT) o PVC por porcentaje de relleno. Límites NEC Cap. 9, Tabla 1: 53% (1 conductor), 31% (2), 40% (3 o más). Admite grupos con calibres distintos (fases, neutro, tierra).',
+  descripcion: 'Diámetro mínimo de tubería metálica (EMT) o PVC por porcentaje de relleno. '
+    + 'RIC N°4: 50% con un conductor, 33% con dos o más. NEC Cap. 9 Tabla 1: 53%, 31% y 40%. '
+    + 'Admite grupos con calibres distintos (fases, neutro, tierra).',
   norma: 'RIC N°4 · NEC Cap. 9',
   formula: 'Área total = Σ (n · área por calibre)    Área interna mínima = Área total / %relleno',
   campos: [
@@ -240,6 +243,14 @@ const tamanoDucto: Calculadora = {
         { value: 'metalico', label: 'Metálico (EMT)' },
         { value: 'pvc', label: 'PVC Sch. 40' },
       ],
+    },
+    {
+      key: 'normaRelleno', label: 'Norma del porcentaje de relleno', tipo: 'select', defecto: 'RIC',
+      opciones: [
+        { value: 'RIC', label: 'RIC N°4 (Chile)' },
+        { value: 'NEC', label: 'NEC Cap. 9, Tabla 1' },
+      ],
+      ayuda: 'Con 3 o más conductores el RIC admite 33% y el NEC 40%: aplicar el NEC en Chile subdimensiona la tubería.',
     },
     {
       key: 'grupos', label: 'Conductores en el ducto', tipo: 'lista',
@@ -280,7 +291,8 @@ const tamanoDucto: Calculadora = {
     if (totalConductores === 0) {
       return { valores: {}, error: 'Agrega al menos un grupo con área y cantidad.' };
     }
-    const relleno = porcentajeRelleno(totalConductores);
+    const normaRelleno: NormaRelleno = (e['normaRelleno'] ?? 'RIC') === 'NEC' ? 'NEC' : 'RIC';
+    const relleno = porcentajeRelleno(totalConductores, normaRelleno);
     const areaRequerida = areaTotal / relleno;
     const ducto = sugerirDucto(tipo, areaRequerida);
     if (!ducto) {

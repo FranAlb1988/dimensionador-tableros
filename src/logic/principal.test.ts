@@ -110,4 +110,32 @@ describe('sugerirInterruptorPrincipal', () => {
   it('minIcuKA imposible de cumplir devuelve undefined', () => {
     expect(sugerirInterruptorPrincipal(700, 'Schneider', 200)).toBeUndefined();
   });
+
+  it('no trepa la escalera de calibres para alcanzar el Icu', () => {
+    // Un CCM de 170 A con Icc 85 kA recibía un ACB de 4000 A (23× la carga)
+    // porque en el catálogo el poder de corte solo sube con el bastidor.
+    // Ahora se admite un escalón sobre el mínimo por corriente, no cuatro.
+    const base = sugerirInterruptorPrincipal(170, 'Schneider')!;
+    const conIcc = sugerirInterruptorPrincipal(170, 'Schneider', 85);
+    if (conIcc) {
+      expect(conIcc.inA).toBeLessThan(base.inA * 4);
+      expect(conIcc.icuKA).toBeGreaterThanOrEqual(85);
+    }
+    // Si no existe equipo del calibre correcto con esa capacidad, la respuesta
+    // honesta es undefined: ni el TDG ni el CDC revisan el Icu del principal
+    // después de elegirlo, así que un "mejor esfuerzo" pasaría en silencio.
+    expect(conIcc?.inA ?? 0).toBeLessThan(1000);
+  });
+
+  it('el principal nunca queda bajo el Icu pedido', () => {
+    for (const I of [50, 170, 400, 800, 1500, 3000]) {
+      for (const icc of [0, 25, 36, 50, 65, 85, 100]) {
+        const p = sugerirInterruptorPrincipal(I, 'Schneider', icc);
+        if (p) {
+          expect(p.icuKA, `${I} A / ${icc} kA`).toBeGreaterThanOrEqual(icc);
+          expect(p.inA, `${I} A / ${icc} kA`).toBeGreaterThanOrEqual(I);
+        }
+      }
+    }
+  });
 });
