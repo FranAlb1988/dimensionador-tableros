@@ -46,14 +46,83 @@ export const ANCHOS_ESCALERILLA: readonly number[] = [100, 150, 200, 300, 450, 6
 export const PROFUNDIDAD_ESCALERILLA_MM = 100;
 
 /**
- * Máximo de capas admisible en una escalerilla ventilada por criterio normativo
- * y práctica ingenieril:
- *  - NEC 392.22(B): conductores monopolares ≥1/0 AWG en una sola capa.
- *  - NEC 392.80 / Tabla 310.15(B)(3)(a): la ampacidad cae fuertemente con cada
- *    capa adicional → >2 capas es inviable térmicamente.
- *  - RIC N°4 (Chile) y práctica industrial: 2 capas como tope práctico.
+ * Máximo de capas en una escalerilla — REGLA DE PROYECTO, no norma.
+ *
+ * Es una decisión de la oficina, y conviene tenerla clara para no citarla como
+ * si fuera un requisito reglamentario:
+ *  - NEC 392.22(B)(1) exige CAPA ÚNICA para monopolares de 1/0 a 4/0 AWG y de
+ *    1000 kcmil o más. Dos capas no cumplen ese artículo.
+ *  - IEC 60364-5-52, Tabla B.52.20 nota 2: los factores de agrupamiento
+ *    tabulados NO aplican a cables en más de una capa tocándose; los valores
+ *    reales "pueden ser significativamente menores" y hay que determinarlos
+ *    por otro método.
+ *
+ * O sea: con 2 capas el ancho sale bien, pero la ampacidad ya no se puede
+ * tomar de las tablas. La calculadora lo advierte cuando se usan 2 capas.
  */
-export const MAX_CAPAS_NORMATIVAS = 2;
+export const MAX_CAPAS_PROYECTO = 2;
+
+/**
+ * Separación mínima entre monopolares, en múltiplos del diámetro.
+ *
+ * NEC 392.80(A)(2): en bandeja destapada, los monopolares se derratean a 65 %
+ * (1/0 AWG a 500 kcmil) o 75 % (600 kcmil y mayores) de la ampacidad al aire
+ * de la Tabla 310.17 — salvo que vayan en CAPA ÚNICA con separación mantenida
+ * de al menos un diámetro, en cuyo caso se usa el 100 %.
+ *
+ * IEC 60364-5-52 llega al mismo número por otro camino: "espaciado" en bandeja
+ * perforada es separación ≥ 1 diámetro, y el factor de agrupamiento mejora de
+ * forma apreciable (6 circuitos en capa única: 0,57 juntos → 0,72 espaciados).
+ *
+ * La separación no es un lujo: es lo que compra la ampacidad.
+ */
+export const SEPARACION_MONOPOLAR_DIAMETROS = 1;
+
+/** Separación para agrupamiento en trébol o cuadrado (NEC 392.80(A)(2)). */
+export const SEPARACION_TREBOL_DIAMETROS = 2.15;
+
+/**
+ * Modo de tendido, que decide el criterio de ancho:
+ *  - `alimentadores`: monopolares separados un diámetro entre sí. Es el caso de
+ *    los alimentadores de tablero, donde la separación mantiene la ampacidad.
+ *  - `circuitos`: cables multiconductores o monopolares agrupados por circuito,
+ *    tendidos juntos. Es el caso de los circuitos de fuerza y control.
+ */
+export type ModoTendido = 'alimentadores' | 'circuitos';
+
+/**
+ * Ancho que ocupa una capa, en mm.
+ *
+ * Con separación, cada hueco entre conductores vale `separacionDiametros` veces
+ * el diámetro del conductor mayor de los dos que separa — el criterio
+ * conservador cuando la capa mezcla calibres. n conductores dejan n−1 huecos.
+ */
+export function anchoDeCapa(
+  diametros: readonly number[],
+  separacionDiametros = 0,
+): number {
+  if (diametros.length === 0) return 0;
+  const suma = diametros.reduce((s, d) => s + d, 0);
+  if (separacionDiametros <= 0 || diametros.length < 2) return suma;
+  const orden = [...diametros].sort((a, b) => b - a);
+  let huecos = 0;
+  for (let i = 0; i < orden.length - 1; i += 1) {
+    huecos += Math.max(orden[i]!, orden[i + 1]!) * separacionDiametros;
+  }
+  return suma + huecos;
+}
+
+/**
+ * Sección mínima de conductor monopolar admitida en escalerilla.
+ * NEC 392.10(B)(1): monopolares de 1/0 AWG o mayores. 1/0 AWG ≈ 53,5 mm².
+ */
+export const SECCION_MINIMA_MONOPOLAR_MM2 = 53.5;
+
+/** Porcentaje de la ampacidad al aire aplicable sin separación mantenida. */
+export function derrateoMonopolarSinSeparacion(seccionMm2: number): number {
+  // NEC 392.80(A)(2): 600 kcmil ≈ 304 mm² es el corte entre 65 % y 75 %.
+  return seccionMm2 >= 304 ? 0.75 : 0.65;
+}
 
 /**
  * Capas que caben verticalmente solo por geometría (alto útil / Ø mayor).
@@ -72,7 +141,7 @@ export function maxCapasGeometrico(diametroMayorMm: number): number {
 export function maxCapasEnEscalerilla(diametroMayorMm: number): number {
   const geom = maxCapasGeometrico(diametroMayorMm);
   if (geom <= 0) return 0;
-  return Math.min(geom, MAX_CAPAS_NORMATIVAS);
+  return Math.min(geom, MAX_CAPAS_PROYECTO);
 }
 
 /**

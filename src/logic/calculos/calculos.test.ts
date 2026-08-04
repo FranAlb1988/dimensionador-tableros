@@ -212,10 +212,101 @@ describe('Tamaño de ducto (conduit)', () => {
   });
 });
 
+describe('Escalerilla: alimentadores separados vs circuitos juntos', () => {
+  const seisQuinientos = {
+    'grupos.count': '1',
+    'grupos.0.conductor': 'mcm-500',
+    'grupos.0.diametro': '23.44',
+    'grupos.0.cantidad': '6',
+  };
+
+  it('los alimentadores monopolares se separan un diámetro', () => {
+    // 6 × ⌀23,44 con 5 huecos de un diámetro = 6·23,44 + 5·23,44 = 257,8 mm.
+    const r = calc('ancho-escalerilla').calcular({ ...seisQuinientos, modo: 'alimentadores' });
+    expect(r.valores.separacion).toBeCloseTo(23.44, 1);
+    expect(r.valores.anchoRequerido).toBeCloseTo(257.84, 1);
+    expect(r.valores.anchoSugerido).toBe(300);
+  });
+
+  it('los mismos conductores como circuitos juntos caben en la mitad', () => {
+    const juntos = calc('ancho-escalerilla').calcular({ ...seisQuinientos, modo: 'circuitos' });
+    const separados = calc('ancho-escalerilla').calcular({ ...seisQuinientos, modo: 'alimentadores' });
+    expect(juntos.valores.separacion).toBe(0);
+    expect(juntos.valores.anchoSugerido).toBe(150);
+    expect(separados.valores.anchoSugerido).toBe(300);
+  });
+
+  it('capa única con separación conserva la ampacidad al aire libre', () => {
+    const r = calc('ancho-escalerilla').calcular({ ...seisQuinientos, modo: 'alimentadores', capas: '1' });
+    expect(r.valores.ampacidadPct).toBe(100);
+    expect(r.nota).toMatch(/separación mantenida/);
+  });
+
+  it('dos capas pierden la ampacidad al aire libre y lo advierten', () => {
+    // Es la contrapartida de permitir 2 capas: el ancho baja, la ampacidad no
+    // se puede tomar de las tablas.
+    const r = calc('ancho-escalerilla').calcular({ ...seisQuinientos, modo: 'alimentadores', capas: '2' });
+    expect(r.valores.capasUsadas).toBe(2);
+    expect(r.valores.ampacidadPct).toBe(65);
+    expect(r.nota).toMatch(/⚠/);
+    expect(r.nota).toMatch(/no aplica la ampacidad al aire libre/);
+  });
+
+  it('sobre 600 kcmil el derrateo sin separación es 75 % y no 65 %', () => {
+    const r = calc('ancho-escalerilla').calcular({
+      modo: 'alimentadores', capas: '2',
+      'grupos.count': '1',
+      'grupos.0.conductor': 'mcm-750', 'grupos.0.diametro': '28.88', 'grupos.0.cantidad': '6',
+    });
+    expect(r.valores.ampacidadPct).toBe(75);
+  });
+
+  it('advierte los monopolares bajo 1/0 AWG, que no van en bandeja', () => {
+    const r = calc('ancho-escalerilla').calcular({
+      modo: 'alimentadores',
+      'grupos.count': '1',
+      'grupos.0.conductor': 'awg-12', 'grupos.0.diametro': '3.3', 'grupos.0.cantidad': '9',
+    });
+    expect(r.nota).toMatch(/1\/0 AWG/);
+    expect(r.nota).toMatch(/392\.10/);
+  });
+
+  it('no aplica el mínimo de 1/0 a los circuitos multiconductores', () => {
+    const r = calc('ancho-escalerilla').calcular({
+      modo: 'circuitos',
+      'grupos.count': '1',
+      'grupos.0.conductor': 'awg-12', 'grupos.0.diametro': '3.3', 'grupos.0.cantidad': '9',
+    });
+    expect(r.nota).not.toMatch(/392\.10/);
+  });
+
+  it('avisa cuando el diámetro es manual y no puede verificar el calibre', () => {
+    const r = calc('ancho-escalerilla').calcular({
+      modo: 'alimentadores',
+      'grupos.count': '1',
+      'grupos.0.diametro': '23.44', 'grupos.0.cantidad': '6',
+    });
+    expect(r.nota).toMatch(/diámetro manual/);
+  });
+
+  it('la separación mezcla calibres tomando el mayor de cada hueco', () => {
+    // 2 × ⌀20 + 1 × ⌀10 → orden [20,20,10]; huecos: máx(20,20)=20 y máx(20,10)=20.
+    // Ancho = (20+20+10) + (20+20) = 90 mm.
+    const r = calc('ancho-escalerilla').calcular({
+      modo: 'alimentadores',
+      'grupos.count': '2',
+      'grupos.0.diametro': '20', 'grupos.0.cantidad': '2',
+      'grupos.1.diametro': '10', 'grupos.1.cantidad': '1',
+    });
+    expect(r.valores.anchoRequerido).toBeCloseTo(90, 1);
+  });
+});
+
 describe('Ancho de escalerilla portaconductores', () => {
-  it('un solo calibre: ancho requerido = n · diámetro', () => {
+  it('circuitos juntos: ancho requerido = n · diámetro', () => {
     // 6 × 500 MCM (23,44 mm) → 140,6 mm → escalerilla 150 mm.
     const r = calc('ancho-escalerilla').calcular({
+      modo: 'circuitos',
       'grupos.count': '1',
       'grupos.0.diametro': '23.44', 'grupos.0.cantidad': '6',
     });
@@ -227,6 +318,7 @@ describe('Ancho de escalerilla portaconductores', () => {
     // 3 × 500 MCM (23,44) + 1 × 4/0 AWG (16,31) + 1 × #4 AWG (8,23)
     // = 70,32 + 16,31 + 8,23 = 94,86 mm → escalerilla 100 mm.
     const r = calc('ancho-escalerilla').calcular({
+      modo: 'circuitos',
       'grupos.count': '3',
       'grupos.0.diametro': '23.44', 'grupos.0.cantidad': '3',
       'grupos.1.diametro': '16.31', 'grupos.1.cantidad': '1',
@@ -240,7 +332,7 @@ describe('Ancho de escalerilla portaconductores', () => {
   it('2 capas reducen el ancho requerido a la mitad para conductores iguales', () => {
     // 6 × 500 MCM en 2 capas → 3 por capa → ancho = 3·23,44 = 70,32 → escalerilla 100 mm.
     const r = calc('ancho-escalerilla').calcular({
-      capas: '2',
+      modo: 'circuitos', capas: '2',
       'grupos.count': '1',
       'grupos.0.diametro': '23.44', 'grupos.0.cantidad': '6',
     });
@@ -254,7 +346,7 @@ describe('Ancho de escalerilla portaconductores', () => {
     // best-fit decreasing: capa0=[23.44,23.44]=46,88; capa1=[23.44,8.23,8.23]=39,90.
     // máx = 46,88 → escalerilla 100 mm.
     const r = calc('ancho-escalerilla').calcular({
-      capas: '2',
+      modo: 'circuitos', capas: '2',
       'grupos.count': '2',
       'grupos.0.diametro': '23.44', 'grupos.0.cantidad': '3',
       'grupos.1.diametro': '8.23',  'grupos.1.cantidad': '2',
@@ -263,11 +355,11 @@ describe('Ancho de escalerilla portaconductores', () => {
     expect(r.valores.anchoRequerido).toBeCloseTo(46.88, 1);
     expect(r.valores.anchoSugerido).toBe(100);
   });
-  it('el tope normativo de 2 capas limita aunque el alto admita más', () => {
-    // ⌀23,44 → geométricamente caben floor(100/23,44) = 4 capas, pero el tope
-    // normativo (NEC 392.80 / RIC N°4) es 2 capas por derrateo de ampacidad.
+  it('el tope de proyecto de 2 capas limita aunque el alto admita más', () => {
+    // ⌀23,44 → geométricamente caben floor(100/23,44) = 4 capas, pero la regla
+    // de proyecto son 2.
     const r = calc('ancho-escalerilla').calcular({
-      capas: '10',
+      modo: 'circuitos', capas: '10',
       'grupos.count': '1',
       'grupos.0.diametro': '23.44', 'grupos.0.cantidad': '6',
     });
@@ -275,11 +367,11 @@ describe('Ancho de escalerilla portaconductores', () => {
     expect(r.valores.anchoRequerido).toBeCloseTo(70.32, 1); // 3 cond × 23,44 por capa
     expect(r.valores.alturaUsada).toBeCloseTo(46.88, 1);    // 2 × 23,44
     expect(r.valores.ocupacionAltura).toBeCloseTo(46.88, 1);
-    expect(r.nota).toMatch(/tope normativo es 2 capas/);
+    expect(r.nota).toMatch(/tope de proyecto es 2 capas/);
   });
-  it('capas no puede ser mayor que el total de conductores (con tope normativo)', () => {
+  it('capas no puede ser mayor que el total de conductores (con tope de proyecto)', () => {
     const r = calc('ancho-escalerilla').calcular({
-      capas: '10',
+      modo: 'circuitos', capas: '10',
       'grupos.count': '1',
       'grupos.0.diametro': '23.44', 'grupos.0.cantidad': '3',
     });
@@ -287,10 +379,10 @@ describe('Ancho de escalerilla portaconductores', () => {
     expect(r.valores.capasUsadas).toBe(2);
     expect(r.valores.anchoRequerido).toBeCloseTo(46.88, 1); // 2 cond por capa máxima
   });
-  it('si el conductor es muy grande, el alto manda sobre el tope normativo', () => {
-    // ⌀60 mm → solo cabe 1 capa por geometría (floor(100/60)=1) < 2 normativo.
+  it('si el conductor es muy grande, el alto manda sobre el tope de proyecto', () => {
+    // ⌀60 mm → solo cabe 1 capa por geometría (floor(100/60)=1) < 2 de proyecto.
     const r = calc('ancho-escalerilla').calcular({
-      capas: '2',
+      modo: 'circuitos', capas: '2',
       'grupos.count': '1',
       'grupos.0.diametro': '60', 'grupos.0.cantidad': '4',
     });
@@ -309,6 +401,7 @@ describe('Ancho de escalerilla portaconductores', () => {
     // 6 × ⌀23,44: área cada uno = π·23,44²/4 ≈ 431,5; total ≈ 2589 mm².
     // 1 capa → ancho req 140,64 → escalerilla 150 (área admisible 4200) → 61,6%.
     const r = calc('ancho-escalerilla').calcular({
+      modo: 'circuitos',
       'grupos.count': '1',
       'grupos.0.diametro': '23.44', 'grupos.0.cantidad': '6',
     });

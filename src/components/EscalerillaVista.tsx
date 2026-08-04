@@ -1,6 +1,9 @@
 import type { EntradasCalc, ResultadoCalc } from '../logic/calculos';
 import { leerFilas, num } from '../logic/calculos';
-import { distribuirEnCapas, maxCapasEnEscalerilla, PROFUNDIDAD_ESCALERILLA_MM } from '../logic/calculos/canalizaciones-catalogo';
+import {
+  anchoDeCapa, distribuirEnCapas, maxCapasEnEscalerilla, type ModoTendido,
+  PROFUNDIDAD_ESCALERILLA_MM, SEPARACION_MONOPOLAR_DIAMETROS,
+} from '../logic/calculos/canalizaciones-catalogo';
 import { fmtCantidad } from '../util/format';
 
 interface Props {
@@ -64,8 +67,14 @@ export function EscalerillaVista({ entradas, resultado }: Props) {
   const capasPedidas = Math.max(1, Math.round(num(entradas, 'capas') || 1));
   const capasUsadas = Math.min(capasPedidas, maxCapasEfectivo, conductores.length);
 
-  // Mismo bin-packing que la calculadora.
-  const capas = distribuirEnCapas(conductores, (c) => c.dia, capasUsadas);
+  // Mismo criterio que la calculadora: los alimentadores monopolares van
+  // separados un diámetro, así que el dibujo tiene que mostrarlos separados —
+  // si no, se vería una bandeja holgada donde en realidad la separación es la
+  // que fija el ancho.
+  const modo: ModoTendido = (entradas['modo'] ?? 'alimentadores') === 'circuitos'
+    ? 'circuitos' : 'alimentadores';
+  const sepDiametros = modo === 'alimentadores' ? SEPARACION_MONOPOLAR_DIAMETROS : 0;
+  const capas = distribuirEnCapas(conductores, (c) => c.dia * (1 + sepDiametros), capasUsadas);
   const alturasCapa = capas.map((capa) => Math.max(...capa.map((c) => c.dia), 0));
 
   // Geometría en mm (viewBox). El alto de la bandeja es fijo (100 mm).
@@ -86,12 +95,16 @@ export function EscalerillaVista({ entradas, resultado }: Props) {
   let yBase = bottomTopY;
   for (let r = 0; r < capas.length; r += 1) {
     const capa = capas[r]!;
-    const sumaCapa = capa.reduce((s, c) => s + c.dia, 0);
-    const offset = (ancho - sumaCapa) / 2;
-    let cursor = interiorLeftX + offset;
-    for (const c of capa) {
+    // Se dibuja de mayor a menor, igual que anchoDeCapa mide los huecos.
+    const orden = [...capa].sort((a, b) => b.dia - a.dia);
+    const anchoCapa = anchoDeCapa(orden.map((c) => c.dia), sepDiametros);
+    let cursor = interiorLeftX + (ancho - anchoCapa) / 2;
+    for (let i = 0; i < orden.length; i += 1) {
+      const c = orden[i]!;
       posiciones.push({ ...c, cx: cursor + c.dia / 2, cy: yBase - c.dia / 2 });
       cursor += c.dia;
+      const siguiente = orden[i + 1];
+      if (siguiente) cursor += Math.max(c.dia, siguiente.dia) * sepDiametros;
     }
     yBase -= alturasCapa[r]!;
   }

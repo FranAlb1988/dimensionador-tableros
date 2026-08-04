@@ -3,12 +3,15 @@ import type { Calculadora, EntradasCalc, ResultadoCalc } from './tipos';
 import { leerFilas, num } from './tipos';
 import {
   autollenarArea, autollenarConductor, autollenarDiametro, opcionesConductor,
+  seccionDeConductor,
 } from './conductores-catalogo';
 import {
-  areaDuctoMaxima, areaPermitidaEscalerilla, distribuirEnCapas, MAX_CAPAS_NORMATIVAS,
-  maxCapasEnEscalerilla, maxCapasGeometrico,
-  porcentajeRelleno, PROFUNDIDAD_ESCALERILLA_MM, sugerirAnchoEscalerilla,
-  type NormaRelleno,
+  anchoDeCapa, areaDuctoMaxima, areaPermitidaEscalerilla, derrateoMonopolarSinSeparacion,
+  distribuirEnCapas, MAX_CAPAS_PROYECTO,
+  maxCapasEnEscalerilla, maxCapasGeometrico, type ModoTendido,
+  porcentajeRelleno, PROFUNDIDAD_ESCALERILLA_MM,
+  SECCION_MINIMA_MONOPOLAR_MM2, SEPARACION_MONOPOLAR_DIAMETROS,
+  sugerirAnchoEscalerilla, type NormaRelleno,
   sugerirDucto, type TipoDucto,
 } from './canalizaciones-catalogo';
 import { factorDerrateoAltura, type NivelTension } from '../derrateo';
@@ -315,13 +318,21 @@ const anchoEscalerilla: Calculadora = {
   id: 'ancho-escalerilla',
   grupo: 'conductores',
   nombre: 'Ancho de escalerilla portaconductores',
-  descripcion: `Ancho de bandeja portacable según la suma de diámetros exteriores por capa (NEC 392). Bandeja de ${PROFUNDIDAD_ESCALERILLA_MM} mm de alto: las capas se limitan a ${MAX_CAPAS_NORMATIVAS} por criterio normativo (NEC 392.80 / RIC N°4 — derrateo de ampacidad), y al máximo geométrico cuando los conductores son grandes.`,
-  norma: 'RIC N°4 · NEC 392',
-  formula: `Ancho req. = máx (Σ Ø por capa)    Capas ≤ mín(${MAX_CAPAS_NORMATIVAS}, ⌊alto / Ø mayor⌋)`,
+  descripcion: `Ancho de bandeja portacable en función del tendido. Los alimentadores monopolares se separan un diámetro entre sí —es lo que mantiene su ampacidad—; los circuitos multiconductores van juntos. Bandeja de ${PROFUNDIDAD_ESCALERILLA_MM} mm de alto, máximo ${MAX_CAPAS_PROYECTO} capas por regla de proyecto.`,
+  norma: 'NEC 392.22 / 392.80 · IEC 60364-5-52',
+  formula: `Ancho = Σ Ø + (n−1)·s·Ø    (s = ${SEPARACION_MONOPOLAR_DIAMETROS} para alimentadores, 0 para circuitos juntos)`,
   campos: [
     {
+      key: 'modo', label: 'Tipo de tendido', tipo: 'select', defecto: 'alimentadores',
+      opciones: [
+        { value: 'alimentadores', label: 'Alimentadores — monopolares separados' },
+        { value: 'circuitos', label: 'Circuitos — multiconductores juntos' },
+      ],
+      ayuda: 'Los monopolares de alimentador se separan un diámetro (NEC 392.80(A)(2), IEC 60364-5-52): sin esa separación la ampacidad cae al 65-75% de la de aire libre.',
+    },
+    {
       key: 'capas', label: 'Capas', unidad: '', defecto: 1,
-      ayuda: `Capas pedidas (1 o ${MAX_CAPAS_NORMATIVAS}). Se ajusta hacia abajo si exceden el alto útil de la bandeja (${PROFUNDIDAD_ESCALERILLA_MM} mm) o el tope normativo de ${MAX_CAPAS_NORMATIVAS} capas.`,
+      ayuda: `Capas pedidas (1 o ${MAX_CAPAS_PROYECTO}). Se ajusta hacia abajo si exceden el alto útil (${PROFUNDIDAD_ESCALERILLA_MM} mm) o el tope de proyecto de ${MAX_CAPAS_PROYECTO} capas.`,
     },
     {
       key: 'grupos', label: 'Conductores en la escalerilla', tipo: 'lista',
@@ -341,20 +352,27 @@ const anchoEscalerilla: Calculadora = {
   salidas: [
     { key: 'totalConductores', label: 'Total de conductores', unidad: '', decimales: 0 },
     { key: 'capasUsadas', label: 'Capas usadas', unidad: '', decimales: 0 },
-    { key: 'anchoRequerido', label: 'Ancho geométrico requerido (máx por capa)', unidad: 'mm' },
+    { key: 'separacion', label: 'Separación entre conductores', unidad: 'mm' },
+    { key: 'anchoRequerido', label: 'Ancho requerido por capa (Ø + separación)', unidad: 'mm' },
     { key: 'areaConductores', label: 'Área de los conductores', unidad: 'mm²' },
     { key: 'areaPermitida', label: 'Área admisible NEC 392.22(A)', unidad: 'mm²' },
     { key: 'alturaUsada', label: `Altura ocupada (sobre ${PROFUNDIDAD_ESCALERILLA_MM} mm)`, unidad: 'mm' },
     { key: 'anchoSugerido', label: 'Escalerilla sugerida', unidad: 'mm', destacado: true, decimales: 0 },
     { key: 'ocupacionNec', label: 'Ocupación del área (NEC 392)', unidad: '%', decimales: 1 },
     { key: 'ocupacionAltura', label: 'Ocupación del alto', unidad: '%', decimales: 1 },
+    { key: 'ampacidadPct', label: 'Ampacidad aplicable (de la de aire libre)', unidad: '%', decimales: 0 },
   ],
   calcular: (e): ResultadoCalc => {
     const capasPedidas = Math.max(1, Math.round(num(e, 'capas') || 1));
-    const filas = leerFilas(e, 'grupos', ['diametro', 'cantidad']);
+    const filas = leerFilas(e, 'grupos', ['conductor', 'diametro', 'cantidad']);
     const diametros: number[] = [];
     let totalConductores = 0;
     let areaConductores = 0;
+    // Secciones de cobre de las filas tomadas del catálogo. Las filas con
+    // diámetro escrito a mano no aportan sección, y sin ella no se puede
+    // decidir si el monopolar llega a 1/0 AWG ni si pasa los 600 kcmil.
+    const secciones: number[] = [];
+    let hayManual = false;
     for (const f of filas) {
       const d = Number((f.diametro ?? '').replace(',', '.'));
       const n = Math.round(Number((f.cantidad ?? '').replace(',', '.')));
@@ -362,13 +380,21 @@ const anchoEscalerilla: Calculadora = {
         for (let i = 0; i < n; i += 1) diametros.push(d);
         totalConductores += n;
         areaConductores += n * (Math.PI * d * d) / 4;
+        const sec = seccionDeConductor(f.conductor);
+        if (sec != null) secciones.push(sec);
+        else hayManual = true;
       }
     }
     if (totalConductores === 0) {
       return { valores: {}, error: 'Agrega al menos un grupo con diámetro y cantidad.' };
     }
 
+    const modo: ModoTendido = (e['modo'] ?? 'alimentadores') === 'circuitos'
+      ? 'circuitos' : 'alimentadores';
+    const sepDiametros = modo === 'alimentadores' ? SEPARACION_MONOPOLAR_DIAMETROS : 0;
+
     const maxDia = Math.max(...diametros);
+    const seccionMayorMm2 = secciones.length > 0 ? Math.max(...secciones) : 0;
     const maxCapasPorAlto = maxCapasEnEscalerilla(maxDia);
     if (maxCapasPorAlto < 1) {
       return {
@@ -378,8 +404,11 @@ const anchoEscalerilla: Calculadora = {
     }
 
     const capasUsadas = Math.min(capasPedidas, maxCapasPorAlto, totalConductores);
-    const distribuidos = distribuirEnCapas(diametros, (d) => d, capasUsadas);
-    const anchoRequerido = Math.max(...distribuidos.map((capa) => capa.reduce((s, d) => s + d, 0)));
+    // Con separación cada conductor arrastra su hueco, así que la distribución
+    // se balancea por el ancho real ocupado y no solo por el diámetro.
+    const distribuidos = distribuirEnCapas(diametros, (d) => d * (1 + sepDiametros), capasUsadas);
+    const anchoRequerido = Math.max(...distribuidos.map((capa) => anchoDeCapa(capa, sepDiametros)));
+    const separacion = sepDiametros > 0 ? maxDia * sepDiametros : 0;
     const alturaUsada = distribuidos.reduce((s, capa) => s + Math.max(0, ...capa), 0);
     const ocupacionAltura = (alturaUsada / PROFUNDIDAD_ESCALERILLA_MM) * 100;
 
@@ -393,27 +422,69 @@ const anchoEscalerilla: Calculadora = {
     const areaPermitida = areaPermitidaEscalerilla(anchoSugerido);
     const ocupacionNec = (areaConductores / areaPermitida) * 100;
 
-    let nota: string;
+    const partes: string[] = [];
     if (capasPedidas > maxCapasPorAlto) {
       const geom = maxCapasGeometrico(maxDia);
       const motivo = maxCapasPorAlto < geom
-        ? `el tope normativo es ${MAX_CAPAS_NORMATIVAS} capas (NEC 392.80 / RIC N°4 — derrateo de ampacidad por apilamiento)`
-        : `en una bandeja de ${PROFUNDIDAD_ESCALERILLA_MM} mm de alto solo caben ${maxCapasPorAlto} (limitado por el conductor de ⌀${maxDia.toFixed(1)} mm)`;
-      nota = `Pediste ${capasPedidas} capas, pero ${motivo}. Se usaron ${capasUsadas}.`;
-    } else if (capasUsadas > 1) {
-      nota = `${totalConductores} conductores distribuidos en ${capasUsadas} capas. Criterios NEC 392.22(A) Tabla 1 (área) y tope de ${MAX_CAPAS_NORMATIVAS} capas (NEC 392.80) en bandeja ventilada de ${PROFUNDIDAD_ESCALERILLA_MM} mm.`;
+        ? `el tope de proyecto es ${MAX_CAPAS_PROYECTO} capas`
+        : `en una bandeja de ${PROFUNDIDAD_ESCALERILLA_MM} mm de alto solo caben ${maxCapasPorAlto} `
+          + `(limitado por el conductor de ⌀${maxDia.toFixed(1)} mm)`;
+      partes.push(`Pediste ${capasPedidas} capas, pero ${motivo}. Se usaron ${capasUsadas}.`);
+    }
+
+    // Ampacidad aplicable. Es el punto del modo "alimentadores": la separación
+    // de un diámetro en capa única es lo que permite usar la ampacidad al aire
+    // libre completa (NEC 392.80(A)(2)); sin ella se cae al 65 % o 75 %.
+    let ampacidadPct: number;
+    if (modo === 'circuitos') {
+      ampacidadPct = 100;
+      partes.push(
+        `${totalConductores} conductores tendidos juntos en ${capasUsadas} capa(s). `
+        + 'Aplica el factor de agrupamiento de la tabla que corresponda a la cantidad de circuitos.',
+      );
+    } else if (capasUsadas === 1) {
+      ampacidadPct = 100;
+      partes.push(
+        `Alimentadores monopolares en capa única con separación mantenida de `
+        + `${separacion.toFixed(1)} mm (un diámetro): se conserva la ampacidad al aire libre `
+        + '(NEC 392.80(A)(2); "espaciado" según IEC 60364-5-52).',
+      );
     } else {
-      nota = `${totalConductores} conductores en una sola capa. Criterios NEC 392.22(A) Tabla 1, bandeja ventilada de ${PROFUNDIDAD_ESCALERILLA_MM} mm (alto y área).`;
+      // Dos capas: la separación horizontal ya no basta.
+      ampacidadPct = Math.round(derrateoMonopolarSinSeparacion(seccionMayorMm2) * 100);
+      partes.push(
+        `⚠ Monopolares en ${capasUsadas} capas: la separación entre capas no está mantenida, `
+        + `así que no aplica la ampacidad al aire libre. NEC 392.80(A)(2) limita a `
+        + `${ampacidadPct} % de la Tabla 310.17, e IEC 60364-5-52 (Tabla B.52.20, nota 2) advierte `
+        + 'que sus factores tabulados no cubren varias capas tocándose. Verifica la ampacidad aparte.',
+      );
+    }
+
+    if (modo === 'alimentadores') {
+      if (secciones.some((x) => x < SECCION_MINIMA_MONOPOLAR_MM2)) {
+        partes.push(
+          `⚠ Hay conductores bajo ${SECCION_MINIMA_MONOPOLAR_MM2} mm² (1/0 AWG): `
+          + 'NEC 392.10(B)(1) no admite monopolares menores en bandeja — van dentro de '
+          + 'un cable multiconductor.',
+        );
+      }
+      if (hayManual) {
+        partes.push(
+          'Hay filas con diámetro manual: sin la sección de cobre no se verifica el '
+          + 'mínimo de 1/0 AWG ni el umbral de 600 kcmil. Elige el conductor del catálogo '
+          + 'para que se comprueben.',
+        );
+      }
     }
 
     return {
       valores: {
-        totalConductores, capasUsadas,
+        totalConductores, capasUsadas, separacion,
         anchoRequerido, areaConductores, areaPermitida,
         alturaUsada,
-        anchoSugerido, ocupacionNec, ocupacionAltura,
+        anchoSugerido, ocupacionNec, ocupacionAltura, ampacidadPct,
       },
-      nota,
+      nota: partes.join(' '),
     };
   },
   visualizacion: 'escalerilla',
