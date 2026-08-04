@@ -37,7 +37,7 @@ describe('dimensionarTdg', () => {
       1,
     );
     expect(r.tablero).toBeDefined();
-    expect(r.tablero!.principal.familia.startsWith('Masterpact')).toBe(true);
+    expect(r.tablero!.principal.familia).toMatch(/^MasterPact MTZ/);
     expect(r.tablero!.barra.inA).toBeGreaterThanOrEqual(r.tablero!.corrienteTotalA);
   });
 
@@ -175,33 +175,31 @@ describe('dimensionarTdg', () => {
     expect(r.cargasSinAsignar[0]!.id).toBe('x');
   });
 
-  it('CDC grande (4000–6000 A) dimensiona con Masterpact b y barra al tope', () => {
-    // 12 × 300 kW @ 400 V (I ≈ 481.3 c/u, Σ ≈ 5776 A, fs 1) → antes:
-    // "sin interruptor principal Schneider". Ahora: NW63 (6300 A) con la
-    // barra en el tope CDC (6000 A, Ir del ACB ajustado a la barra).
+  it('CDC grande (4000–6000 A) dimensiona con MasterPact MTZ3 y barra al tope', () => {
+    // 12 × 300 kW @ 400 V (I ≈ 481.3 c/u, Σ ≈ 5776 A, fs 1) → MTZ3 de 6300 A
+    // con la barra en el tope CDC (6000 A, Ir del ACB ajustado a la barra).
     const cargas = Array.from({ length: 12 }, (_, i) => salida3F(String(i + 1), 300));
     const r = dimensionarTdg(cargas, 1);
     expect(r.tablero).toBeDefined();
     const t = r.tablero!;
-    expect(t.principal.referencia).toContain('NW63');
+    expect(t.principal.inA).toBe(6300);
     expect(t.barra.inA).toBe(6000);
 
-    // 10 × 300 kW ≈ 4813 A → NW50b (5000) con barra 2×(200×10) de 5000 A.
+    // 10 × 300 kW ≈ 4813 A → MTZ3 de 5000 A con barra 2×(200×10) de 5000 A.
     const r10 = dimensionarTdg(
       Array.from({ length: 10 }, (_, i) => salida3F(String(i + 1), 300)), 1,
     );
-    expect(r10.tablero!.principal.referencia).toContain('NW50b');
+    expect(r10.tablero!.principal.inA).toBe(5000);
     expect(r10.tablero!.barra.inA).toBe(5000);
   });
 
   it('la barra nunca queda bajo el In del principal', () => {
-    // 2 × 150 kW @ 400 V (I ≈ 240.6 c/u, Σ = 481.3, fs 1) → principal NSX630.
-    // Antes la barra se elegía solo por la corriente (Cu 50×5, 500 A < 630 A
-    // del principal, que deja pasar hasta su In sin disparar).
-    const r = dimensionarTdg([salida3F('1', 150), salida3F('2', 150)], 1);
-    const t = r.tablero!;
-    expect(t.principal.inA).toBe(630);
-    expect(t.barra.inA).toBeGreaterThanOrEqual(t.principal.inA);
+    // La barra debe transportar al menos el In del principal: el breaker deja
+    // pasar hasta su In sin disparar y una barra menor quedaría sobrecargable.
+    for (const kw of [75, 150, 250, 400]) {
+      const t = dimensionarTdg([salida3F('1', kw), salida3F('2', kw)], 1).tablero!;
+      expect(t.barra.inA, `${kw} kW`).toBeGreaterThanOrEqual(t.principal.inA);
+    }
   });
 
   it('el derrateo por altura selecciona salidas, principal y barra contra I / F2', () => {
