@@ -397,30 +397,59 @@ describe('Ancho de escalerilla portaconductores', () => {
     expect(r.valores.anchoSugerido).toBeUndefined();
     expect(r.nota).toMatch(/supera el alto/);
   });
-  it('reporta el área de conductores y la ocupación NEC 392', () => {
+  it('reporta el área de conductores y la ocupación', () => {
     // 6 × ⌀23,44: área cada uno = π·23,44²/4 ≈ 431,5; total ≈ 2589 mm².
-    // 1 capa → ancho req 140,64 → escalerilla 150 (área admisible 4200) → 61,6%.
+    // 1 capa juntos → ancho req 140,64 → escalerilla 150 mm.
+    // RIC: 150 × 100 × 40 % = 6000 mm² admisibles → 43 %.
     const r = calc('ancho-escalerilla').calcular({
       modo: 'circuitos',
       'grupos.count': '1',
       'grupos.0.diametro': '23.44', 'grupos.0.cantidad': '6',
     });
     expect(r.valores.areaConductores).toBeCloseTo(2589, -1);
-    expect(r.valores.areaPermitida).toBe(4200);
-    expect(r.valores.ocupacionNec).toBeCloseTo(61.6, 0);
+    expect(r.valores.areaPermitida).toBe(6000);
+    expect(r.valores.ocupacionNec).toBeCloseTo(43.2, 0);
+  });
+  it('los dos criterios de área son modelos distintos y dan cifras distintas', () => {
+    const entradas = {
+      modo: 'circuitos',
+      'grupos.count': '1',
+      'grupos.0.diametro': '23.44', 'grupos.0.cantidad': '6',
+    };
+    const ric = calc('ancho-escalerilla').calcular({ ...entradas, normaArea: 'RIC' });
+    const nec = calc('ancho-escalerilla').calcular({ ...entradas, normaArea: 'NEC' });
+    // RIC depende del alto (150 × 100 × 0,40); NEC solo del ancho (150 × 29,63).
+    expect(ric.valores.areaPermitida).toBe(6000);
+    expect(nec.valores.areaPermitida).toBeCloseTo(4444.5, 0);
+    expect(nec.valores.ocupacionNec).toBeGreaterThan(ric.valores.ocupacionNec!);
   });
   it('el criterio de área obliga a una escalerilla mayor cuando aplica', () => {
-    // 10 × ⌀28,88 (área ≈ 655 cada uno). Capas pedidas 4 → topadas a 2 por
-    // norma. Ancho geométrico req ≈ 5·28,88 = 144 mm (cabría en 150 mm), pero
-    // el área total ≈ 6551 mm² > 5600 (200) → fuerza al ancho 300 (área 8400).
+    // 10 × ⌀28,88 (área ≈ 655 cada uno) juntos, capas pedidas 4 → topadas a 2.
+    // Ancho geométrico req ≈ 5·28,88 = 144 mm (cabría en 150 mm), pero el área
+    // total ≈ 6551 mm² supera los 6000 de la bandeja de 150 con criterio RIC,
+    // así que fuerza el ancho 200 (8000 mm² admisibles).
     const r = calc('ancho-escalerilla').calcular({
-      capas: '4',
+      modo: 'circuitos', capas: '4',
       'grupos.count': '1',
       'grupos.0.diametro': '28.88', 'grupos.0.cantidad': '10',
     });
     expect(r.valores.areaConductores).toBeCloseTo(6551, -1);
+    expect(r.valores.anchoRequerido).toBeCloseTo(144.4, 1);
+    expect(r.valores.anchoSugerido).toBe(200);
+    expect(r.valores.areaPermitida).toBe(8000);
+  });
+  it('en modo alimentadores el ancho lo fija la separación, no el área', () => {
+    // La Tabla 392.22(B)(1) de monopolares no está incorporada; con separación
+    // mantenida el criterio de ancho es el más restrictivo de todos modos.
+    const r = calc('ancho-escalerilla').calcular({
+      modo: 'alimentadores', capas: '1',
+      'grupos.count': '1',
+      'grupos.0.conductor': 'mcm-500', 'grupos.0.diametro': '23.44', 'grupos.0.cantidad': '6',
+    });
+    expect(r.valores.anchoRequerido).toBeCloseTo(257.84, 1);
     expect(r.valores.anchoSugerido).toBe(300);
-    expect(r.valores.areaPermitida).toBe(8400);
-    expect(r.valores.ocupacionNec).toBeCloseTo(78, 0);
+    // El área queda muy holgada: no es ella la que decide.
+    expect(r.valores.ocupacionNec).toBeLessThan(30);
+    expect(r.nota).toMatch(/392\.22\(B\)\(1\)/);
   });
 });

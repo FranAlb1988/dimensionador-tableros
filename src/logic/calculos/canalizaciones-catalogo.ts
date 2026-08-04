@@ -144,25 +144,52 @@ export function maxCapasEnEscalerilla(diametroMayorMm: number): number {
   return Math.min(geom, MAX_CAPAS_PROYECTO);
 }
 
-/**
- * Área máxima admisible de cables en la escalerilla, según NEC 392.22(A),
- * Tabla 1, Columna 1 — multicable en bandeja ventilada. Indexada por ancho (mm).
- * El cumplimiento normativo exige Σ áreas de conductores ≤ área permitida.
- */
-export const AREA_PERMITIDA_ESCALERILLA: Readonly<Record<number, number>> = {
-  100: 2800,
-  150: 4200,
-  200: 5600,
-  300: 8400,
-  450: 12600,
-  600: 16800,
-  750: 21000,
-  900: 25200,
-};
+/** Norma con la que se limita el área ocupada en la bandeja. */
+export type NormaAreaBandeja = 'RIC' | 'NEC';
 
-/** Área admisible (mm²) para el ancho normalizado dado, o 0 si no se conoce. */
-export function areaPermitidaEscalerilla(anchoMm: number): number {
-  return AREA_PERMITIDA_ESCALERILLA[anchoMm] ?? 0;
+/**
+ * Fracción de la sección útil de la bandeja (ancho × alto) que el RIC admite
+ * ocupar con cables. Es el mismo 40 % que la planilla oficial de cuadro de
+ * carga aplica a "bandeja portaconductores", y coincide con la práctica
+ * europea habitual.
+ *
+ * Es un modelo distinto al del NEC: depende del alto de la bandeja, no solo
+ * del ancho.
+ */
+export const FRACCION_AREA_BANDEJA_RIC = 0.4;
+
+/**
+ * Área admisible por milímetro de ancho según NEC 392.22(A), Tabla 1,
+ * Columna 1 — cables MULTICONDUCTORES en bandeja ventilada.
+ *
+ * La tabla del NEC es lineal en el ancho: publica 28,0 in² para la bandeja de
+ * 24″, y la misma razón se repite en todos los anchos. De ahí:
+ *
+ *   28,0 in² / 24 in = 1,1667 in²/in
+ *   1,1667 × 645,16 mm²/in² / 25,4 mm/in = 29,63 mm²/mm
+ *
+ * A diferencia del criterio RIC, no depende del alto de la bandeja.
+ *
+ * OJO: es la tabla de multiconductores. Los monopolares se rigen por la Tabla
+ * 392.22(B)(1), que es distinta y menor, y que no está incorporada — por eso
+ * en modo `alimentadores` el criterio que manda es el de ancho (Σ Ø +
+ * separación), que además resulta el más restrictivo con separación mantenida.
+ */
+export const AREA_POR_MM_ANCHO_NEC = 29.63;
+
+/**
+ * Área máxima admisible de cables en la bandeja, en mm².
+ * `altoMm` solo interviene en el criterio RIC.
+ */
+export function areaPermitidaEscalerilla(
+  anchoMm: number,
+  norma: NormaAreaBandeja = 'RIC',
+  altoMm: number = PROFUNDIDAD_ESCALERILLA_MM,
+): number {
+  if (!(anchoMm > 0)) return 0;
+  return norma === 'RIC'
+    ? anchoMm * altoMm * FRACCION_AREA_BANDEJA_RIC
+    : anchoMm * AREA_POR_MM_ANCHO_NEC;
 }
 
 /** Norma con la que se aplica el porcentaje de relleno del ducto. */
@@ -214,12 +241,15 @@ export function areaDuctoMaxima(tipo: TipoDucto): number {
 export function sugerirAnchoEscalerilla(
   anchoRequeridoMm: number,
   areaConductoresMm2 = 0,
+  norma: NormaAreaBandeja = 'RIC',
 ): number | undefined {
   return [...ANCHOS_ESCALERILLA]
     .sort((a, b) => a - b)
     .find((w) => {
       if (w < anchoRequeridoMm) return false;
-      if (areaConductoresMm2 > 0 && areaConductoresMm2 > areaPermitidaEscalerilla(w)) return false;
+      if (areaConductoresMm2 > 0 && areaConductoresMm2 > areaPermitidaEscalerilla(w, norma)) {
+        return false;
+      }
       return true;
     });
 }

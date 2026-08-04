@@ -7,6 +7,7 @@ import {
 } from './conductores-catalogo';
 import {
   anchoDeCapa, areaDuctoMaxima, areaPermitidaEscalerilla, derrateoMonopolarSinSeparacion,
+  FRACCION_AREA_BANDEJA_RIC, type NormaAreaBandeja,
   distribuirEnCapas, MAX_CAPAS_PROYECTO,
   maxCapasEnEscalerilla, maxCapasGeometrico, type ModoTendido,
   porcentajeRelleno, PROFUNDIDAD_ESCALERILLA_MM,
@@ -331,6 +332,14 @@ const anchoEscalerilla: Calculadora = {
       ayuda: 'Los monopolares de alimentador se separan un diámetro (NEC 392.80(A)(2), IEC 60364-5-52): sin esa separación la ampacidad cae al 65-75% de la de aire libre.',
     },
     {
+      key: 'normaArea', label: 'Norma del área ocupada', tipo: 'select', defecto: 'RIC',
+      opciones: [
+        { value: 'RIC', label: `RIC — ${Math.round(FRACCION_AREA_BANDEJA_RIC * 100)}% de ancho × alto` },
+        { value: 'NEC', label: 'NEC 392.22(A) — por ancho' },
+      ],
+      ayuda: 'Son modelos distintos: el RIC limita al 40% de la sección útil (depende del alto), el NEC publica un área por ancho (no depende del alto).',
+    },
+    {
       key: 'capas', label: 'Capas', unidad: '', defecto: 1,
       ayuda: `Capas pedidas (1 o ${MAX_CAPAS_PROYECTO}). Se ajusta hacia abajo si exceden el alto útil (${PROFUNDIDAD_ESCALERILLA_MM} mm) o el tope de proyecto de ${MAX_CAPAS_PROYECTO} capas.`,
     },
@@ -355,10 +364,10 @@ const anchoEscalerilla: Calculadora = {
     { key: 'separacion', label: 'Separación entre conductores', unidad: 'mm' },
     { key: 'anchoRequerido', label: 'Ancho requerido por capa (Ø + separación)', unidad: 'mm' },
     { key: 'areaConductores', label: 'Área de los conductores', unidad: 'mm²' },
-    { key: 'areaPermitida', label: 'Área admisible NEC 392.22(A)', unidad: 'mm²' },
+    { key: 'areaPermitida', label: 'Área admisible de la bandeja', unidad: 'mm²' },
     { key: 'alturaUsada', label: `Altura ocupada (sobre ${PROFUNDIDAD_ESCALERILLA_MM} mm)`, unidad: 'mm' },
     { key: 'anchoSugerido', label: 'Escalerilla sugerida', unidad: 'mm', destacado: true, decimales: 0 },
-    { key: 'ocupacionNec', label: 'Ocupación del área (NEC 392)', unidad: '%', decimales: 1 },
+    { key: 'ocupacionNec', label: 'Ocupación del área', unidad: '%', decimales: 1 },
     { key: 'ocupacionAltura', label: 'Ocupación del alto', unidad: '%', decimales: 1 },
     { key: 'ampacidadPct', label: 'Ampacidad aplicable (de la de aire libre)', unidad: '%', decimales: 0 },
   ],
@@ -412,14 +421,20 @@ const anchoEscalerilla: Calculadora = {
     const alturaUsada = distribuidos.reduce((s, capa) => s + Math.max(0, ...capa), 0);
     const ocupacionAltura = (alturaUsada / PROFUNDIDAD_ESCALERILLA_MM) * 100;
 
-    const anchoSugerido = sugerirAnchoEscalerilla(anchoRequerido, areaConductores);
+    const normaArea: NormaAreaBandeja = (e['normaArea'] ?? 'RIC') === 'NEC' ? 'NEC' : 'RIC';
+    // En modo alimentadores el área que manda es la de la Tabla 392.22(B)(1),
+    // que no está incorporada; con separación mantenida el criterio de ancho es
+    // más restrictivo de todos modos, así que se dimensiona por ancho y se
+    // informa el área sin usarla como filtro.
+    const areaFiltro = modo === 'alimentadores' ? 0 : areaConductores;
+    const anchoSugerido = sugerirAnchoEscalerilla(anchoRequerido, areaFiltro, normaArea);
     if (anchoSugerido == null) {
       return {
         valores: { totalConductores, capasUsadas, anchoRequerido, areaConductores, alturaUsada, ocupacionAltura },
         nota: `Ningún ancho del catálogo cumple los dos criterios NEC 392: ancho ≥ ${anchoRequerido.toFixed(0)} mm y área admisible ≥ ${areaConductores.toFixed(0)} mm². Divide los conductores en varias escalerillas.`,
       };
     }
-    const areaPermitida = areaPermitidaEscalerilla(anchoSugerido);
+    const areaPermitida = areaPermitidaEscalerilla(anchoSugerido, normaArea);
     const ocupacionNec = (areaConductores / areaPermitida) * 100;
 
     const partes: string[] = [];
@@ -440,6 +455,9 @@ const anchoEscalerilla: Calculadora = {
       ampacidadPct = 100;
       partes.push(
         `${totalConductores} conductores tendidos juntos en ${capasUsadas} capa(s). `
+        + `Área limitada por ${normaArea === 'RIC'
+          ? `el ${Math.round(FRACCION_AREA_BANDEJA_RIC * 100)} % de la sección útil (RIC)`
+          : 'la Tabla 392.22(A) del NEC'}. `
         + 'Aplica el factor de agrupamiento de la tabla que corresponda a la cantidad de circuitos.',
       );
     } else if (capasUsadas === 1) {
@@ -475,6 +493,12 @@ const anchoEscalerilla: Calculadora = {
           + 'para que se comprueben.',
         );
       }
+      partes.push(
+        'El ancho lo fija la suma de diámetros más la separación. El área de los '
+        + 'monopolares se rige por la Tabla 392.22(B)(1), que no está incorporada; con '
+        + 'separación mantenida el criterio de ancho es el más restrictivo, así que el '
+        + 'área se informa como referencia y no decide el ancho.',
+      );
     }
 
     return {
