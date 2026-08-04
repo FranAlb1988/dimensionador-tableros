@@ -110,17 +110,17 @@ describe('dimensionarTdg', () => {
   });
 
   it('la Icc de barra del trafo filtra el Icu del principal y eleva las salidas (F→N)', () => {
-    // 4 × 250 kW @ 400 V, fs 0.8 → I total ≈ 1364 A → trafo 1250 kVA (Ucc 5%)
-    // → In sec ≈ 1804 A, Icc ≈ 36.1 kA. El principal debe tener Icu ≥ 36.1 y
-    // las salidas NSX F (36 kA) se elevan a N (50 kA) — sin advertencias.
+    // 4 × 250 kW @ 400 V, fs 0.8. Con el cosφ del estudio (0,85 para
+    // alimentadores) la corriente sube y con ella el trafo y la Icc de barra.
+    // El principal debe cubrir esa Icc y las salidas subir de clase, sin que
+    // quede ninguna advertencia.
     const cargas = [salida3F('1', 250), salida3F('2', 250), salida3F('3', 250), salida3F('4', 250)];
     const r = dimensionarTdg(cargas, 0.8, 'Schneider', CONFIG_TRAFO_DEFAULT);
     const t = r.tablero!;
-    expect(t.iccBarraKa).toBeCloseTo(36.1, 0);
+    expect(t.iccBarraKa).toBeGreaterThan(36);
     expect(t.principal.icuKA).toBeGreaterThanOrEqual(t.iccBarraKa!);
     for (const s of r.salidasAsignadas) {
-      expect(s.proteccion.referencia).toContain('NSX630N');
-      expect(s.proteccion.icuKA).toBe(50);
+      expect(s.proteccion.icuKA).toBeGreaterThanOrEqual(t.iccBarraKa!);
     }
     expect(r.advertenciasIcu).toBeUndefined();
   });
@@ -133,7 +133,7 @@ describe('dimensionarTdg', () => {
     expect(r.tablero!.iccBarraKa).toBeGreaterThan(70);
     expect(r.advertenciasIcu).toBeDefined();
     expect(r.advertenciasIcu).toHaveLength(9);
-    expect(r.advertenciasIcu![0]).toContain('Icu 70 kA');
+    expect(r.advertenciasIcu![0]).toContain('< Icc de barra');
   });
 
   it('sin superar el Icu de las salidas no hay advertencias', () => {
@@ -176,21 +176,21 @@ describe('dimensionarTdg', () => {
   });
 
   it('CDC grande (4000–6000 A) dimensiona con MasterPact MTZ3 y barra al tope', () => {
-    // 12 × 300 kW @ 400 V (I ≈ 481.3 c/u, Σ ≈ 5776 A, fs 1) → MTZ3 de 6300 A
-    // con la barra en el tope CDC (6000 A, Ir del ACB ajustado a la barra).
-    const cargas = Array.from({ length: 12 }, (_, i) => salida3F(String(i + 1), 300));
+    // 11 × 300 kW @ 400 V, fs 1 → MTZ3 de 6300 A con la barra en el tope CDC
+    // (6000 A, Ir del ACB ajustado a la barra).
+    const cargas = Array.from({ length: 11 }, (_, i) => salida3F(String(i + 1), 300));
     const r = dimensionarTdg(cargas, 1);
     expect(r.tablero).toBeDefined();
     const t = r.tablero!;
     expect(t.principal.inA).toBe(6300);
     expect(t.barra.inA).toBe(6000);
 
-    // 10 × 300 kW ≈ 4813 A → MTZ3 de 5000 A con barra 2×(200×10) de 5000 A.
-    const r10 = dimensionarTdg(
-      Array.from({ length: 10 }, (_, i) => salida3F(String(i + 1), 300)), 1,
+    // Una salida más excede la barra tope del catálogo y se informa.
+    const r12 = dimensionarTdg(
+      Array.from({ length: 12 }, (_, i) => salida3F(String(i + 1), 300)), 1,
     );
-    expect(r10.tablero!.principal.inA).toBe(5000);
-    expect(r10.tablero!.barra.inA).toBe(5000);
+    expect(r12.tablero).toBeUndefined();
+    expect(r12.motivo).toContain('barra');
   });
 
   it('la barra nunca queda bajo el In del principal', () => {

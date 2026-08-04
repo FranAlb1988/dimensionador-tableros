@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import { TablaCargas } from '../components/TablaCargas';
+import { EstudioCargasPanel } from '../components/EstudioCargasPanel';
 import { ImportarCargasModal } from '../components/ImportarCargasModal';
 import { AsignacionesPanel } from '../components/AsignacionesPanel';
 import { VistaFrontalSvg } from '../components/VistaFrontalSvg';
@@ -41,6 +42,18 @@ export function CcmPage() {
   const reservaCcm = useReservaCcm();
   const reservaPorcentaje = reservaCcm.activo ? Math.max(0, reservaCcm.porcentaje) : 0;
   // Detección automática del nivel de tensión del CCM.
+  // Tensión del punto de suma: la más frecuente entre las cargas del tablero.
+  const tensionBarraV = useMemo(() => {
+    const cuenta = new Map<number, number>();
+    for (const c of cargas) {
+      if (c.tensionV > 0) cuenta.set(c.tensionV, (cuenta.get(c.tensionV) ?? 0) + 1);
+    }
+    let mejor = 400;
+    let max = 0;
+    for (const [v, n] of cuenta) if (n > max) { mejor = v; max = n; }
+    return mejor;
+  }, [cargas]);
+
   const tieneMt = cargas.some((c) => c.tensionV > UMBRAL_MT_V);
   const tieneBt = cargas.some((c) => c.tensionV > 0 && c.tensionV <= UMBRAL_MT_V);
   const esMt = tieneMt && !tieneBt;
@@ -215,6 +228,10 @@ export function CcmPage() {
 
       <section>
         <TablaCargas />
+      </section>
+
+      <section>
+        <EstudioCargasPanel cargas={cargas} tensionBarraV={tensionBarraV} />
       </section>
 
       {mixto && (

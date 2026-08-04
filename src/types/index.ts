@@ -96,6 +96,25 @@ export interface Carga {
    * molinos HD, por el par resistente y los arranques repetidos.
    */
   servicioVariador?: 'ND' | 'HD';
+  /**
+   * Factor de demanda (FD): razón entre la demanda máxima y la carga conectada.
+   * Si se omite se toma el típico del tipo de equipo (ver `demanda.ts`).
+   * Metodología del estudio de cargas 5201-ES-600-12000.
+   */
+  factorDemanda?: number;
+  /**
+   * Factor de carga (FC): razón entre la demanda media y la demanda máxima.
+   * Si se omite se toma el típico del tipo de equipo.
+   */
+  factorCarga?: number;
+  /**
+   * Carga stand-by: reemplaza a otro equipo y nunca opera en simultáneo con él.
+   * El estudio le asigna factor de demanda y de carga cero — aporta a la
+   * potencia conectada pero no a la demanda.
+   */
+  standby?: boolean;
+  /** Horas de operación al día, para el consumo diario y anual. */
+  horasDia?: number;
 }
 
 /** Tamaños relativos de gaveta Blokset. */

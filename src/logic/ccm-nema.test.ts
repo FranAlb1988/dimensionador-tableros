@@ -218,14 +218,17 @@ describe('dimensionarCcmNema', () => {
   });
 
   it('el derrateo por altura sube la barra al seleccionar contra FLC / F2', () => {
-    // ≈ 575 A @ 480 V 3F → entra en la barra de 600 A; al derratear por F2 la
-    // corriente de selección sube sobre 600 A y obliga a la barra siguiente.
-    const c = alimentador('1', 430);
+    // ≈ 566 A @ 480 V 3F → entra en la barra de 600 A; al derratear por F2 la
+    // corriente de selección sube sobre 600 A y obliga a la barra siguiente,
+    // sin que cambie la corriente real de la carga.
+    const c = alimentador('1', 400);
     const base = dimensionarCcmNema([c]);
+
     expect(base.tablero!.barra.capacidadA).toBe(600);
 
     const derrateado = dimensionarCcmNema([c], 0.9);
     expect(derrateado.tablero!.factorDerrateoAltura).toBe(0.9);
+    expect(derrateado.tablero!.barra.capacidadA).toBe(800);
     // La corriente real de la carga no cambia; solo la corriente de selección.
     expect(derrateado.tablero!.corrienteTotalA).toBeCloseTo(base.tablero!.corrienteTotalA, 1);
     expect(derrateado.tablero!.corrienteSeleccionBarraA).toBeCloseTo(
