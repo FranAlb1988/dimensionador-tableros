@@ -1,0 +1,393 @@
+{
+ "_comment": "Barras, dimensiones y tipos de columna BlokSeT (Schneider, BlokSeT Evo Catalogue / LVESWBI_BLOKSET, consultado 2026-08-05). Sección de 2200 mm de alto con 40 módulos útiles de 1 M = 50 mm; el bus ocupa 4 M (simple, ≤4000 A) u 8 M (doble, 5000/6300 A) y el resto queda para equipos. El bus vertical de la columna Mw2 (MCC) se declara por arreglo de barras y su Icw depende de la separación de soportes.",
+ "barras": [
+  {
+   "sistema": "Bus principal horizontal",
+   "construccion": "Cobre; arreglo según corriente",
+   "ieA": 7000,
+   "icw": "100 kA rms / 1 s",
+   "ipkKa": 220,
+   "dimensional": "Barras de 5 mm en uniones publicadas",
+   "aplicacion": "Máximo estándar publicado"
+  },
+  {
+   "sistema": "Bus principal horizontal",
+   "construccion": "Bus simple",
+   "ieA": 4000,
+   "icw": "Según arreglo",
+   "dimensional": "4 M en distribución típica",
+   "aplicacion": "Hasta 4000 A"
+  },
+  {
+   "sistema": "Bus principal horizontal",
+   "construccion": "Bus doble",
+   "ieA": 7000,
+   "icw": "Según arreglo",
+   "dimensional": "8 M en configuración 5000/6300 A",
+   "aplicacion": "Alta corriente; validar módulos para 7000 A"
+  },
+  {
+   "sistema": "Bus de distribución vertical",
+   "construccion": "Cobre en extensión de 200 mm",
+   "ieA": 3200,
+   "icw": "100 kA rms / 1 s",
+   "ipkKa": 220,
+   "dimensional": "Separación de soportes según Icw/arreglo",
+   "aplicacion": "Mw2/MCC"
+  },
+  {
+   "sistema": "Solicitud especial",
+   "construccion": "Bus principal",
+   "icw": "150 kA rms / 1 s",
+   "dimensional": "Contactar Schneider",
+   "aplicacion": "Fuera del estándar tabulado"
+  },
+  {
+   "sistema": "Solicitud especial",
+   "construccion": "Bus principal",
+   "icw": "86 kA rms / 3 s",
+   "dimensional": "Contactar Schneider",
+   "aplicacion": "Fuera del estándar tabulado"
+  },
+  {
+   "sistema": "Solicitud especial",
+   "construccion": "Bus de distribución",
+   "icw": "65 kA rms / 3 s",
+   "dimensional": "Contactar Schneider",
+   "aplicacion": "Fuera del estándar tabulado"
+  },
+  {
+   "sistema": "Unión de barras",
+   "construccion": "Solape mínimo",
+   "icw": "—",
+   "dimensional": "25 mm",
+   "aplicacion": "5 × espesor de 5 mm; validar calentamiento IEC 61439"
+  },
+  {
+   "sistema": "Bus vertical Mw2",
+   "construccion": "1 × 60 × 5 mm",
+   "icw": "50 kA",
+   "dimensional": "Soporte cada 400 mm",
+   "aplicacion": "85/100 kA no permitido en fila publicada"
+  },
+  {
+   "sistema": "Bus vertical Mw2",
+   "construccion": "2 × 60 × 5 mm",
+   "icw": "50 kA",
+   "dimensional": "Soporte cada 400 mm",
+   "aplicacion": "Arreglo publicado"
+  },
+  {
+   "sistema": "Bus vertical Mw2",
+   "construccion": "2 × 60 × 5 mm",
+   "icw": "85 kA",
+   "dimensional": "Soporte cada 200 mm",
+   "aplicacion": "100 kA no permitido en fila publicada"
+  },
+  {
+   "sistema": "PE / tierra",
+   "construccion": "Barra de protección",
+   "icw": "Dimensionada por diseño",
+   "dimensional": "Continuidad por empalmes",
+   "aplicacion": "Unir antes de energizar"
+  },
+  {
+   "sistema": "Neutro",
+   "construccion": "Tamaño según red y armónicos",
+   "icw": "Según proyecto",
+   "dimensional": "Puede requerir sobredimensionamiento",
+   "aplicacion": "Definir TN/TT/IT y cargas no lineales"
+  }
+ ],
+ "dimensiones": [
+  {
+   "elemento": "Sección BlokSeT",
+   "variante": "Altura nominal",
+   "altoMm": 2200,
+   "pesoKg": 650,
+   "modularidad": "40 módulos útiles",
+   "nota": "Altura excluye zócalo y capota de ventilación; peso medio dependiente de equipos"
+  },
+  {
+   "elemento": "Sección",
+   "variante": "Ancho documentado",
+   "altoMm": 2200,
+   "anchoMm": 600,
+   "modularidad": "Según columna",
+   "nota": "Opción presente en documentación; no disponible para toda configuración"
+  },
+  {
+   "elemento": "Sección",
+   "variante": "Ancho documentado",
+   "altoMm": 2200,
+   "anchoMm": 700,
+   "modularidad": "Base común",
+   "nota": "Exacto por columna/dispositivo"
+  },
+  {
+   "elemento": "Sección",
+   "variante": "Ancho documentado",
+   "altoMm": 2200,
+   "anchoMm": 800,
+   "modularidad": "Según columna",
+   "nota": "Exacto por columna/dispositivo"
+  },
+  {
+   "elemento": "Sección",
+   "variante": "Ancho documentado",
+   "altoMm": 2200,
+   "anchoMm": 900,
+   "modularidad": "700 + extensión 200",
+   "nota": "Puede corresponder a extensión lateral"
+  },
+  {
+   "elemento": "Sección",
+   "variante": "Ancho documentado",
+   "altoMm": 2200,
+   "anchoMm": 1000,
+   "modularidad": "Según columna",
+   "nota": "Exacto por columna/dispositivo"
+  },
+  {
+   "elemento": "Sección",
+   "variante": "Ancho documentado",
+   "altoMm": 2200,
+   "anchoMm": 1100,
+   "modularidad": "700 + extensión 400",
+   "nota": "Puede corresponder a extensión lateral"
+  },
+  {
+   "elemento": "Sección",
+   "variante": "Ancho documentado",
+   "altoMm": 2200,
+   "anchoMm": 1200,
+   "modularidad": "Base alta corriente",
+   "nota": "Aplicable a grandes ACB/configuraciones"
+  },
+  {
+   "elemento": "Sección",
+   "variante": "Ancho documentado",
+   "altoMm": 2200,
+   "anchoMm": 1300,
+   "modularidad": "900/1100 + extensión",
+   "nota": "Aplicable según cables/equipos"
+  },
+  {
+   "elemento": "Sección",
+   "variante": "Profundidad documentada",
+   "altoMm": 2200,
+   "profundidadMm": 400,
+   "modularidad": "—",
+   "nota": "Configuraciones compactas"
+  },
+  {
+   "elemento": "Sección",
+   "variante": "Profundidad documentada",
+   "altoMm": 2200,
+   "profundidadMm": 600,
+   "modularidad": "—",
+   "nota": "Profundidad común"
+  },
+  {
+   "elemento": "Sección",
+   "variante": "Profundidad documentada",
+   "altoMm": 2200,
+   "profundidadMm": 1000,
+   "modularidad": "—",
+   "nota": "Alta corriente, cableado o electrónicos"
+  },
+  {
+   "elemento": "Extensión lateral",
+   "variante": "Bastidor de extensión",
+   "altoMm": 2200,
+   "anchoMm": 200,
+   "modularidad": "4 módulos de ancho",
+   "nota": "Bus vertical/cables/equipos auxiliares según diseño"
+  },
+  {
+   "elemento": "Extensión lateral",
+   "variante": "Bastidor de extensión",
+   "altoMm": 2200,
+   "anchoMm": 400,
+   "modularidad": "8 módulos de ancho",
+   "nota": "Cableado/equipos auxiliares según diseño"
+  },
+  {
+   "elemento": "Módulo vertical",
+   "variante": "Paso funcional",
+   "altoMm": 50,
+   "modularidad": "1 M = 50 mm",
+   "nota": "Dimensionamiento de unidades funcionales"
+  },
+  {
+   "elemento": "Perforaciones",
+   "variante": "Paso de fijación",
+   "altoMm": 25,
+   "modularidad": "Medio módulo",
+   "nota": "Todos los agujeros de fijación siguen paso de 25 mm"
+  },
+  {
+   "elemento": "Zona útil",
+   "variante": "Bus simple ≤4000 A",
+   "altoMm": 2000,
+   "modularidad": "4 M bus + 36 M equipos",
+   "nota": "Distribución típica de módulos"
+  },
+  {
+   "elemento": "Zona útil",
+   "variante": "Bus doble 5000/6300 A",
+   "altoMm": 2000,
+   "modularidad": "8 M bus + 32 M equipos",
+   "nota": "Distribución típica de módulos; validar para 7000 A"
+  },
+  {
+   "elemento": "Acabado",
+   "variante": "Pintura",
+   "modularidad": ">50 µm",
+   "nota": "Epoxi/poliéster SP03; colores RAL 9002 y RAL 7016 según documentación"
+  },
+  {
+   "elemento": "Estructura",
+   "variante": "Material",
+   "modularidad": "—",
+   "nota": "Bastidor galvanizado/electrogalvanizado"
+  }
+ ],
+ "columnas": [
+  {
+   "codigo": "D",
+   "area": "PCC",
+   "aplicacion": "Entrada, acoplamiento y distribución de alta corriente",
+   "unidades": "MasterPact MTZ, EasyPact MVS, ComPacT NSX, lugs",
+   "montaje": "Fijo / desconectable / extraíble",
+   "forma": "Hasta 4b",
+   "capacidad": "PCC hasta 6300 A"
+  },
+  {
+   "codigo": "Mw2",
+   "area": "PCC/MCC",
+   "aplicacion": "Feeders y arrancadores en drawers",
+   "unidades": "ComPacT NSX, coordinaciones TeSys, ATV630/930 hasta 22 kW",
+   "montaje": "Extraíble",
+   "forma": "Hasta 4b",
+   "capacidad": "Bus vertical hasta 3200 A"
+  },
+  {
+   "codigo": "Mf",
+   "area": "MCC",
+   "aplicacion": "Arrancadores y feeders fijos",
+   "unidades": "TeSys + protección coordinada",
+   "montaje": "Fijo",
+   "forma": "Hasta 4b según configuración",
+   "capacidad": "Motor hasta 250 kW/525 V o 300 kW/690 V"
+  },
+  {
+   "codigo": "Ms",
+   "area": "MCC electrónico",
+   "aplicacion": "VFD y soft starters",
+   "unidades": "ATV320/630/930, ATS480",
+   "montaje": "Fijo; selección exacta por equipo",
+   "forma": "Hasta 4b según configuración",
+   "capacidad": "Selecciones hasta 250 kW"
+  },
+  {
+   "codigo": "Dc",
+   "area": "Calidad de energía",
+   "aplicacion": "PFC y filtros armónicos",
+   "unidades": "Capacitores, reactancias, contactores y control",
+   "montaje": "Fijo",
+   "forma": "Según diseño",
+   "capacidad": "kvar project-specific"
+  },
+  {
+   "codigo": "Forma 1",
+   "area": "Separación",
+   "aplicacion": "Sin separación interna especial",
+   "unidades": "Barras y unidades dentro del ensamble",
+   "montaje": "—",
+   "forma": "Forma 1",
+   "capacidad": "Menor compartimentación"
+  },
+  {
+   "codigo": "Forma 2b",
+   "area": "Separación",
+   "aplicacion": "Barras separadas de unidades; terminales separadas de barras",
+   "unidades": "—",
+   "montaje": "—",
+   "forma": "Forma 2b",
+   "capacidad": "Separación básica"
+  },
+  {
+   "codigo": "Forma 3b",
+   "area": "Separación",
+   "aplicacion": "Unidades separadas entre sí; terminales separadas de barras",
+   "unidades": "—",
+   "montaje": "—",
+   "forma": "Forma 3b",
+   "capacidad": "Mayor continuidad de servicio"
+  },
+  {
+   "codigo": "Forma 4a",
+   "area": "Separación",
+   "aplicacion": "Terminales de cada unidad separados de los de otras unidades",
+   "unidades": "Terminales en el compartimiento de la unidad asociada",
+   "montaje": "—",
+   "forma": "Forma 4a",
+   "capacidad": "Segregación avanzada"
+  },
+  {
+   "codigo": "Forma 4b",
+   "area": "Separación",
+   "aplicacion": "Terminales separados entre sí y de la unidad asociada",
+   "unidades": "—",
+   "montaje": "—",
+   "forma": "Forma 4b",
+   "capacidad": "Máxima forma publicada"
+  },
+  {
+   "codigo": "FFF",
+   "area": "Código de conexión",
+   "aplicacion": "Unidad/conexiones fijas",
+   "unidades": "La letra F identifica condición fija",
+   "montaje": "Fijo",
+   "forma": "Según unidad",
+   "capacidad": "Código funcional documentado"
+  },
+  {
+   "codigo": "WWW",
+   "area": "Código de conexión",
+   "aplicacion": "Unidad/conexiones extraíbles",
+   "unidades": "La letra W identifica condición withdrawable",
+   "montaje": "Extraíble",
+   "forma": "Según unidad",
+   "capacidad": "Código funcional documentado"
+  },
+  {
+   "codigo": "Connected",
+   "area": "Posición drawer",
+   "aplicacion": "Potencia y auxiliares conectados",
+   "unidades": "Mw2",
+   "montaje": "Extraíble",
+   "forma": "—",
+   "capacidad": "Operación normal"
+  },
+  {
+   "codigo": "Test",
+   "area": "Posición drawer",
+   "aplicacion": "Circuito auxiliar disponible para prueba; potencia aislada según diseño",
+   "unidades": "Mw2",
+   "montaje": "Extraíble",
+   "forma": "—",
+   "capacidad": "Prueba funcional"
+  },
+  {
+   "codigo": "Disconnected / safe",
+   "area": "Posición drawer",
+   "aplicacion": "Unidad aislada en posición segura",
+   "unidades": "Mw2",
+   "montaje": "Extraíble",
+   "forma": "—",
+   "capacidad": "Mantenimiento"
+  }
+ ]
+}

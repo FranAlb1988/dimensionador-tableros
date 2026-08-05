@@ -265,6 +265,26 @@ export function CcmPage() {
       })()}
 
       {(() => {
+        const avisos = resultadoNema?.advertenciasBarraVertical;
+        if (norma !== 'NEMA' || !avisos || avisos.length === 0) return null;
+        return (
+          <div className="border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 rounded p-3 text-sm">
+            <div className="font-medium text-amber-800 dark:text-amber-200">
+              ⚠ Barra vertical de columna
+            </div>
+            <ul className="mt-1 list-disc list-inside text-amber-900 dark:text-amber-100">
+              {avisos.map((a) => <li key={a}>{a}</li>)}
+            </ul>
+            <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">
+              La barra vertical de CENTERLINE 2100 se declara por capacidad efectiva repartida
+              en mitades — 600 A efectivos son 300 A arriba y 300 A abajo — y cada unidad
+              plug-in se conecta por stabs de 225 A.
+            </p>
+          </div>
+        );
+      })()}
+
+      {(() => {
         const cargasCi = cargasContraincendio(cargas);
         if (cargasCi.length === 0) return null;
         return (

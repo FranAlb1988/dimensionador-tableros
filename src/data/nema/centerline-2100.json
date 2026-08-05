@@ -1,0 +1,275 @@
+{
+ "_comment": "Barras y estructuras CENTERLINE 2100 (Rockwell 2100-SG003G-EN-P, jul-2025). El bus vertical se declara como capacidad EFECTIVA repartida arriba/abajo: 600 A efectivos son 300 A por mitad, no 600 A para toda la columna. Los stabs limitan cada unidad plug-in a 225 A. La sección estándar es de 20 in = 508 mm de ancho y admite hasta 6,0 space factor, en incrementos mínimos de 0,5 SF = 6,5 in = 165,1 mm (12 unidades por sección).",
+ "barras": [
+  {
+   "sistema": "Bus horizontal",
+   "ratingA": 600,
+   "ratingTexto": "600 A",
+   "material": "Aluminio o cobre",
+   "arreglo": "Eje horizontal",
+   "sccr": "42/65/100 kA rms sim.",
+   "aplicacion": "Lineup"
+  },
+  {
+   "sistema": "Bus horizontal",
+   "ratingA": 800,
+   "ratingTexto": "800 A",
+   "material": "Aluminio o cobre",
+   "arreglo": "Eje horizontal",
+   "sccr": "42/65/100 kA rms sim.",
+   "aplicacion": "Lineup"
+  },
+  {
+   "sistema": "Bus horizontal",
+   "ratingA": 1200,
+   "ratingTexto": "1200 A",
+   "material": "Cobre",
+   "arreglo": "Eje horizontal",
+   "sccr": "42/65/100 kA rms sim.",
+   "aplicacion": "Lineup"
+  },
+  {
+   "sistema": "Bus horizontal",
+   "ratingA": 1600,
+   "ratingTexto": "1600 A",
+   "material": "Cobre",
+   "arreglo": "Eje horizontal",
+   "sccr": "42/65/100 kA rms sim.",
+   "aplicacion": "Lineup"
+  },
+  {
+   "sistema": "Bus horizontal",
+   "ratingA": 2000,
+   "ratingTexto": "2000 A",
+   "material": "Cobre",
+   "arreglo": "Eje horizontal",
+   "sccr": "42/65/100 kA rms sim.",
+   "aplicacion": "Lineup"
+  },
+  {
+   "sistema": "Bus horizontal",
+   "ratingA": 2500,
+   "ratingTexto": "2500 A",
+   "material": "Cobre",
+   "arreglo": "Eje horizontal",
+   "sccr": "42/65/100 kA rms sim.",
+   "aplicacion": "Lineup"
+  },
+  {
+   "sistema": "Bus horizontal",
+   "ratingA": 3200,
+   "ratingTexto": "3200 A",
+   "material": "Cobre",
+   "arreglo": "Eje horizontal",
+   "sccr": "42/65/100 kA rms sim.",
+   "aplicacion": "Lineup"
+  },
+  {
+   "sistema": "Bus vertical",
+   "ratingA": 600,
+   "ratingTexto": "600 A efectivo",
+   "material": "Cobre",
+   "arreglo": "300 A arriba + 300 A abajo",
+   "sccr": "Coordinado con MCC",
+   "aplicacion": "Sección plug-in"
+  },
+  {
+   "sistema": "Bus vertical",
+   "ratingA": 1200,
+   "ratingTexto": "1200 A efectivo",
+   "material": "Cobre",
+   "arreglo": "600 A arriba + 600 A abajo",
+   "sccr": "Coordinado con MCC",
+   "aplicacion": "Opción de alta capacidad"
+  },
+  {
+   "sistema": "Stabs unidad",
+   "ratingA": 225,
+   "ratingTexto": "225 A",
+   "material": "Cobre",
+   "arreglo": "Conexión plug-in",
+   "sccr": "Coordinado con unidad",
+   "aplicacion": "Máximo por unidad plug-in"
+  },
+  {
+   "sistema": "Ground bus horizontal",
+   "ratingA": 500,
+   "ratingTexto": "500 A efectivo",
+   "material": "Cobre",
+   "arreglo": "0,25 × 1 in",
+   "sccr": "—",
+   "aplicacion": "Tierra de protección"
+  },
+  {
+   "sistema": "Ground bus horizontal",
+   "ratingA": 900,
+   "ratingTexto": "900 A efectivo",
+   "material": "Cobre",
+   "arreglo": "0,25 × 2 in",
+   "sccr": "—",
+   "aplicacion": "Tierra de protección"
+  },
+  {
+   "sistema": "Ground bus vertical",
+   "ratingA": 200,
+   "ratingTexto": "200 A indicado en programa",
+   "material": "Cobre",
+   "arreglo": "0,1875 × 0,75 in",
+   "sccr": "—",
+   "aplicacion": "Ground stab de unidad"
+  }
+ ],
+ "estructuras": [
+  {
+   "elemento": "Sección estándar",
+   "variante": "Front-mounted",
+   "altoMm": 2286,
+   "anchoMm": 508,
+   "profundidadMm": 381,
+   "altoIn": 90,
+   "anchoIn": 20,
+   "profundidadIn": 15,
+   "pesoKg": 227,
+   "nota": "Hasta 6,0 SF; peso típico con 4 unidades"
+  },
+  {
+   "elemento": "Sección estándar",
+   "variante": "Front-mounted profunda",
+   "altoMm": 2286,
+   "anchoMm": 508,
+   "profundidadMm": 508,
+   "altoIn": 90,
+   "anchoIn": 20,
+   "profundidadIn": 20,
+   "pesoKg": 227,
+   "nota": "Profundidad opcional; peso depende de equipos"
+  },
+  {
+   "elemento": "Sección estándar",
+   "variante": "Back-to-back",
+   "altoMm": 2286,
+   "anchoMm": 508,
+   "profundidadMm": 762,
+   "altoIn": 90,
+   "anchoIn": 20,
+   "profundidadIn": 30,
+   "nota": "Dos secciones de 15 in espalda con espalda"
+  },
+  {
+   "elemento": "Sección estándar",
+   "variante": "Back-to-back profunda",
+   "altoMm": 2286,
+   "anchoMm": 508,
+   "profundidadMm": 1016,
+   "altoIn": 90,
+   "anchoIn": 20,
+   "profundidadIn": 40,
+   "nota": "Dos secciones de 20 in espalda con espalda"
+  },
+  {
+   "elemento": "Sección reducida",
+   "variante": "Front-mounted",
+   "altoMm": 1803.4,
+   "anchoMm": 508,
+   "profundidadMm": 381,
+   "altoIn": 71,
+   "anchoIn": 20,
+   "profundidadIn": 15,
+   "nota": "Altura reducida publicada como 71 in / aprox. 1790 mm"
+  },
+  {
+   "elemento": "Sección ancha",
+   "variante": "25 in W",
+   "altoMm": 2286,
+   "anchoMm": 635,
+   "profundidadMm": 381,
+   "altoIn": 90,
+   "anchoIn": 25,
+   "profundidadIn": 15,
+   "pesoKg": 261,
+   "nota": "Peso típico con 4 unidades"
+  },
+  {
+   "elemento": "Sección ancha",
+   "variante": "30 in W",
+   "altoMm": 2286,
+   "anchoMm": 762,
+   "profundidadMm": 381,
+   "altoIn": 90,
+   "anchoIn": 30,
+   "profundidadIn": 15,
+   "pesoKg": 272,
+   "nota": "Peso típico con 4 unidades"
+  },
+  {
+   "elemento": "Sección ancha",
+   "variante": "35 in W",
+   "altoMm": 2286,
+   "anchoMm": 889,
+   "profundidadMm": 381,
+   "altoIn": 90,
+   "anchoIn": 35,
+   "profundidadIn": 15,
+   "pesoKg": 295,
+   "nota": "Peso típico con 4 unidades"
+  },
+  {
+   "elemento": "Unidad",
+   "variante": "0,5 space factor",
+   "altoMm": 165.1,
+   "anchoMm": 355.6,
+   "altoIn": 6.5,
+   "anchoIn": 14,
+   "nota": "Incremento mínimo; hasta 12 unidades en sección estándar"
+  },
+  {
+   "elemento": "Unidad",
+   "variante": "1,0 space factor",
+   "altoMm": 330.2,
+   "anchoMm": 355.6,
+   "altoIn": 13,
+   "anchoIn": 14,
+   "nota": "Las unidades crecen en incrementos de 0,5 SF"
+  },
+  {
+   "elemento": "Wireway vertical",
+   "variante": "Estándar",
+   "altoMm": 1981.2,
+   "anchoMm": 111,
+   "profundidadMm": 177.8,
+   "altoIn": 78,
+   "anchoIn": 4.37,
+   "profundidadIn": 7,
+   "nota": "Ancho 4,37 in"
+  },
+  {
+   "elemento": "Wireway vertical",
+   "variante": "Ampliado",
+   "altoMm": 1981.2,
+   "anchoMm": 238,
+   "profundidadMm": 177.8,
+   "altoIn": 78,
+   "anchoIn": 9.37,
+   "profundidadIn": 7,
+   "nota": "Ancho 9,37 in"
+  },
+  {
+   "elemento": "Wireway horizontal",
+   "variante": "Superior",
+   "altoMm": 152.4,
+   "anchoMm": 508,
+   "altoIn": 6,
+   "anchoIn": 20,
+   "nota": "Altura 6 in"
+  },
+  {
+   "elemento": "Wireway horizontal",
+   "variante": "Inferior",
+   "altoMm": 152.4,
+   "anchoMm": 508,
+   "altoIn": 6,
+   "anchoIn": 20,
+   "nota": "Altura 6 in"
+  }
+ ]
+}

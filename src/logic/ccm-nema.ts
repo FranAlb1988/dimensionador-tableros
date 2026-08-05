@@ -21,6 +21,10 @@ import type {
 import { corrienteDiseno, corrienteNominal } from './corriente';
 import { MEDIDA_CCM_DEFAULT } from './medida-ccm';
 import { necesitaColumnaIncoming } from './columna';
+import {
+  BARRAS_VERTICALES, STAB_MAX_A, sugerirBarraVertical, verificarBarraVertical,
+  type VerificacionBarraVertical,
+} from './barra-vertical';
 import { calcularReservas } from './reserva';
 import { kwToHp } from '../util/potencia';
 import { servicioSugerido, sugerirVariadorBt } from './variadores';
@@ -55,6 +59,14 @@ export interface ResultadoCcmNema {
   tablero?: TableroCcmNema;
   motivo?: string;
   overflowBarra?: OverflowBarra;
+  /**
+   * Verificación de la barra vertical de cada columna. Es independiente de la
+   * barra principal horizontal: una columna puede caber en espacio y aun así
+   * pedirle a su barra vertical más de lo que ésta lleva.
+   */
+  barrasVerticales?: BarraVerticalColumna[];
+  /** Columnas cuya barra vertical o cuyos stabs quedan excedidos. */
+  advertenciasBarraVertical?: string[];
   /**
    * Advertencias de poder de corte: breakers de alimentador cuyo Icu mínimo
    * declarado queda bajo la Icc de barra ingresada. Los partidores (MCP)
@@ -192,6 +204,52 @@ export function dimensionarCcmNema(
 
   // Validación de poder de corte de los breakers de alimentador contra la
   // Icc de barra declarada (los MCP de motor no declaran Icu en el catálogo).
+  // Barra vertical por columna. Las columnas se empaquetan por espacio, así
+  // que la corriente que acumulan hay que mirarla aparte.
+  const barrasVerticales: BarraVerticalColumna[] = columnas
+    .filter((c) => !c.esIncoming)
+    .map((c) => {
+      const unidades = c.asignaciones.map((a) => ({
+        id: a.carga.id,
+        descripcion: a.carga.descripcion || a.carga.id,
+        corrienteA: a.corrienteDisenoA ?? 0,
+        espaciosX: a.espaciosX,
+      }));
+      const sugerida = sugerirBarraVertical(unidades, c.altoUtilXEspacios);
+      const barra = sugerida ?? BARRAS_VERTICALES[BARRAS_VERTICALES.length - 1]!;
+      return {
+        indice: c.indice,
+        verificacion: verificarBarraVertical(unidades, c.altoUtilXEspacios, barra),
+        sinBarraSuficiente: sugerida == null,
+      };
+    });
+
+  const advertenciasBarraVertical = barrasVerticales.flatMap((b) => {
+    const avisos: string[] = [];
+    const v = b.verificacion;
+    if (b.sinBarraSuficiente) {
+      avisos.push(
+        `Columna ${b.indice}: ${Math.round(Math.max(v.corrienteMitadSuperiorA, v.corrienteMitadInferiorA))} A `
+        + `en la mitad más cargada supera los ${v.barra.porMitadA} A de la mayor barra vertical `
+        + `del catálogo (${v.barra.efectivaA} A efectivos). Divide la columna.`,
+      );
+    } else if (v.excedeMitad) {
+      avisos.push(
+        `Columna ${b.indice}: la barra vertical de ${v.barra.efectivaA} A efectivos lleva `
+        + `${v.barra.porMitadA} A por mitad y la más cargada suma `
+        + `${Math.round(Math.max(v.corrienteMitadSuperiorA, v.corrienteMitadInferiorA))} A. `
+        + 'Reordena las unidades entre mitades o sube de barra.',
+      );
+    }
+    for (const u of v.sobreStab) {
+      avisos.push(
+        `${u.descripcion}: ${Math.round(u.corrienteA)} A supera los ${STAB_MAX_A} A del stab `
+        + 'de conexión a la barra vertical — esa salida no puede ir enchufable.',
+      );
+    }
+    return avisos;
+  });
+
   const advertenciasIcu = iccBarraKa > 0
     ? asignaciones
         .filter((a) => a.breaker != null && minIcuKa(a.breaker.icuRange) < iccBarraKa)
@@ -204,8 +262,18 @@ export function dimensionarCcmNema(
     asignaciones,
     cargasSinAsignar,
     tablero,
+    barrasVerticales,
+    ...(advertenciasBarraVertical.length > 0 ? { advertenciasBarraVertical } : {}),
     ...(advertenciasIcu.length > 0 ? { advertenciasIcu } : {}),
   };
+}
+
+/** Barra vertical verificada de una columna. */
+export interface BarraVerticalColumna {
+  indice: number;
+  verificacion: VerificacionBarraVertical;
+  /** true si ninguna barra del catálogo alcanza y hay que dividir la columna. */
+  sinBarraSuficiente: boolean;
 }
 
 /**
