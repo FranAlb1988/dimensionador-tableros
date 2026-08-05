@@ -95,3 +95,25 @@ export function seccionDeConductor(id: string | undefined): number | undefined {
   if (!id) return undefined;
   return CATALOGO_CONDUCTORES.find((c) => c.id === id)?.seccionMm2;
 }
+
+/**
+ * Equivalencia AWG/MCM → mm² usada en los proyectos, tomada de la Tabla 1 del
+ * plano de diseño mecánico 03350-CCM-007 (PRECISIÓN / Rajo Inca).
+ *
+ * No es la conversión geométrica sino la sección comercial que se especifica
+ * en su lugar, que suele ser el escalón métrico siguiente: 2 AWG mide
+ * 33,6 mm² y se especifica 35; 4/0 mide 107,2 y se especifica 120; 500 MCM
+ * mide 253 y se especifica 240. Sirve para leer un plano en AWG y comprar en
+ * mm², que es lo que se hace en obra.
+ */
+export const EQUIVALENCIA_AWG_MM2: Readonly<Record<string, number>> = {
+  '20': 0.5, '18': 1, '16': 1.5, '14': 2.5, '12': 4, '10': 6, '8': 10,
+  '6': 16, '4': 25, '3': 35, '2': 35, '1': 50,
+  '1/0': 70, '2/0': 70, '3/0': 95, '4/0': 120,
+  '250': 150, '300': 185, '350': 185, '400': 240, '500': 240,
+};
+
+/** Sección comercial en mm² equivalente a un calibre AWG/MCM, según proyecto. */
+export function mm2EquivalenteAwg(awg: string): number | undefined {
+  return EQUIVALENCIA_AWG_MM2[awg.trim().toUpperCase().replace(/\s*(AWG|MCM|KCMIL)\s*/g, '')];
+}

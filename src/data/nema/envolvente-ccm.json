@@ -1,11 +1,11 @@
 {
-  "_comment": "Envolvente CCM NEMA — sección vertical estándar tipo Square D Model 6 / GE 8000 / Allen-Bradley CENTERLINE 2100. Módulo X = 6\" = 152,4 mm. Una sección vertical de 90\" total tiene 12X usables (72\" = 1.828,8 mm), con el resto reservado para cabezal de barras horizontales y wireway inferior. Ajustar a especificación real del proyecto.",
+  "_comment": "Envolvente CCM NEMA — sección vertical estándar tipo Square D Model 6 / GE 8000 / Allen-Bradley CENTERLINE 2100. Módulo X = 6\" = 152,4 mm. Una sección vertical de 90\" total tiene 12X usables (72\" = 1.828,8 mm), con el resto reservado para cabezal de barras horizontales y wireway inferior. Sección vertical de 20\" = 508 mm de ancho, que es el estándar de las tres familias citadas. Verificado contra los CCM de la sala 03300-SEL-001 (PRECISIÓN / Rajo Inca): 2.540, 4.064, 6.604 y 8.636 mm de ancho son 5, 8, 13 y 17 secciones de 508 mm exactas, y los cuatro miden 2.286 mm de alto y 508 de fondo. Antes se usaba 610 mm, que no divide ninguno de esos anchos.",
   "xPulgadas": 6,
   "xMm": 152.4,
   "altoTotalMm": 2286,
   "altoUtilXEspacios": 12,
   "altoUtilMm": 1829,
-  "anchoColumnaMm": 610,
+  "anchoColumnaMm": 508,
   "profundidadMm": 508,
   "reservaCabezalMm": 305
 }

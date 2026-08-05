@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { dimensionarCcmNema, sugerirBarraNema, sugerirBreakerNema } from './ccm-nema';
+import {
+  dimensionarCcmNema, ENVOLVENTE_CCM_NEMA, sugerirBarraNema, sugerirBreakerNema,
+} from './ccm-nema';
 import type { Carga } from '../types';
 import { KW_POR_HP } from '../util/potencia';
 
@@ -397,5 +399,31 @@ describe('variador sugerido en las salidas con VSD', () => {
     expect(dol.variador).toBeUndefined();
     const fdr = dimensionarCcmNema([alimentador('2', 30)]).asignaciones[0]!;
     expect(fdr.variador).toBeUndefined();
+  });
+});
+
+describe('envolvente contra un CCM real', () => {
+  // Sala 03300-SEL-001 (PRECISIÓN / CODELCO Rajo Inca): los cuatro CCM miden
+  // 2.540, 4.064, 6.604 y 8.636 mm de ancho, todos 2.286 de alto y 508 de
+  // fondo. Los anchos son múltiplos exactos de la sección de 508 mm.
+  const ANCHOS_REALES = [2540, 4064, 6604, 8636];
+
+  it('la sección vertical divide exacto los anchos reales', () => {
+    for (const ancho of ANCHOS_REALES) {
+      const secciones = ancho / ENVOLVENTE_CCM_NEMA.anchoColumnaMm;
+      expect(Number.isInteger(secciones), `${ancho} mm`).toBe(true);
+    }
+  });
+
+  it('alto y fondo coinciden con los del proyecto', () => {
+    expect(ENVOLVENTE_CCM_NEMA.altoTotalMm).toBe(2286);
+    expect(ENVOLVENTE_CCM_NEMA.profundidadMm).toBe(508);
+  });
+
+  it('el ancho del tablero es la sección por el número de columnas', () => {
+    const r = dimensionarCcmNema(Array.from({ length: 12 }, (_, i) => motor(String(i), 50)));
+    const t = r.tablero!;
+    expect(t.anchoTotalMm % ENVOLVENTE_CCM_NEMA.anchoColumnaMm).toBe(0);
+    expect(t.altoTotalMm).toBe(2286);
   });
 });

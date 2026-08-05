@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { calculadoraPorId, CALCULADORAS } from './index';
-import { CATALOGO_CONDUCTORES, autollenarConductor } from './conductores-catalogo';
+import {
+  CATALOGO_CONDUCTORES, autollenarConductor, EQUIVALENCIA_AWG_MM2, mm2EquivalenteAwg,
+} from './conductores-catalogo';
 
 function calc(id: string) {
   const c = calculadoraPorId(id);
@@ -451,5 +453,27 @@ describe('Ancho de escalerilla portaconductores', () => {
     // El área queda muy holgada: no es ella la que decide.
     expect(r.valores.ocupacionNec).toBeLessThan(30);
     expect(r.nota).toMatch(/392\.22\(B\)\(1\)/);
+  });
+});
+
+describe('equivalencia AWG → mm² de proyecto', () => {
+  it('reproduce la Tabla 1 del plano de diseño mecánico', () => {
+    expect(mm2EquivalenteAwg('12')).toBe(4);
+    expect(mm2EquivalenteAwg('2')).toBe(35);
+    expect(mm2EquivalenteAwg('4/0')).toBe(120);
+    expect(mm2EquivalenteAwg('500')).toBe(240);
+    expect(Object.keys(EQUIVALENCIA_AWG_MM2)).toHaveLength(21);
+  });
+
+  it('no es la conversión geométrica sino la sección comercial', () => {
+    // 2 AWG mide 33,6 mm² y se especifica 35; 500 MCM mide 253 y se pide 240.
+    expect(mm2EquivalenteAwg('2')).toBeGreaterThan(33.6);
+    expect(mm2EquivalenteAwg('500')).toBeLessThan(253);
+  });
+
+  it('tolera sufijos y espacios', () => {
+    expect(mm2EquivalenteAwg(' 4/0 AWG ')).toBe(120);
+    expect(mm2EquivalenteAwg('500 MCM')).toBe(240);
+    expect(mm2EquivalenteAwg('no existe')).toBeUndefined();
   });
 });
