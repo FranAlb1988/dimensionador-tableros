@@ -39,6 +39,9 @@ function desdePareja(pareja: ParejaArrancador, tipo: TipoArranque): Arrancador {
     tipo,
     potenciaKw400V: contactor.kw400V ?? 0,
     tamanoGaveta: tamanoPorAnchoContactor(contactor.anchoMm),
+    ...(contactor.pesoKg != null
+      ? { pesoKg: contactor.pesoKg + (rele?.pesoKg ?? 0) }
+      : {}),
     notas: avisos.join(' '),
   };
 }

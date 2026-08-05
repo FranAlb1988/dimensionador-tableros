@@ -84,6 +84,7 @@ function mccbAProteccion(m: Mccb, tensionV: number, corrienteMotorA?: number): P
     inA: m.inA,
     icuKA: capacidadMccbKa(m, tensionV) ?? m.icu415Ka ?? 0,
     polos: m.polos,
+    ...(m.pesoKg != null ? { pesoKg: m.pesoKg } : {}),
     ...(curva ? { curva } : {}),
     // Una unidad MA no protege sobrecarga venga del catálogo que venga: la
     // advertencia no puede depender de cuál de los dos la sirvió.
@@ -331,6 +332,7 @@ function mcpAProteccion(m: Mcp, corrienteMotorA: number, tensionV: number): Prot
     icuKA: capacidadMcpKa(m, tensionV) ?? 0,
     polos: 3,
     curva: 'MA',
+    ...(m.pesoKg != null ? { pesoKg: m.pesoKg } : {}),
     notas: partes.join(' '),
   };
 }
@@ -371,6 +373,7 @@ function mcbAProteccion(m: Mcb, tensionV: number, fases: '1F' | '3F'): Proteccio
     icuKA: capacidadMcbKa(m, tensionV, fases) ?? 0,
     polos: m.polosProtegidos,
     curva: m.curva as Proteccion['curva'],
+    ...(m.pesoKg != null ? { pesoKg: m.pesoKg } : {}),
     // El CDC cuenta módulos DIN de 18 mm; C120 1P (27 mm) ocupa 1,5.
     ...(m.anchoMm != null ? { modulosDin: m.anchoMm / 18 } : {}),
   };

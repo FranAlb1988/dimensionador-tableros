@@ -103,6 +103,7 @@ function masterpactAProteccion(m: Masterpact, tensionV: number): Proteccion {
     inA: m.inA,
     icuKA: capacidadMasterpactKa(m, tensionV) ?? 0,
     polos: m.polos === '4P' ? 4 : 3,
+    ...(m.pesoKg != null ? { pesoKg: m.pesoKg } : {}),
     notas: 'Interruptor base: requiere unidad de control MicroLogic y conexiones.',
   };
 }
@@ -117,6 +118,7 @@ function mccbAPrincipal(m: Mccb, tensionV: number): Proteccion {
     inA: m.inA,
     icuKA: capacidadMccbKa(m, tensionV) ?? m.icu415Ka ?? 0,
     polos: m.polos,
+    ...(m.pesoKg != null ? { pesoKg: m.pesoKg } : {}),
   };
 }
 

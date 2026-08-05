@@ -189,6 +189,8 @@ export interface Proteccion {
   curva?: 'B' | 'C' | 'D' | 'TM-D' | 'MA';
   /** Módulos DIN ocupados (para CDC). */
   modulosDin?: number;
+  /** Peso del equipo en kg, cuando el catálogo lo publica. */
+  pesoKg?: number;
   placeholder?: boolean;
   notas?: string;
 }
@@ -205,6 +207,8 @@ export interface Arrancador {
   potenciaKw400V: number;
   /** Tamaño de gaveta sugerido para alojarlo (junto al interruptor). */
   tamanoGaveta: TamanoGaveta;
+  /** Peso del conjunto contactor + relé en kg, cuando el catálogo lo publica. */
+  pesoKg?: number;
   placeholder?: boolean;
   notas?: string;
 }

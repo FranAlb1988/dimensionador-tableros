@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { TablaCargas } from '../components/TablaCargas';
 import { EstudioCargasPanel } from '../components/EstudioCargasPanel';
+import { CargaPisoPanel } from '../components/CargaPisoPanel';
 import { ImportarCargasModal } from '../components/ImportarCargasModal';
 import { AsignacionesPanel } from '../components/AsignacionesPanel';
 import { VistaFrontalSvg } from '../components/VistaFrontalSvg';
@@ -317,6 +318,15 @@ export function CcmPage() {
             </div>
           </section>
           <section><Resumen resultado={resultadoIec} /></section>
+          {resultadoIec.tablero && (
+            <section>
+              <CargaPisoPanel
+                tipo="ccm"
+                anchoTotalMm={resultadoIec.tablero.anchoTotalMm}
+                profundidadTotalMm={resultadoIec.tablero.profundidadTotalMm}
+              />
+            </section>
+          )}
         </>
       )}
 
