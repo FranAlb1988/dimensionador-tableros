@@ -1,5 +1,9 @@
 import type { AsignacionCarga, Carga, Gaveta, MarcaProteccion, Proteccion, Tablero, TipoTablero } from '../types';
 import {
+  BUS_DISTRIBUCION_VERTICAL_A, verificarBarraVerticalIec,
+  type VerificacionBarraVerticalIec,
+} from './barra-vertical-iec';
+import {
   distribuirEnColumnas, necesitaColumnaIncoming, nuevaColumnaIncoming, resetContadorColumnas,
 } from './columna';
 import { altoDeGaveta, asignarCargaCcm, COLUMNA_CATALOGO, resetContadorGavetas } from './gaveta';
@@ -21,6 +25,13 @@ export interface ResultadoCcm {
    * barra declarada incluso en la prestación mayor disponible (H, 70 kA).
    */
   advertenciasIcu?: string[];
+  /**
+   * Barra vertical de columna BlokSeT. A diferencia de CENTERLINE, el catálogo
+   * IEC publica la resistencia al cortocircuito del arreglo y no su corriente
+   * de régimen, así que lo que se verifica es la Icw contra la Icc de barra.
+   */
+  barraVertical?: VerificacionBarraVerticalIec;
+  advertenciasBarraVertical?: string[];
 }
 
 /**
@@ -159,10 +170,41 @@ export function dimensionarCcm(
       ]
     : [];
 
+  // Barra vertical de la columna más cargada. Las columnas BlokSeT comparten
+  // el mismo arreglo, así que se verifica la peor y ese arreglo aplica a todas.
+  const corrienteColumnaMaxA = columnas
+    .filter((c) => !c.esIncoming)
+    .reduce((max, c) => {
+      const I = asignaciones
+        .filter((a) => c.gavetas.some((g) => g.cargaId === a.carga.id))
+        .reduce((s2, a) => s2 + corrienteDiseno(a.carga), 0);
+      return Math.max(max, I);
+    }, 0);
+  const barraVertical = verificarBarraVerticalIec(corrienteColumnaMaxA, iccBarraKa);
+
+  const advertenciasBarraVertical: string[] = [];
+  if (barraVertical) {
+    if (barraVertical.excedeIcw) {
+      advertenciasBarraVertical.push(
+        `Barra vertical: la Icc de ${iccBarraKa.toFixed(1)} kA supera los `
+        + `${barraVertical.arreglo.icwKa} kA del arreglo ${barraVertical.arreglo.arreglo}, `
+        + 'que es el mayor estándar publicado. Requiere solicitud especial a Schneider.',
+      );
+    }
+    if (barraVertical.excedeCorrienteBus) {
+      advertenciasBarraVertical.push(
+        `Barra vertical: ${Math.round(corrienteColumnaMaxA)} A en la columna más cargada `
+        + `supera los ${BUS_DISTRIBUCION_VERTICAL_A} A del bus de distribución vertical.`,
+      );
+    }
+  }
+
   return {
     asignaciones,
     cargasSinAsignar,
     tablero,
+    ...(barraVertical ? { barraVertical } : {}),
+    ...(advertenciasBarraVertical.length > 0 ? { advertenciasBarraVertical } : {}),
     ...(advertenciasIcu.length > 0 ? { advertenciasIcu } : {}),
   };
 }

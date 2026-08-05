@@ -1,19 +1,31 @@
 {
-  "_comment": "Tamaños relativos de gaveta Blokset y altura típica en mm. Los valores aquí son aproximaciones de MVP — VERIFICAR contra el catálogo Blokset del proyecto (no disponible en la biblioteca técnica a jul-2026). Pendiente de validar en particular: (1) el Blokset real lleva ZÓCALO (aquí 0 mm); (2) el alto útil de 1800 mm y el cabezal de 400 mm dependen de la versión de columna; (3) la unidad base (¼ X) se asume módulo de 150 mm para columnas de 2200 mm. Reservas típicas de referencia: cabezal de barras 400 mm, zócalo 200 mm.",
+  "_comment": "Gavetas y columna Schneider BlokSeT, del catálogo BlokSeT Evo / LVESWBI_BLOKSET (2026). El módulo funcional es 1 M = 50 mm y la sección de 2.200 mm tiene 40 M útiles; los agujeros de fijación siguen paso de 25 mm (medio módulo). De esos 40 M el bus ocupa 4 M con bus simple (hasta 4.000 A) u 8 M con bus doble (5.000/6.300 A), y el resto queda para equipos: 36 M = 1.800 mm o 32 M = 1.600 mm. Antes este archivo asumía un módulo base de 150 mm, que no existe en el catálogo; los altos de gaveta ya coincidían y ahora quedan expresados en módulos reales. Tamaños contrastados con los patrones publicados: un ATV630 extraíble de 0,75-5,5 kW ocupa 6 M, uno de 15-22 kW ocupa 12 M, y un ATS480 de 75 kW ocupa 18 M.",
+  "moduloMm": 50,
+  "pasoFijacionMm": 25,
   "tamanos": [
-    { "tamano": "1/4",   "altoMm": 150, "unidadesBase": 1, "placeholder": true },
-    { "tamano": "1/2",   "altoMm": 300, "unidadesBase": 2, "placeholder": true },
-    { "tamano": "1",     "altoMm": 600, "unidadesBase": 4, "placeholder": true },
-    { "tamano": "1+1/2", "altoMm": 900, "unidadesBase": 6, "placeholder": true },
-    { "tamano": "2",     "altoMm": 1200, "unidadesBase": 8, "placeholder": true }
+    { "tamano": "1/4",   "altoMm": 150,  "unidadesBase": 3,  "modulos": 3 },
+    { "tamano": "1/2",   "altoMm": 300,  "unidadesBase": 6,  "modulos": 6 },
+    { "tamano": "1",     "altoMm": 600,  "unidadesBase": 12, "modulos": 12 },
+    { "tamano": "1+1/2", "altoMm": 900,  "unidadesBase": 18, "modulos": 18 },
+    { "tamano": "2",     "altoMm": 1200, "unidadesBase": 24, "modulos": 24 }
   ],
   "columna": {
     "altoTotalMm": 2200,
     "anchoMm": 600,
     "profundidadMm": 600,
-    "reservaCabezalMm": 400,
-    "reservaZocaloMm": 0,
+    "reservaCabezalMm": 200,
+    "reservaZocaloMm": 200,
     "altoUtilMm": 1800,
-    "_comment": "Alto útil 1800 mm = 12 unidades base de 150 mm. altoTotal (2200) - cabezal (400) = 1800. Sin zócalo en este placeholder. Ajustar a la columna Blokset real (zócalo, base, altura de cabezal según versión)."
-  }
+    "modulosSeccion": 40,
+    "modulosBusSimple": 4,
+    "modulosBusDoble": 8,
+    "_comment": "Zona útil de 2.000 mm (40 M) sobre la sección de 2.200 mm. Con bus simple el bus toma 4 M (200 mm) y quedan 1.800 mm para equipos; con bus doble toma 8 M y quedan 1.600 mm. El alto útil declarado corresponde al caso de bus simple, que es el habitual hasta 4.000 A."
+  },
+  "anchosSeccionMm": [600, 650, 700, 800, 900, 1000, 1100, 1200, 1300],
+  "profundidadesSeccionMm": [400, 600, 1000],
+  "extensionesLateralesMm": [200, 400],
+  "limitesMotor": [
+    { "tensionV": 525, "potenciaMaxKw": 250 },
+    { "tensionV": 690, "potenciaMaxKw": 300 }
+  ]
 }

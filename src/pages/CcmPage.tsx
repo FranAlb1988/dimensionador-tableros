@@ -265,8 +265,10 @@ export function CcmPage() {
       })()}
 
       {(() => {
-        const avisos = resultadoNema?.advertenciasBarraVertical;
-        if (norma !== 'NEMA' || !avisos || avisos.length === 0) return null;
+        const avisos = norma === 'NEMA'
+          ? resultadoNema?.advertenciasBarraVertical
+          : resultadoIec?.advertenciasBarraVertical;
+        if (!avisos || avisos.length === 0) return null;
         return (
           <div className="border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 rounded p-3 text-sm">
             <div className="font-medium text-amber-800 dark:text-amber-200">
@@ -276,9 +278,13 @@ export function CcmPage() {
               {avisos.map((a) => <li key={a}>{a}</li>)}
             </ul>
             <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">
-              La barra vertical de CENTERLINE 2100 se declara por capacidad efectiva repartida
-              en mitades — 600 A efectivos son 300 A arriba y 300 A abajo — y cada unidad
-              plug-in se conecta por stabs de 225 A.
+              {norma === 'NEMA'
+                ? 'La barra vertical de CENTERLINE 2100 se declara por capacidad efectiva '
+                  + 'repartida en mitades — 600 A efectivos son 300 A arriba y 300 A abajo — '
+                  + 'y cada unidad plug-in se conecta por stabs de 225 A.'
+                : 'BlokSeT publica el arreglo de barras de la columna Mw2 con su resistencia '
+                  + 'al cortocircuito y la separación de soportes que exige, no su corriente '
+                  + 'de régimen: lo que se verifica es la Icw contra la Icc de barra.'}
             </p>
           </div>
         );
