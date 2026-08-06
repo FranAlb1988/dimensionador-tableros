@@ -32,6 +32,9 @@ export function Layout() {
             <NavLink to="/auxiliares" className={({ isActive }) => `${linkBase} ${isActive ? linkActive : linkInactive}`}>
               Auxiliares
             </NavLink>
+            <NavLink to="/sala" className={({ isActive }) => `${linkBase} ${isActive ? linkActive : linkInactive}`}>
+              Sala
+            </NavLink>
             <NavLink to="/calculos" className={({ isActive }) => `${linkBase} ${isActive ? linkActive : linkInactive}`}>
               Cálculos
             </NavLink>
@@ -50,7 +53,7 @@ export function Layout() {
         </div>
       </main>
       <footer className="border-t border-slate-200 dark:border-slate-800 px-4 py-3 text-xs text-slate-500 dark:text-slate-400 text-center">
-        Dimensionador de tableros — CCM · CDC · TDG · MT · Auxiliares · Cálculos.
+        Dimensionador de tableros — CCM · CDC · TDG · MT · Auxiliares · Sala · Cálculos.
       </footer>
     </div>
   );
