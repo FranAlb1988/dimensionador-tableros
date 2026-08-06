@@ -1,6 +1,7 @@
 import type { ChangeEvent } from 'react';
 import { COLUMNAS_POR_CATEGORIA, useAuxiliaresPorCategoria, useAuxiliaresStore, type ColumnaAuxiliar } from '../store/auxiliares';
 import type { CategoriaAuxiliar, EquipoAuxiliar } from '../types';
+import { nombreDeFila, rotuloDeCampo } from '../util/rotulos';
 
 const inputCls =
   'w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded ' +
@@ -76,6 +77,7 @@ export function TablaAuxiliares({ categoria }: Props) {
                 <Fila
                   key={e.id}
                   equipo={e}
+                  indice={i}
                   cols={cols}
                   zebra={i % 2 === 1}
                   onChange={(p) => actualizar(e.id, p)}
@@ -93,6 +95,7 @@ export function TablaAuxiliares({ categoria }: Props) {
 
 interface FilaProps {
   equipo: EquipoAuxiliar;
+  indice: number;
   cols: readonly ColumnaAuxiliar[];
   zebra: boolean;
   onChange: (p: Partial<EquipoAuxiliar>) => void;
@@ -100,7 +103,11 @@ interface FilaProps {
   onEliminar: () => void;
 }
 
-function Fila({ equipo, cols, zebra, onChange, onDuplicar, onEliminar }: FilaProps) {
+function Fila({ equipo, indice, cols, zebra, onChange, onDuplicar, onEliminar }: FilaProps) {
+  // El tag identifica el equipo mejor que la descripción; si aún no lo tiene,
+  // se cae a la descripción y por último al número de fila.
+  const nombre = nombreDeFila(equipo.tag || equipo.descripcion, indice, 'equipo');
+
   const trCls = zebra ? 'bg-slate-50/60 dark:bg-slate-900/40' : 'bg-white dark:bg-slate-950';
   const cellCls = 'px-3 py-1.5 border-b border-slate-200 dark:border-slate-800';
 
@@ -130,6 +137,7 @@ function Fila({ equipo, cols, zebra, onChange, onDuplicar, onEliminar }: FilaPro
               value={valor}
               placeholder={c.placeholder}
               onChange={onCambio(c.campo, c.tipo)}
+              aria-label={rotuloDeCampo(c.label, nombre)}
             />
           </td>
         );
@@ -139,11 +147,13 @@ function Fila({ equipo, cols, zebra, onChange, onDuplicar, onEliminar }: FilaPro
           onClick={onDuplicar}
           className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 px-1.5 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700"
           title="Duplicar"
+          aria-label={`Duplicar ${nombre}`}
         >⎘</button>
         <button
           onClick={onEliminar}
           className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 px-1.5 py-1 rounded hover:bg-red-50 dark:hover:bg-red-950 ml-1"
           title="Eliminar"
+          aria-label={`Eliminar ${nombre}`}
         >✕</button>
       </td>
     </tr>

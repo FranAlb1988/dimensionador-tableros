@@ -9,6 +9,7 @@ import {
 import { CATALOGO_MT, corrienteDesdeMva } from '../logic/mt';
 import { TIPO_CELDA_MT_LABEL, type SalidaMt } from '../types';
 import { fmtAmp } from '../util/format';
+import { nombreDeFila, rotuloDeCampo } from '../util/rotulos';
 
 const inputCls =
   'w-full bg-transparent border border-slate-300 dark:border-slate-700 rounded px-2 py-1 ' +
@@ -107,7 +108,10 @@ export function TablaSalidasMt() {
                 </td>
               </tr>
             )}
-            {salidas.map((s) => (
+            {salidas.map((s, i) => {
+              const nombre = nombreDeFila(s.descripcion, i, 'celda');
+              const rotulo = (campo: string) => rotuloDeCampo(campo, nombre);
+              return (
               <tr key={s.id} className="border-t border-slate-200 dark:border-slate-800">
                 <td className="px-3 py-2 min-w-[200px]">
                   <input
@@ -115,6 +119,7 @@ export function TablaSalidasMt() {
                     value={s.descripcion}
                     placeholder="Descripción de la celda"
                     onChange={(e) => actualizar(s.id, { descripcion: e.target.value })}
+                    aria-label={`Descripción de la celda ${i + 1}`}
                   />
                 </td>
                 <td className="px-3 py-2">
@@ -122,6 +127,7 @@ export function TablaSalidasMt() {
                     className={inputCls + ' w-auto'}
                     value={s.tipoCelda}
                     onChange={(e) => actualizar(s.id, { tipoCelda: e.target.value as SalidaMt['tipoCelda'] })}
+                    aria-label={rotulo('Tipo de celda')}
                   >
                     {TIPOS_CELDA_MT.map((t) => (
                       <option key={t} value={t}>{TIPO_CELDA_MT_LABEL[t]}</option>
@@ -136,6 +142,7 @@ export function TablaSalidasMt() {
                     step="0.1"
                     value={s.potenciaMva ?? ''}
                     onChange={(e) => actualizar(s.id, { potenciaMva: numero(e) })}
+                    aria-label={`${rotulo('Potencia')}, en MVA`}
                   />
                 </td>
                 <td className="px-3 py-2 w-28">
@@ -146,17 +153,19 @@ export function TablaSalidasMt() {
                     step="1"
                     value={s.corrienteA ?? ''}
                     onChange={(e) => actualizar(s.id, { corrienteA: numero(e) })}
+                    aria-label={`${rotulo('Corriente')}, en amperes`}
                   />
                 </td>
                 <td className="px-3 py-2 text-right tabular-nums text-slate-600 dark:text-slate-300">
                   {fmtAmp(corrienteEfectiva(s, kv))}
                 </td>
                 <td className="px-3 py-2 whitespace-nowrap text-right">
-                  <button className={btnSecondary + ' mr-1'} onClick={() => duplicar(s.id)}>Duplicar</button>
-                  <button className={btnDanger} onClick={() => eliminar(s.id)}>Eliminar</button>
+                  <button className={btnSecondary + ' mr-1'} onClick={() => duplicar(s.id)} aria-label={`Duplicar ${nombre}`}>Duplicar</button>
+                  <button className={btnDanger} onClick={() => eliminar(s.id)} aria-label={`Eliminar ${nombre}`}>Eliminar</button>
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>

@@ -7,6 +7,7 @@ import { sugerirProteccionCcm } from '../logic/gaveta';
 import { useFactorDerrateo } from '../store/proyecto-meta';
 import { fmtAmp } from '../util/format';
 import { aKw, desdeKw } from '../util/potencia';
+import { nombreDeFila, rotuloDeCampo } from '../util/rotulos';
 
 /** Tensiones de baja tensión más comunes en CCM (V). */
 const TENSIONES_BT = [110, 220, 380, 400, 415, 440, 480, 600, 660, 690] as const;
@@ -146,6 +147,7 @@ export function TablaCargas() {
                 <FilaCarga
                   key={c.id}
                   carga={c}
+                  indice={i}
                   zebra={i % 2 === 1}
                   onChange={(p) => actualizar(c.id, p)}
                   onDuplicar={() => duplicar(c.id)}
@@ -172,11 +174,13 @@ const btnDanger =
 
 interface FilaProps {
   carga: Carga;
+  indice: number;
   zebra: boolean;
   onChange: (parcial: Partial<Carga>) => void;
   onDuplicar: () => void;
   onEliminar: () => void;
 }
+
 
 /** Display de potencia en la unidad elegida, redondeado a 2 decimales. */
 function potenciaMostrada(carga: Carga): string {
@@ -186,7 +190,13 @@ function potenciaMostrada(carga: Carga): string {
   return Number(v.toFixed(2)).toString();
 }
 
-function FilaCarga({ carga, zebra, onChange, onDuplicar, onEliminar }: FilaProps) {
+function FilaCarga({ carga, indice, zebra, onChange, onDuplicar, onEliminar }: FilaProps) {
+  // Los controles viven en celdas cuyo único contexto era el encabezado de
+  // columna, así que un lector de pantalla no decía qué se estaba editando ni
+  // de qué carga. El encabezado da la columna; el rótulo agrega la fila.
+  const nombre = nombreDeFila(carga.descripcion, indice);
+  const rotulo = (campo: string) => rotuloDeCampo(campo, nombre);
+
   const I = corrienteNominal(carga);
   const norma = useCcmNorma();
   const unidad: UnidadPotencia = carga.unidadPotencia ?? 'HP';
@@ -233,6 +243,7 @@ function FilaCarga({ carga, zebra, onChange, onDuplicar, onEliminar }: FilaProps
           value={carga.descripcion}
           onChange={(e) => onChange({ descripcion: e.target.value })}
           placeholder="Descripción"
+          aria-label={`Descripción de la carga ${indice + 1}`}
         />
       </td>
       <td className={cellCls}>
@@ -240,6 +251,7 @@ function FilaCarga({ carga, zebra, onChange, onDuplicar, onEliminar }: FilaProps
           className={inputTexto}
           value={carga.tipo}
           onChange={(e) => onChange({ tipo: e.target.value as Carga['tipo'] })}
+          aria-label={rotulo('Tipo')}
         >
           {TIPOS_CARGA.map((t) => <option key={t} value={t}>{t}</option>)}
         </select>
@@ -253,11 +265,13 @@ function FilaCarga({ carga, zebra, onChange, onDuplicar, onEliminar }: FilaProps
             min="0"
             value={potenciaMostrada(carga)}
             onChange={onPotencia}
+            aria-label={`${rotulo('Potencia')}, en ${unidad}`}
           />
           <button
             type="button"
             onClick={toggleUnidad}
             title="Click para cambiar entre kW y HP"
+            aria-label={`Unidad de potencia de ${nombre}: ${unidad}. Cambiar a ${unidad === 'HP' ? 'kW' : 'HP'}`}
             className={
               'px-2 text-xs font-semibold rounded border border-slate-300 dark:border-slate-700 ' +
               'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 ' +
@@ -275,6 +289,7 @@ function FilaCarga({ carga, zebra, onChange, onDuplicar, onEliminar }: FilaProps
           onChange={(e) => {
             if (e.target.value !== '') onChange({ tensionV: Number(e.target.value) });
           }}
+          aria-label={rotulo('Tensión de alimentación')}
         >
           <optgroup label="Baja tensión">
             {TENSIONES_BT.map((v) => (
@@ -296,6 +311,7 @@ function FilaCarga({ carga, zebra, onChange, onDuplicar, onEliminar }: FilaProps
           className={inputTexto}
           value={carga.fases}
           onChange={(e) => onChange({ fases: e.target.value as Carga['fases'] })}
+          aria-label={rotulo('Fases')}
         >
           {FASES.map((f) => <option key={f} value={f}>{f}</option>)}
         </select>
@@ -306,6 +322,7 @@ function FilaCarga({ carga, zebra, onChange, onDuplicar, onEliminar }: FilaProps
           type="number" step="0.05" min="1"
           value={carga.factorServicio}
           onChange={onNumber('factorServicio')}
+          aria-label={rotulo('Factor de servicio')}
         />
       </td>
       <td className={cellCls}>
@@ -316,6 +333,7 @@ function FilaCarga({ carga, zebra, onChange, onDuplicar, onEliminar }: FilaProps
           onChange={onNumber('cosPhi')}
           placeholder={carga.tipo === 'motor' ? '0.85' : '0.9'}
           title="Factor de potencia. Vacío: típico (0,85 motor / 0,9 resto)."
+          aria-label={`${rotulo('Factor de potencia')}. Vacío usa el típico`}
         />
       </td>
       <td className={cellCls}>
@@ -327,6 +345,7 @@ function FilaCarga({ carga, zebra, onChange, onDuplicar, onEliminar }: FilaProps
             onChange={onNumber('rendimiento')}
             placeholder="0.9"
             title="Rendimiento del motor. Vacío: 0,9 típico."
+            aria-label={`${rotulo('Rendimiento del motor')}. Vacío usa 0,9`}
           />
         ) : (
           <span className="text-slate-400 text-sm">—</span>
@@ -339,6 +358,7 @@ function FilaCarga({ carga, zebra, onChange, onDuplicar, onEliminar }: FilaProps
           value={carga.corrienteA ?? ''}
           onChange={onNumber('corrienteA')}
           placeholder="(auto)"
+          aria-label={`${rotulo('Corriente nominal de placa')}, en amperes. Vacío la calcula`}
         />
       </td>
       <td className={`${cellCls} bg-slate-50 dark:bg-slate-900/60 text-right tabular-nums font-medium`}>
@@ -356,6 +376,7 @@ function FilaCarga({ carga, zebra, onChange, onDuplicar, onEliminar }: FilaProps
           onChange={onNumber('corrienteProteccionA')}
           placeholder="(auto)"
           title="Fuerza el In mínimo del interruptor de protección. Vacío: el sistema selecciona automáticamente."
+          aria-label={`${rotulo('Corriente mínima de protección')}, en amperes. Vacío la selecciona`}
         />
       </td>
       <td className={`${cellCls} bg-slate-50 dark:bg-slate-900/60`}>
@@ -373,6 +394,7 @@ function FilaCarga({ carga, zebra, onChange, onDuplicar, onEliminar }: FilaProps
             className={inputTexto}
             value={carga.arranque ?? 'DOL'}
             onChange={(e) => onChange({ arranque: e.target.value as Carga['arranque'] })}
+            aria-label={rotulo('Tipo de arranque')}
           >
             {TIPOS_ARRANQUE.map((a) => <option key={a} value={a}>{ARRANQUE_LABEL[a]}</option>)}
           </select>
@@ -385,7 +407,7 @@ function FilaCarga({ carga, zebra, onChange, onDuplicar, onEliminar }: FilaProps
           onClick={onDuplicar}
           className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 px-1.5 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700"
           title="Duplicar"
-          aria-label="Duplicar"
+          aria-label={`Duplicar ${nombre}`}
         >
           ⎘
         </button>
@@ -393,7 +415,7 @@ function FilaCarga({ carga, zebra, onChange, onDuplicar, onEliminar }: FilaProps
           onClick={onEliminar}
           className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 px-1.5 py-1 rounded hover:bg-red-50 dark:hover:bg-red-950 ml-1"
           title="Eliminar"
-          aria-label="Eliminar"
+          aria-label={`Eliminar ${nombre}`}
         >
           ✕
         </button>

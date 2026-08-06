@@ -5,6 +5,7 @@ import type { Carga, UnidadPotencia } from '../types';
 import { corrienteNominal } from '../logic/corriente';
 import { fmtAmp, fmtNumeroFijo } from '../util/format';
 import { aKw, desdeKw } from '../util/potencia';
+import { nombreDeFila, rotuloDeCampo } from '../util/rotulos';
 
 function potenciaMostrada(c: Carga): string {
   if (c.potenciaKw == null) return '';
@@ -94,10 +95,11 @@ export function TablaSalidas() {
               </tr>
             </thead>
             <tbody>
-              {salidas.map((s) => (
+              {salidas.map((s, i) => (
                 <FilaSalida
                   key={s.id}
                   carga={s}
+                  indice={i}
                   onChange={(p) => actualizar(s.id, p)}
                   onDuplicar={() => duplicar(s.id)}
                   onEliminar={() => eliminar(s.id)}
@@ -113,12 +115,16 @@ export function TablaSalidas() {
 
 interface FilaProps {
   carga: Carga;
+  indice: number;
   onChange: (parcial: Partial<Carga>) => void;
   onDuplicar: () => void;
   onEliminar: () => void;
 }
 
-function FilaSalida({ carga, onChange, onDuplicar, onEliminar }: FilaProps) {
+function FilaSalida({ carga, indice, onChange, onDuplicar, onEliminar }: FilaProps) {
+  const nombre = nombreDeFila(carga.descripcion, indice, 'salida');
+  const rotulo = (campo: string) => rotuloDeCampo(campo, nombre);
+
   const I = corrienteNominal(carga);
   const unidad: UnidadPotencia = carga.unidadPotencia ?? 'kW';
 
@@ -150,6 +156,7 @@ function FilaSalida({ carga, onChange, onDuplicar, onEliminar }: FilaProps) {
           value={carga.descripcion}
           onChange={(e) => onChange({ descripcion: e.target.value })}
           placeholder="Descripción"
+          aria-label={`Descripción de la salida ${indice + 1}`}
         />
       </td>
       <td className="px-2 py-1">
@@ -157,6 +164,7 @@ function FilaSalida({ carga, onChange, onDuplicar, onEliminar }: FilaProps) {
           className={inputCls}
           value={carga.tipo}
           onChange={(e) => onChange({ tipo: e.target.value as Carga['tipo'] })}
+          aria-label={rotulo('Tipo')}
         >
           {TIPOS_CARGA.map((t) => <option key={t} value={t}>{t}</option>)}
         </select>
@@ -168,11 +176,13 @@ function FilaSalida({ carga, onChange, onDuplicar, onEliminar }: FilaProps) {
             type="number" step="0.1" min="0"
             value={potenciaMostrada(carga)}
             onChange={onPotencia}
+            aria-label={`${rotulo('Potencia')}, en ${unidad}`}
           />
           <button
             type="button"
             onClick={toggleUnidad}
             title="Click para cambiar entre kW y HP"
+            aria-label={`Unidad de potencia de ${nombre}: ${unidad}. Cambiar a ${unidad === 'HP' ? 'kW' : 'HP'}`}
             className="px-2 text-xs font-semibold rounded border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 select-none whitespace-nowrap shrink-0 w-11 text-slate-700 dark:text-slate-200"
           >
             {unidad}
@@ -186,6 +196,7 @@ function FilaSalida({ carga, onChange, onDuplicar, onEliminar }: FilaProps) {
           value={carga.corrienteA ?? ''}
           onChange={onNumber('corrienteA')}
           placeholder="(calc)"
+          aria-label={`${rotulo('Corriente')}, en amperes. Vacío la calcula`}
         />
       </td>
       <td className="px-2 py-1">
@@ -194,6 +205,7 @@ function FilaSalida({ carga, onChange, onDuplicar, onEliminar }: FilaProps) {
           type="number" min="0"
           value={carga.tensionV}
           onChange={onNumber('tensionV')}
+          aria-label={`${rotulo('Tensión')}, en volts`}
         />
       </td>
       <td className="px-2 py-1">
@@ -201,6 +213,7 @@ function FilaSalida({ carga, onChange, onDuplicar, onEliminar }: FilaProps) {
           className={inputCls}
           value={carga.fases}
           onChange={(e) => onChange({ fases: e.target.value as Carga['fases'] })}
+          aria-label={rotulo('Fases')}
         >
           {FASES.map((f) => <option key={f} value={f}>{f}</option>)}
         </select>
@@ -211,14 +224,15 @@ function FilaSalida({ carga, onChange, onDuplicar, onEliminar }: FilaProps) {
           type="number" step="0.05" min="1"
           value={carga.factorServicio}
           onChange={onNumber('factorServicio')}
+          aria-label={rotulo('Factor de servicio')}
         />
       </td>
       <td className="px-2 py-1 text-right tabular-nums text-slate-500 dark:text-slate-400">
         {I > 0 ? fmtAmp(I) : '—'}
       </td>
       <td className="px-2 py-1 text-right whitespace-nowrap">
-        <button onClick={onDuplicar} className="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 px-1" title="Duplicar">⎘</button>
-        <button onClick={onEliminar} className="text-xs text-red-600 dark:text-red-300 hover:text-red-800 dark:hover:text-red-400 px-1" title="Eliminar">✕</button>
+        <button onClick={onDuplicar} className="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 px-1" title="Duplicar" aria-label={`Duplicar ${nombre}`}>⎘</button>
+        <button onClick={onEliminar} className="text-xs text-red-600 dark:text-red-300 hover:text-red-800 dark:hover:text-red-400 px-1" title="Eliminar" aria-label={`Eliminar ${nombre}`}>✕</button>
       </td>
     </tr>
   );

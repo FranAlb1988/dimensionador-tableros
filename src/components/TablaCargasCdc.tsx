@@ -5,6 +5,7 @@ import type { Carga, UnidadPotencia } from '../types';
 import { corrienteNominal } from '../logic/corriente';
 import { fmtAmp } from '../util/format';
 import { aKw, desdeKw } from '../util/potencia';
+import { nombreDeFila, rotuloDeCampo } from '../util/rotulos';
 
 const inputCls =
   'w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded ' +
@@ -94,6 +95,7 @@ export function TablaCargasCdc() {
                 <Fila
                   key={c.id}
                   carga={c}
+                  indice={i}
                   zebra={i % 2 === 1}
                   onChange={(p) => actualizar(c.id, p)}
                   onDuplicar={() => duplicar(c.id)}
@@ -120,13 +122,17 @@ const btnDanger =
 
 interface FilaProps {
   carga: Carga;
+  indice: number;
   zebra: boolean;
   onChange: (p: Partial<Carga>) => void;
   onDuplicar: () => void;
   onEliminar: () => void;
 }
 
-function Fila({ carga, zebra, onChange, onDuplicar, onEliminar }: FilaProps) {
+function Fila({ carga, indice, zebra, onChange, onDuplicar, onEliminar }: FilaProps) {
+  const nombre = nombreDeFila(carga.descripcion, indice);
+  const rotulo = (campo: string) => rotuloDeCampo(campo, nombre);
+
   const I = corrienteNominal(carga);
   const unidad: UnidadPotencia = carga.unidadPotencia ?? 'kW';
 
@@ -155,11 +161,13 @@ function Fila({ carga, zebra, onChange, onDuplicar, onEliminar }: FilaProps) {
       <td className={cellCls}>
         <input className={inputTexto} type="text" value={carga.descripcion}
           onChange={(e) => onChange({ descripcion: e.target.value })}
-          placeholder="Descripción" />
+          placeholder="Descripción"
+          aria-label={`Descripción de la carga ${indice + 1}`} />
       </td>
       <td className={cellCls}>
         <select className={inputTexto} value={carga.tipo}
-          onChange={(e) => onChange({ tipo: e.target.value as Carga['tipo'] })}>
+          onChange={(e) => onChange({ tipo: e.target.value as Carga['tipo'] })}
+          aria-label={rotulo('Tipo')}>
           {TIPOS_CARGA.map((t) => <option key={t} value={t}>{t}</option>)}
         </select>
       </td>
@@ -167,10 +175,12 @@ function Fila({ carga, zebra, onChange, onDuplicar, onEliminar }: FilaProps) {
         <div className="flex gap-1.5 items-stretch">
           <input className={`${inputCls} text-right flex-1 min-w-0`}
             type="number" step="0.1" min="0"
-            value={potenciaMostrada(carga)} onChange={onPotencia} />
+            value={potenciaMostrada(carga)} onChange={onPotencia}
+            aria-label={`${rotulo('Potencia')}, en ${unidad}`} />
           <button type="button"
             onClick={() => onChange({ unidadPotencia: unidad === 'HP' ? 'kW' : 'HP' })}
             title="Cambiar unidad"
+            aria-label={`Unidad de potencia de ${nombre}: ${unidad}. Cambiar a ${unidad === 'HP' ? 'kW' : 'HP'}`}
             className="px-2 text-xs font-semibold rounded border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 select-none whitespace-nowrap shrink-0 w-11">
             {unidad}
           </button>
@@ -178,30 +188,34 @@ function Fila({ carga, zebra, onChange, onDuplicar, onEliminar }: FilaProps) {
       </td>
       <td className={cellCls}>
         <input className={`${inputCls} text-right`} type="number" min="0"
-          value={carga.tensionV} onChange={onNumber('tensionV')} />
+          value={carga.tensionV} onChange={onNumber('tensionV')}
+          aria-label={`${rotulo('Tensión')}, en volts`} />
       </td>
       <td className={cellCls}>
         <select className={inputTexto} value={carga.fases}
-          onChange={(e) => onChange({ fases: e.target.value as Carga['fases'] })}>
+          onChange={(e) => onChange({ fases: e.target.value as Carga['fases'] })}
+          aria-label={rotulo('Fases')}>
           {FASES.map((f) => <option key={f} value={f}>{f}</option>)}
         </select>
       </td>
       <td className={cellCls}>
         <input className={`${inputCls} text-right`} type="number" step="0.05" min="1"
-          value={carga.factorServicio} onChange={onNumber('factorServicio')} />
+          value={carga.factorServicio} onChange={onNumber('factorServicio')}
+          aria-label={rotulo('Factor de servicio')} />
       </td>
       <td className={cellCls}>
         <input className={`${inputCls} text-right`} type="number" step="0.1" min="0"
           value={carga.corrienteA ?? ''} onChange={onNumber('corrienteA')}
-          placeholder="(calc)" />
+          placeholder="(calc)"
+          aria-label={`${rotulo('Corriente')}, en amperes. Vacío la calcula`} />
       </td>
       <td className={`${cellCls} bg-slate-50 dark:bg-slate-900/60 text-right tabular-nums font-medium`}>
         {I > 0 ? <span>{fmtAmp(I)}</span> : <span className="text-slate-400">—</span>}
       </td>
       <td className={`${cellCls} text-right whitespace-nowrap`}>
-        <button onClick={onDuplicar} title="Duplicar"
+        <button onClick={onDuplicar} title="Duplicar" aria-label={`Duplicar ${nombre}`}
           className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 px-1.5 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700">⎘</button>
-        <button onClick={onEliminar} title="Eliminar"
+        <button onClick={onEliminar} title="Eliminar" aria-label={`Eliminar ${nombre}`}
           className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 px-1.5 py-1 rounded hover:bg-red-50 dark:hover:bg-red-950 ml-1">✕</button>
       </td>
     </tr>
