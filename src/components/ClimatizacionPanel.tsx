@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import {
   capacidadEfectiva,
   cargaPresurizacionKcalH,
@@ -13,9 +13,23 @@ import {
 } from '../logic/climatizacion';
 import { fmtCantidad, fmtNumero } from '../util/format';
 
-const inputCls =
-  'w-24 px-2 py-1 rounded border border-slate-300 dark:border-slate-700 ' +
+const controlCls =
+  'w-full px-2 py-1 rounded border border-slate-300 dark:border-slate-700 ' +
   'bg-white dark:bg-slate-900 text-sm tabular-nums';
+
+/**
+ * Rejilla de tres columnas — etiqueta, control, unidad — compartida por todas
+ * las filas del panel.
+ *
+ * Cada fila se armaba antes con su propio flex, así que los campos sin unidad
+ * ("Personas", "F. crecimiento") corrían el control hacia la derecha y no
+ * alineaban con el resto. Con columnas de verdad la unidad ocupa su lugar aunque
+ * esté vacía.
+ */
+const REJILLA = 'grid grid-cols-[minmax(0,1fr)_6rem_2.5rem] items-center gap-x-2 gap-y-2';
+
+const etiquetaCls = 'text-sm text-slate-600 dark:text-slate-400';
+const unidadCls = 'text-xs text-slate-500 dark:text-slate-400';
 
 interface CampoProps {
   label: string;
@@ -26,20 +40,20 @@ interface CampoProps {
 }
 
 function Campo({ label, valor, onChange, unidad, paso = 1 }: CampoProps) {
+  const id = useId();
   return (
-    <label className="flex items-center justify-between gap-3 text-sm">
-      <span className="text-slate-600 dark:text-slate-400">{label}</span>
-      <span className="flex items-center gap-1.5 shrink-0">
-        <input
-          type="number"
-          step={paso}
-          value={valor}
-          onChange={(e) => onChange(Number(e.target.value))}
-          className={inputCls}
-        />
-        {unidad && <span className="text-xs text-slate-500 dark:text-slate-400 w-10">{unidad}</span>}
-      </span>
-    </label>
+    <>
+      <label htmlFor={id} className={etiquetaCls}>{label}</label>
+      <input
+        id={id}
+        type="number"
+        step={paso}
+        value={valor}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className={controlCls}
+      />
+      <span className={unidadCls}>{unidad}</span>
+    </>
   );
 }
 
@@ -95,41 +109,54 @@ export function ClimatizacionPanel() {
       equiposW, cablesW, personas, modelo, crecimiento]);
 
   const nominal = capacidadEfectiva(modelo, extVerano, altitud);
+  const idModelo = useId();
 
   return (
     <div className="space-y-6">
       <div className="grid lg:grid-cols-3 gap-6">
-        <section className="border border-slate-200 dark:border-slate-800 rounded-lg p-4 space-y-2">
+        <section className="border border-slate-200 dark:border-slate-800 rounded-lg p-4 space-y-3">
           <h3 className="font-semibold text-sm">Recinto</h3>
-          <Campo label="Largo" valor={largoM} onChange={setLargoM} unidad="m" paso={0.01} />
-          <Campo label="Ancho" valor={anchoM} onChange={setAnchoM} unidad="m" paso={0.01} />
-          <Campo label="Alto" valor={altoM} onChange={setAltoM} unidad="m" paso={0.01} />
-          <Campo label="Personas" valor={personas} onChange={setPersonas} />
+          <div className={REJILLA}>
+            <Campo label="Largo" valor={largoM} onChange={setLargoM} unidad="m" paso={0.01} />
+            <Campo label="Ancho" valor={anchoM} onChange={setAnchoM} unidad="m" paso={0.01} />
+            <Campo label="Alto" valor={altoM} onChange={setAltoM} unidad="m" paso={0.01} />
+            <Campo label="Personas" valor={personas} onChange={setPersonas} />
+          </div>
         </section>
 
-        <section className="border border-slate-200 dark:border-slate-800 rounded-lg p-4 space-y-2">
+        <section className="border border-slate-200 dark:border-slate-800 rounded-lg p-4 space-y-3">
           <h3 className="font-semibold text-sm">Sitio</h3>
-          <Campo label="Altitud" valor={altitud} onChange={setAltitud} unidad="msnm" paso={50} />
-          <Campo label="Ext. verano" valor={extVerano} onChange={setExtVerano} unidad="°C" paso={0.1} />
-          <Campo label="Ext. invierno máx." valor={extInvierno} onChange={setExtInvierno} unidad="°C" paso={0.1} />
-          <Campo label="Interior promedio" valor={intPromedio} onChange={setIntPromedio} unidad="°C" paso={0.1} />
-          <p className="text-xs text-slate-500 dark:text-slate-400 pt-1">
+          <div className={REJILLA}>
+            <Campo label="Altitud" valor={altitud} onChange={setAltitud} unidad="msnm" paso={50} />
+            <Campo label="Ext. verano" valor={extVerano} onChange={setExtVerano} unidad="°C" paso={0.1} />
+            <Campo label="Ext. invierno máx." valor={extInvierno} onChange={setExtInvierno} unidad="°C" paso={0.1} />
+            <Campo label="Interior promedio" valor={intPromedio} onChange={setIntPromedio} unidad="°C" paso={0.1} />
+          </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             Factor por altura: <strong className="tabular-nums">{fmtCantidad(factorAltura(altitud), 3)}</strong>
             {' — '}el equipo rinde eso de lo que dice el catálogo.
           </p>
         </section>
 
-        <section className="border border-slate-200 dark:border-slate-800 rounded-lg p-4 space-y-2">
+        <section className="border border-slate-200 dark:border-slate-800 rounded-lg p-4 space-y-3">
           <h3 className="font-semibold text-sm">Carga interna y equipo</h3>
-          <Campo label="Disipación equipos" valor={equiposW} onChange={setEquiposW} unidad="W" paso={100} />
-          <Campo label="Cables" valor={cablesW} onChange={setCablesW} unidad="W" paso={100} />
-          <Campo label="F. crecimiento" valor={crecimiento} onChange={setCrecimiento} paso={0.01} />
-          <label className="flex items-center justify-between gap-3 text-sm">
-            <span className="text-slate-600 dark:text-slate-400">Modelo HVAC</span>
+          <div className={REJILLA}>
+            <Campo label="Disipación equipos" valor={equiposW} onChange={setEquiposW} unidad="W" paso={100} />
+            <Campo label="Cables" valor={cablesW} onChange={setCablesW} unidad="W" paso={100} />
+            <Campo label="F. crecimiento" valor={crecimiento} onChange={setCrecimiento} paso={0.01} />
+
+            <label htmlFor={idModelo} className={etiquetaCls}>Modelo HVAC</label>
+            {/* Ocupa la columna del control y la de la unidad: "W150A · 12,5 t"
+                necesita 128 px y en 6rem se truncaba a "W150A · 12". Queda más
+                ancho que los campos numéricos, y es a propósito: ensanchar la
+                columna para todos dejaría 104 px de etiqueta en la tarjeta más
+                angosta y "Ext. invierno máx." se partiría en dos líneas. Antes
+                un select más ancho que un número que un texto envuelto. */}
             <select
+              id={idModelo}
               value={modelo.modelo}
               onChange={(e) => setModeloNombre(e.target.value)}
-              className={inputCls}
+              className={`${controlCls} col-span-2`}
             >
               {HVAC.modelos.map((m) => (
                 <option key={m.modelo} value={m.modelo}>
@@ -137,7 +164,7 @@ export function ClimatizacionPanel() {
                 </option>
               ))}
             </select>
-          </label>
+          </div>
         </section>
       </div>
 
