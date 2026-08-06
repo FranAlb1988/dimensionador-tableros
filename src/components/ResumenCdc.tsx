@@ -37,39 +37,39 @@ export function ResumenCdc({ resultado }: { resultado: ResultadoCdc }) {
   return (
     <div className="grid sm:grid-cols-2 gap-4">
       <div className="border border-slate-200 dark:border-slate-800 rounded-lg p-4">
-        <div className="text-sm font-medium text-slate-500 mb-2">Dimensiones del tablero</div>
+        <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Dimensiones del tablero</div>
         <dl className="grid grid-cols-2 gap-y-1 text-sm">
-          <dt className="text-slate-500">Cofres</dt>
+          <dt className="text-slate-500 dark:text-slate-400">Cofres</dt>
           <dd className="font-medium tabular-nums">{t.cofres.length}</dd>
-          <dt className="text-slate-500">Alto</dt>
+          <dt className="text-slate-500 dark:text-slate-400">Alto</dt>
           <dd className="font-medium tabular-nums">{fmtMm(t.altoTotalMm)}</dd>
-          <dt className="text-slate-500">Ancho</dt>
+          <dt className="text-slate-500 dark:text-slate-400">Ancho</dt>
           <dd className="font-medium tabular-nums">{fmtMm(t.anchoTotalMm)}</dd>
-          <dt className="text-slate-500">Profundidad</dt>
+          <dt className="text-slate-500 dark:text-slate-400">Profundidad</dt>
           <dd className="font-medium tabular-nums">{fmtMm(t.profundidadTotalMm)}</dd>
-          <dt className="text-slate-500">Circuitos</dt>
+          <dt className="text-slate-500 dark:text-slate-400">Circuitos</dt>
           <dd className="font-medium tabular-nums">{t.totalAsignaciones}</dd>
-          <dt className="text-slate-500">Módulos DIN</dt>
+          <dt className="text-slate-500 dark:text-slate-400">Módulos DIN</dt>
           <dd className="font-medium tabular-nums">{t.totalModulos}</dd>
-          <dt className="text-slate-500">Utilización</dt>
+          <dt className="text-slate-500 dark:text-slate-400">Utilización</dt>
           <dd className="font-medium tabular-nums">
             {utilizacion.usados} / {utilizacion.totales} ({pct} %)
           </dd>
           {t.reservaPorFila > 0 && (
             <>
-              <dt className="text-slate-500">Reserva / fila</dt>
+              <dt className="text-slate-500 dark:text-slate-400">Reserva / fila</dt>
               <dd className="text-slate-600 tabular-nums">{t.reservaPorFila} mód.</dd>
             </>
           )}
           {totalDif > 0 && (
             <>
-              <dt className="text-slate-500">Diferenciales (RIC)</dt>
+              <dt className="text-slate-500 dark:text-slate-400">Diferenciales (RIC)</dt>
               <dd className="font-medium tabular-nums">{totalDif}</dd>
             </>
           )}
         </dl>
         {totalDif > 0 && (
-          <div className="mt-2 text-xs text-slate-500 border-t border-slate-200 dark:border-slate-800 pt-2">
+          <div className="mt-2 text-xs text-slate-500 dark:text-slate-400 border-t border-slate-200 dark:border-slate-800 pt-2">
             <div className="font-medium mb-1">Detalle RCDs (RIC N°06 — 1 por circuito):</div>
             <ul className="space-y-0.5">
               {[...conteoDif.values()].map((d) => (
@@ -84,7 +84,7 @@ export function ResumenCdc({ resultado }: { resultado: ResultadoCdc }) {
       </div>
 
       <div className="border border-slate-200 dark:border-slate-800 rounded-lg p-4">
-        <div className="text-sm font-medium text-slate-500 mb-2">Conteo por cofre</div>
+        <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Conteo por cofre</div>
         <ul className="space-y-1 text-sm">
           {[...conteoCofres.entries()].map(([ref, n]) => (
             <li key={ref} className="flex justify-between">
@@ -93,7 +93,7 @@ export function ResumenCdc({ resultado }: { resultado: ResultadoCdc }) {
             </li>
           ))}
           <li className="flex justify-between border-t border-slate-200 dark:border-slate-800 pt-1 mt-2">
-            <span className="text-slate-500">Total cofres</span>
+            <span className="text-slate-500 dark:text-slate-400">Total cofres</span>
             <span className="font-semibold tabular-nums">{t.cofres.length}</span>
           </li>
         </ul>

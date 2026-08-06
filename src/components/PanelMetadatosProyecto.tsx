@@ -35,7 +35,7 @@ export function PanelMetadatosProyecto() {
     <details className="border border-slate-200 dark:border-slate-800 rounded-lg bg-slate-50/50 dark:bg-slate-900/30" open>
       <summary className="cursor-pointer px-4 py-3 font-medium select-none flex items-center justify-between gap-2 hover:bg-slate-100/60 dark:hover:bg-slate-800/40 rounded-t-lg">
         <span>Datos del proyecto</span>
-        <span className="text-xs text-slate-500 font-normal">
+        <span className="text-xs text-slate-500 dark:text-slate-400 font-normal">
           Aparecen en el cajetín de los PDFs y se guardan con el proyecto.
         </span>
       </summary>

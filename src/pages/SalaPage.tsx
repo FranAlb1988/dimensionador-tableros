@@ -33,7 +33,7 @@ export function SalaPage() {
 
       <ClimatizacionPanel />
 
-      <p className="text-xs text-slate-500">
+      <p className="text-xs text-slate-500 dark:text-slate-400">
         Catálogo {HVAC.serie}, etapa {HVAC.etapa}, aire de retorno {HVAC.retornoDbWbF} °F DB/WB.
         Coeficientes de envolvente, aporte de iluminación, radiación y presurización tomados
         de la sala de referencia y escalados por superficie; para un proyecto nuevo hay que

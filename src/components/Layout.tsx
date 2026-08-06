@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { MenuProyecto } from './MenuProyecto';
+import { TemaToggle } from './TemaToggle';
 
 const linkBase =
   'px-3 py-2 rounded-md text-sm font-medium transition-colors';
@@ -40,9 +41,10 @@ export function Layout() {
             </NavLink>
           </nav>
           <div className="ml-auto flex items-center gap-3">
-            <span className="hidden lg:inline text-xs text-slate-500 dark:text-slate-400">
+            <span className="hidden xl:inline text-xs text-slate-500 dark:text-slate-400">
               Schneider Electric — placeholders verificables
             </span>
+            <TemaToggle />
             <MenuProyecto />
           </div>
         </div>

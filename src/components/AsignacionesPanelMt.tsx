@@ -66,7 +66,7 @@ function Tarjeta({ a }: { a: AsignacionCcmMt }) {
           {espaciosV === 1 ? 'half-height' : 'full-height'}
         </span>
       </div>
-      <div className="text-xs text-slate-500 mt-0.5">
+      <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
         {carga.tipo} · {carga.fases} {tensionKv} kV · FLA {fmtAmp(corrienteDisenoA)}
       </div>
       <hr className="my-2 border-slate-200 dark:border-slate-800" />
@@ -102,7 +102,7 @@ function LeyendaAnsi({ asignaciones }: { asignaciones: readonly AsignacionCcmMt[
 function Linea({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
   return (
     <div className="flex">
-      <dt className="text-slate-500 w-28 shrink-0">{label}</dt>
+      <dt className="text-slate-500 dark:text-slate-400 w-28 shrink-0">{label}</dt>
       <dd className={mono ? 'font-mono text-xs' : ''}>{value}</dd>
     </div>
   );

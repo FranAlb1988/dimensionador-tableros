@@ -37,7 +37,7 @@ function Campo({ label, valor, onChange, unidad, paso = 1 }: CampoProps) {
           onChange={(e) => onChange(Number(e.target.value))}
           className={inputCls}
         />
-        {unidad && <span className="text-xs text-slate-500 w-10">{unidad}</span>}
+        {unidad && <span className="text-xs text-slate-500 dark:text-slate-400 w-10">{unidad}</span>}
       </span>
     </label>
   );
@@ -113,7 +113,7 @@ export function ClimatizacionPanel() {
           <Campo label="Ext. verano" valor={extVerano} onChange={setExtVerano} unidad="°C" paso={0.1} />
           <Campo label="Ext. invierno máx." valor={extInvierno} onChange={setExtInvierno} unidad="°C" paso={0.1} />
           <Campo label="Interior promedio" valor={intPromedio} onChange={setIntPromedio} unidad="°C" paso={0.1} />
-          <p className="text-xs text-slate-500 pt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 pt-1">
             Factor por altura: <strong className="tabular-nums">{fmtCantidad(factorAltura(altitud), 3)}</strong>
             {' — '}el equipo rinde eso de lo que dice el catálogo.
           </p>
@@ -189,28 +189,28 @@ export function ClimatizacionPanel() {
 
           <div className="grid sm:grid-cols-3 gap-4">
             <div className="border border-slate-200 dark:border-slate-800 rounded-lg p-4">
-              <div className="text-xs text-slate-500">Equipos a instalar</div>
+              <div className="text-xs text-slate-500 dark:text-slate-400">Equipos a instalar</div>
               <div className="text-3xl font-semibold tabular-nums">{resultado.unidades}</div>
-              <div className="text-xs text-slate-500 mt-1">
+              <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 {modelo.modelo} · manda {resultado.critica.nombre.toLowerCase()}
               </div>
             </div>
             <div className="border border-slate-200 dark:border-slate-800 rounded-lg p-4">
-              <div className="text-xs text-slate-500">Capacidad útil por equipo</div>
+              <div className="text-xs text-slate-500 dark:text-slate-400">Capacidad útil por equipo</div>
               <div className="text-3xl font-semibold tabular-nums">
                 {fmtCantidad(nominal.efectivaKw, 1)} <span className="text-lg font-normal">kW</span>
               </div>
-              <div className="text-xs text-slate-500 mt-1">
+              <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 {fmtCantidad(nominal.fraccionDeNominal * 100, 0)} % de los{' '}
                 {fmtNumero(modelo.nominalBtuH)} BTU/hr de placa
               </div>
             </div>
             <div className="border border-slate-200 dark:border-slate-800 rounded-lg p-4">
-              <div className="text-xs text-slate-500">Carga térmica ({resultado.critica.nombre.toLowerCase()})</div>
+              <div className="text-xs text-slate-500 dark:text-slate-400">Carga térmica ({resultado.critica.nombre.toLowerCase()})</div>
               <div className="text-3xl font-semibold tabular-nums">
                 {fmtNumero(Math.round(resultado.critica.ganancia.totalKw))} <span className="text-lg font-normal">kW</span>
               </div>
-              <div className="text-xs text-slate-500 mt-1">
+              <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 {fmtNumero(Math.round(resultado.critica.ganancia.totalBtuH))} BTU/hr
               </div>
             </div>
@@ -236,7 +236,7 @@ export function ClimatizacionPanel() {
                     <tr key={a.concepto} className="border-t border-slate-100 dark:border-slate-800/60">
                       <td className="py-1 text-slate-600 dark:text-slate-400">{a.concepto}</td>
                       <td className="py-1 text-right tabular-nums">{fmtNumero(Math.round(a.kcalH))} kcal/hr</td>
-                      <td className="py-1 text-right tabular-nums text-slate-500 w-16">
+                      <td className="py-1 text-right tabular-nums text-slate-500 dark:text-slate-400 w-16">
                         {fmtCantidad(pct, 1)} %
                       </td>
                     </tr>

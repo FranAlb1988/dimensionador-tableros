@@ -27,28 +27,28 @@ export function CargaPisoPanel({ tipo, anchoTotalMm, profundidadTotalMm }: Props
     <div className="border border-slate-200 dark:border-slate-800 rounded-lg p-4 space-y-3">
       <div>
         <h2 className="text-lg font-semibold">Peso y carga de piso</h2>
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           Estimación por peso específico, a partir del listado de equipos de una sala
           eléctrica real ({SALA_REFERENCIA.tag}, {SALA_REFERENCIA.proveedor}).
         </p>
       </div>
 
       <dl className="grid grid-cols-2 sm:grid-cols-4 gap-y-1 gap-x-4 text-sm">
-        <dt className="text-slate-500">Peso estimado</dt>
+        <dt className="text-slate-500 dark:text-slate-400">Peso estimado</dt>
         <dd className="font-medium tabular-nums">{fmtNumero(Math.round(est.pesoKg))} kg</dd>
-        <dt className="text-slate-500">Huella</dt>
+        <dt className="text-slate-500 dark:text-slate-400">Huella</dt>
         <dd className="font-medium tabular-nums">{fmtCantidad(est.huellaM2, 2)} m²</dd>
-        <dt className="text-slate-500">Peso específico usado</dt>
+        <dt className="text-slate-500 dark:text-slate-400">Peso específico usado</dt>
         <dd className="font-medium tabular-nums">
           {fmtNumero(Math.round(est.especificoKgM2))} kg/m²
         </dd>
-        <dt className="text-slate-500">Sobre su huella</dt>
+        <dt className="text-slate-500 dark:text-slate-400">Sobre su huella</dt>
         <dd className="font-medium tabular-nums">
           {fmtNumero(Math.round(concentracion))} kgf/m²
         </dd>
       </dl>
 
-      <div className="text-xs text-slate-500 space-y-1">
+      <div className="text-xs text-slate-500 dark:text-slate-400 space-y-1">
         <p>
           La sobrecarga de uso del chasis ({SALA_REFERENCIA.sobrecargaUsoDisenoKgM2} kg/m² en
           la sala de referencia) es un <strong>promedio sobre la superficie de la sala</strong>,

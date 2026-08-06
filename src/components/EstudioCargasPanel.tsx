@@ -43,7 +43,7 @@ export function EstudioCargasPanel({ cargas, tensionBarraV }: Props) {
     <div className="border border-slate-200 dark:border-slate-800 rounded-lg p-4 space-y-3">
       <div>
         <h2 className="text-lg font-semibold">Estudio de cargas</h2>
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           Demanda y consumo según la metodología del estudio de cargas
           (FD = máxima/conectada, FC = media/máxima).
         </p>
@@ -68,7 +68,7 @@ export function EstudioCargasPanel({ cargas, tensionBarraV }: Props) {
           <tbody>
             {FILAS.map((f) => (
               <tr key={f.clave}>
-                <td className="px-3 py-1.5 text-slate-500 border-b border-slate-200 dark:border-slate-800">
+                <td className="px-3 py-1.5 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
                   {f.label}
                 </td>
                 {columnas.map((c) => (
@@ -83,7 +83,7 @@ export function EstudioCargasPanel({ cargas, tensionBarraV }: Props) {
               </tr>
             ))}
             <tr>
-              <td className="px-3 py-1.5 text-slate-500 border-b border-slate-200 dark:border-slate-800">
+              <td className="px-3 py-1.5 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
                 Corriente
               </td>
               {columnas.map((c) => (
@@ -101,19 +101,19 @@ export function EstudioCargasPanel({ cargas, tensionBarraV }: Props) {
       </div>
 
       <dl className="grid grid-cols-2 sm:grid-cols-4 gap-y-1 gap-x-4 text-sm">
-        <dt className="text-slate-500">Factor de demanda</dt>
+        <dt className="text-slate-500 dark:text-slate-400">Factor de demanda</dt>
         <dd className="font-medium tabular-nums">{fmtCantidad(fdGlobal, 2)}</dd>
-        <dt className="text-slate-500">Factor de carga</dt>
+        <dt className="text-slate-500 dark:text-slate-400">Factor de carga</dt>
         <dd className="font-medium tabular-nums">{fmtCantidad(fcGlobal, 2)}</dd>
-        <dt className="text-slate-500">Consumo diario</dt>
+        <dt className="text-slate-500 dark:text-slate-400">Consumo diario</dt>
         <dd className="font-medium tabular-nums">{fmtNumero(Math.round(r.energiaDiariaKwh))} kWh</dd>
-        <dt className="text-slate-500">Consumo anual</dt>
+        <dt className="text-slate-500 dark:text-slate-400">Consumo anual</dt>
         <dd className="font-medium tabular-nums">
           {fmtNumero(Math.round(r.energiaAnualKwh / 1000))} MWh
         </dd>
       </dl>
 
-      <div className="text-xs text-slate-500 space-y-1">
+      <div className="text-xs text-slate-500 dark:text-slate-400 space-y-1">
         {sinFactoresPropios > 0 && (
           <p>
             {sinFactoresPropios} de {r.cargas} cargas usan el factor típico de su tipo de

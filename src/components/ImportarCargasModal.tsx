@@ -157,7 +157,7 @@ export function ImportarCargasModal({ abierto, onCerrar }: Props) {
       <div className="bg-white dark:bg-slate-950 rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] flex flex-col">
         <header className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-800">
           <h2 className="text-lg font-semibold">Importar lista de cargas</h2>
-          <button onClick={cerrar} className="text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 text-xl leading-none">✕</button>
+          <button onClick={cerrar} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-xl leading-none">✕</button>
         </header>
 
         <div className="overflow-y-auto px-4 py-4 space-y-4 flex-1">
@@ -311,10 +311,10 @@ function PanelArchivo({
 }) {
   return (
     <div className="border border-slate-200 dark:border-slate-800 rounded-lg p-3 text-sm flex items-center gap-3 flex-wrap">
-      <span className="text-slate-500">Archivo:</span>
+      <span className="text-slate-500 dark:text-slate-400">Archivo:</span>
       <span className="font-medium">{archivo.nombreArchivo}</span>
       <span className="text-slate-400">·</span>
-      <span className="text-slate-500">Hoja:</span>
+      <span className="text-slate-500 dark:text-slate-400">Hoja:</span>
       {archivo.hojas.length === 1 ? (
         <span>{archivo.hojas[0]!.nombre} ({archivo.hojas[0]!.filas.length} filas)</span>
       ) : (
@@ -331,7 +331,7 @@ function PanelArchivo({
       {hoja?.matriz && (
         <>
           <span className="text-slate-400">·</span>
-          <label className="text-slate-500" htmlFor="fila-header">Fila de encabezados:</label>
+          <label className="text-slate-500 dark:text-slate-400" htmlFor="fila-header">Fila de encabezados:</label>
           <input
             id="fila-header"
             type="number"
@@ -359,7 +359,7 @@ function PanelMapeo({ hoja, mapeo, onChange }: PanelMapeoProps) {
   return (
     <div className="border border-slate-200 dark:border-slate-800 rounded-lg p-3">
       <div className="text-sm font-medium mb-2">Mapeo de columnas</div>
-      <p className="text-xs text-slate-500 mb-3">
+      <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
         Auto-detectado. Cambia el origen si la app no acertó. Campos sin columna usan el valor por defecto de abajo.
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
@@ -392,43 +392,43 @@ function PanelGlobales({ globales, setGlobal }: PanelGlobalesProps) {
   return (
     <div className="border border-slate-200 dark:border-slate-800 rounded-lg p-3">
       <div className="text-sm font-medium mb-2">Valores por defecto</div>
-      <p className="text-xs text-slate-500 mb-3">
+      <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
         Se aplican cuando una columna del archivo no está mapeada. La unidad de potencia se autodetecta si el header dice "HP" o "kW".
       </p>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-sm">
         <label className="flex flex-col">
-          <span className="text-slate-500 text-xs mb-1">Unidad potencia</span>
+          <span className="text-slate-500 dark:text-slate-400 text-xs mb-1">Unidad potencia</span>
           <select value={globales.unidadPotencia} onChange={(e) => setGlobal('unidadPotencia', e.target.value as UnidadPotencia)}
             className="border border-slate-300 dark:border-slate-700 rounded px-2 py-1 bg-white dark:bg-slate-900">
             {UNIDADES.map((u) => <option key={u}>{u}</option>)}
           </select>
         </label>
         <label className="flex flex-col">
-          <span className="text-slate-500 text-xs mb-1">Tensión (V)</span>
+          <span className="text-slate-500 dark:text-slate-400 text-xs mb-1">Tensión (V)</span>
           <input type="number" value={globales.tensionV} onChange={(e) => setGlobal('tensionV', Number(e.target.value) || 0)}
             className="border border-slate-300 dark:border-slate-700 rounded px-2 py-1 bg-white dark:bg-slate-900" />
         </label>
         <label className="flex flex-col">
-          <span className="text-slate-500 text-xs mb-1">Fases</span>
+          <span className="text-slate-500 dark:text-slate-400 text-xs mb-1">Fases</span>
           <select value={globales.fases} onChange={(e) => setGlobal('fases', e.target.value as Fases)}
             className="border border-slate-300 dark:border-slate-700 rounded px-2 py-1 bg-white dark:bg-slate-900">
             {FASES.map((f) => <option key={f}>{f}</option>)}
           </select>
         </label>
         <label className="flex flex-col">
-          <span className="text-slate-500 text-xs mb-1">FS</span>
+          <span className="text-slate-500 dark:text-slate-400 text-xs mb-1">FS</span>
           <input type="number" step="0.05" value={globales.factorServicio} onChange={(e) => setGlobal('factorServicio', Number(e.target.value) || 1)}
             className="border border-slate-300 dark:border-slate-700 rounded px-2 py-1 bg-white dark:bg-slate-900" />
         </label>
         <label className="flex flex-col">
-          <span className="text-slate-500 text-xs mb-1">Tipo fallback</span>
+          <span className="text-slate-500 dark:text-slate-400 text-xs mb-1">Tipo fallback</span>
           <select value={globales.tipoFallback} onChange={(e) => setGlobal('tipoFallback', e.target.value as TipoCarga)}
             className="border border-slate-300 dark:border-slate-700 rounded px-2 py-1 bg-white dark:bg-slate-900">
             {TIPOS.map((t) => <option key={t}>{t}</option>)}
           </select>
         </label>
         <label className="flex flex-col">
-          <span className="text-slate-500 text-xs mb-1">Arranque motor</span>
+          <span className="text-slate-500 dark:text-slate-400 text-xs mb-1">Arranque motor</span>
           <select value={globales.arranqueMotorFallback} onChange={(e) => setGlobal('arranqueMotorFallback', e.target.value as TipoArranque)}
             className="border border-slate-300 dark:border-slate-700 rounded px-2 py-1 bg-white dark:bg-slate-900">
             {ARRANQUES.map((a) => <option key={a} value={a}>{ARRANQUE_LABEL[a]}</option>)}
@@ -444,7 +444,7 @@ function PanelVistaPrevia({
 }: { candidatas: CargaCandidata[]; toggleIncluir: (id: string) => void }) {
   if (candidatas.length === 0) {
     return (
-      <div className="border border-slate-200 dark:border-slate-800 rounded-lg p-3 text-sm text-slate-500">
+      <div className="border border-slate-200 dark:border-slate-800 rounded-lg p-3 text-sm text-slate-500 dark:text-slate-400">
         Sin filas detectadas en la hoja.
       </div>
     );
@@ -484,7 +484,7 @@ function PanelVistaPrevia({
                 <td className="px-2 py-1">{c.descripcion}</td>
                 <td className="px-2 py-1">{c.tipo}</td>
                 <td className="px-2 py-1 text-right tabular-nums">{pStr}</td>
-                <td className="px-2 py-1 text-right tabular-nums text-slate-500">{c.corrienteA != null ? fmtAmp(c.corrienteA) : '—'}</td>
+                <td className="px-2 py-1 text-right tabular-nums text-slate-500 dark:text-slate-400">{c.corrienteA != null ? fmtAmp(c.corrienteA) : '—'}</td>
                 <td className="px-2 py-1 text-right tabular-nums">{c.tensionV}</td>
                 <td className="px-2 py-1">{c.fases}</td>
                 <td className="px-2 py-1 text-right tabular-nums">{c.factorServicio}</td>

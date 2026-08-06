@@ -39,7 +39,7 @@ export function ReservaCcmControl() {
             aria-label="Porcentaje mínimo de reserva sobre la capacidad usada"
             className="w-16 px-1.5 py-0.5 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 tabular-nums"
           />
-          <span className="text-slate-500">%</span>
+          <span className="text-slate-500 dark:text-slate-400">%</span>
         </span>
       )}
     </div>

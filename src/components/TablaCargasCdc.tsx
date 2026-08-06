@@ -70,7 +70,7 @@ export function TablaCargasCdc() {
       </div>
 
       {cargas.length === 0 ? (
-        <div className="border border-dashed border-slate-300 dark:border-slate-700 rounded-lg p-8 text-center text-slate-500">
+        <div className="border border-dashed border-slate-300 dark:border-slate-700 rounded-lg p-8 text-center text-slate-500 dark:text-slate-400">
           Sin circuitos. Agrega uno o carga el ejemplo.
         </div>
       ) : (
@@ -115,7 +115,7 @@ const btnSecondary =
   'px-3 py-1.5 text-sm font-medium rounded border border-slate-300 dark:border-slate-700 ' +
   'hover:bg-slate-100 dark:hover:bg-slate-800';
 const btnDanger =
-  'px-3 py-1.5 text-sm font-medium rounded text-red-700 hover:bg-red-50 ' +
+  'px-3 py-1.5 text-sm font-medium rounded text-red-700 dark:text-red-300 hover:bg-red-50 ' +
   'dark:text-red-400 dark:hover:bg-red-950';
 
 interface FilaProps {
@@ -200,7 +200,7 @@ function Fila({ carga, zebra, onChange, onDuplicar, onEliminar }: FilaProps) {
       </td>
       <td className={`${cellCls} text-right whitespace-nowrap`}>
         <button onClick={onDuplicar} title="Duplicar"
-          className="text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 px-1.5 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700">⎘</button>
+          className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 px-1.5 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700">⎘</button>
         <button onClick={onEliminar} title="Eliminar"
           className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 px-1.5 py-1 rounded hover:bg-red-50 dark:hover:bg-red-950 ml-1">✕</button>
       </td>

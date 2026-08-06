@@ -26,7 +26,7 @@ function TarjetaCofre({ cofre }: { cofre: Cofre }) {
       <div className="flex justify-between items-start mb-2">
         <div>
           <div className="font-medium">Cofre {cofre.indice} — {cat.referencia}</div>
-          <div className="text-xs text-slate-500">
+          <div className="text-xs text-slate-500 dark:text-slate-400">
             {cat.filas} filas × {cat.modulosPorFila} módulos · {cat.altoMm}×{cat.anchoMm}×{cat.profundidadMm} mm
           </div>
         </div>
@@ -46,7 +46,7 @@ function FilaResumen({ fila }: { fila: FilaDin }) {
   const totalUtil = fila.modulosTotales - fila.reserva;
   return (
     <div className="text-xs flex items-center gap-2 border-t border-slate-100 dark:border-slate-800 pt-1">
-      <span className="font-mono text-slate-500 w-8 shrink-0">F{fila.indice}</span>
+      <span className="font-mono text-slate-500 dark:text-slate-400 w-8 shrink-0">F{fila.indice}</span>
       <div className="flex-1 flex flex-wrap gap-1">
         {fila.reserva > 0 && (
           <span className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 text-[10px]">
@@ -68,7 +68,7 @@ function FilaResumen({ fila }: { fila: FilaDin }) {
           </span>
         )}
       </div>
-      <span className="text-slate-500 tabular-nums text-[10px] shrink-0">
+      <span className="text-slate-500 dark:text-slate-400 tabular-nums text-[10px] shrink-0">
         {ocupados}/{totalUtil}
       </span>
     </div>

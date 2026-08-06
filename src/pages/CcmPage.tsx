@@ -5,6 +5,7 @@ import { CargaPisoPanel } from '../components/CargaPisoPanel';
 import { ImportarCargasModal } from '../components/ImportarCargasModal';
 import { AsignacionesPanel } from '../components/AsignacionesPanel';
 import { VistaFrontalSvg } from '../components/VistaFrontalSvg';
+import { HojaPlano } from '../components/HojaPlano';
 import { Resumen } from '../components/Resumen';
 import { ExportarPdfBoton } from '../components/ExportarPdfBoton';
 import { AsignacionesPanelNema } from '../components/AsignacionesPanelNema';
@@ -134,7 +135,7 @@ export function CcmPage() {
                 aria-label="Icc de barra en kA"
                 className="w-16 px-1.5 py-0.5 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 tabular-nums"
               />
-              <span className="text-slate-500">kA</span>
+              <span className="text-slate-500 dark:text-slate-400">kA</span>
             </label>
           )}
           {!esMt && (
@@ -315,9 +316,9 @@ export function CcmPage() {
           </section>
           <section className="space-y-2">
             <h2 className="text-lg font-semibold">Vista frontal (MT · CENTERLINE 2500)</h2>
-            <div className="border border-slate-200 dark:border-slate-800 rounded-lg p-4 overflow-x-auto bg-white">
+            <HojaPlano>
               <VistaFrontalCcmMtSvg tablero={resultadoMt.tablero} />
-            </div>
+            </HojaPlano>
           </section>
           <section><ResumenCcmMt resultado={resultadoMt} /></section>
         </>
@@ -339,9 +340,9 @@ export function CcmPage() {
           </section>
           <section className="space-y-2">
             <h2 className="text-lg font-semibold">Vista frontal (IEC / Blokset)</h2>
-            <div className="border border-slate-200 dark:border-slate-800 rounded-lg p-4 overflow-x-auto bg-white">
+            <HojaPlano>
               <VistaFrontalSvg ref={svgRefIec} tablero={resultadoIec.tablero} />
-            </div>
+            </HojaPlano>
           </section>
           <section><Resumen resultado={resultadoIec} /></section>
           {resultadoIec.tablero && (
@@ -381,9 +382,9 @@ export function CcmPage() {
           </section>
           <section className="space-y-2">
             <h2 className="text-lg font-semibold">Vista frontal (NEMA · X = 6")</h2>
-            <div className="border border-slate-200 dark:border-slate-800 rounded-lg p-4 overflow-x-auto bg-white">
+            <HojaPlano>
               <VistaFrontalCcmNemaSvg ref={svgRefNema} tablero={resultadoNema.tablero} />
-            </div>
+            </HojaPlano>
           </section>
           <section><ResumenCcmNema resultado={resultadoNema} /></section>
         </>

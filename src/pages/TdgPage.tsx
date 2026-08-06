@@ -3,6 +3,7 @@ import { TablaSalidas } from '../components/TablaSalidas';
 import { TransformadorAlimentadorModal } from '../components/TransformadorAlimentadorModal';
 import { PanelPrincipalBarra } from '../components/PanelPrincipalBarra';
 import { VistaFrontalTdgSvg } from '../components/VistaFrontalTdgSvg';
+import { HojaPlano } from '../components/HojaPlano';
 import { ResumenTdg } from '../components/ResumenTdg';
 import { ExportarPdfTdgBoton } from '../components/ExportarPdfTdgBoton';
 import { PanelPrincipalBarraNema } from '../components/PanelPrincipalBarraNema';
@@ -166,9 +167,9 @@ export function TdgPage() {
           <section><PanelPrincipalBarra tablero={resultadoIec.tablero} /></section>
           <section className="space-y-2">
             <h2 className="text-lg font-semibold">Vista frontal (IEC / Prisma)</h2>
-            <div className="border border-slate-200 dark:border-slate-800 rounded-lg p-4 overflow-x-auto bg-white">
+            <HojaPlano>
               <VistaFrontalTdgSvg ref={svgRefIec} tablero={resultadoIec.tablero} />
-            </div>
+            </HojaPlano>
           </section>
           <section><ResumenTdg resultado={resultadoIec} /></section>
         </>
@@ -179,9 +180,9 @@ export function TdgPage() {
           <section><PanelPrincipalBarraNema tablero={resultadoNema.tablero} /></section>
           <section className="space-y-2">
             <h2 className="text-lg font-semibold">Vista frontal (NEMA · ANSI)</h2>
-            <div className="border border-slate-200 dark:border-slate-800 rounded-lg p-4 overflow-x-auto bg-white">
+            <HojaPlano>
               <VistaFrontalTdgNemaSvg ref={svgRefNema} tablero={resultadoNema.tablero} />
-            </div>
+            </HojaPlano>
           </section>
           <section><ResumenTdgNema resultado={resultadoNema} /></section>
         </>

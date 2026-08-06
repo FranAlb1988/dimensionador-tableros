@@ -37,7 +37,7 @@ export function DerrateoControl({ nivel }: { nivel: NivelTension }) {
             aria-label="Altitud en metros sobre el nivel del mar"
             className="w-20 px-1.5 py-0.5 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 tabular-nums"
           />
-          <span className="text-slate-500">m.s.n.m.</span>
+          <span className="text-slate-500 dark:text-slate-400">m.s.n.m.</span>
           <input
             type="number"
             min={-10}
@@ -49,7 +49,7 @@ export function DerrateoControl({ nivel }: { nivel: NivelTension }) {
             title="Temperatura ambiente de diseño (F1 — IEEE C37.20.1; sin corrección hasta 40 °C)"
             className="w-14 px-1.5 py-0.5 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 tabular-nums"
           />
-          <span className="text-slate-500">°C</span>
+          <span className="text-slate-500 dark:text-slate-400">°C</span>
           <span
             className="text-slate-600 dark:text-slate-300 tabular-nums"
             title={`Factor combinado F1(temperatura) × F2(altura, ${nivel === 'MT' ? 'media' : 'baja'} tensión)`}

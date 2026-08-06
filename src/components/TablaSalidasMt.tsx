@@ -21,7 +21,7 @@ const btnSecondary =
   'px-3 py-1.5 text-sm font-medium rounded border border-slate-300 dark:border-slate-700 ' +
   'hover:bg-slate-100 dark:hover:bg-slate-800';
 const btnDanger =
-  'px-3 py-1.5 text-sm font-medium rounded text-red-700 hover:bg-red-50 ' +
+  'px-3 py-1.5 text-sm font-medium rounded text-red-700 dark:text-red-300 hover:bg-red-50 ' +
   'dark:text-red-400 dark:hover:bg-red-950';
 
 function corrienteEfectiva(s: SalidaMt, kv: number): number {

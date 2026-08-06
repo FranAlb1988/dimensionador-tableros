@@ -52,18 +52,18 @@ function Tarjeta({ asignacion }: { asignacion: AsignacionCarga }) {
           {tamanoEnXTexto(gaveta.tamano)}
         </span>
       </div>
-      <div className="text-xs text-slate-500 mt-0.5">
+      <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
         {carga.tipo} · {carga.fases} {carga.tensionV}V · I {I > 0 ? fmtAmp(I) : '—'}
       </div>
       <hr className="my-2 border-slate-200 dark:border-slate-800" />
       <dl className="space-y-1">
         <div className="flex">
-          <dt className="text-slate-500 w-24 shrink-0">Protección</dt>
+          <dt className="text-slate-500 dark:text-slate-400 w-24 shrink-0">Protección</dt>
           <dd className="font-mono text-xs">{proteccion.referencia}</dd>
         </div>
         {arrancador && (
           <div className="flex">
-            <dt className="text-slate-500 w-24 shrink-0">Arrancador</dt>
+            <dt className="text-slate-500 dark:text-slate-400 w-24 shrink-0">Arrancador</dt>
             <dd className="font-mono text-xs">
               {ARRANQUE_LABEL[arrancador.tipo]} · {arrancador.contactor}
               {arrancador.releTermico ? ` / ${arrancador.releTermico}` : ''}

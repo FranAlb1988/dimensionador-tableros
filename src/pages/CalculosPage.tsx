@@ -20,7 +20,7 @@ export function CalculosPage() {
         <nav className="space-y-4">
           {GRUPOS_CALCULADORAS.map(({ grupo, calculadoras }) => (
             <div key={grupo}>
-              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5 px-1">
+              <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5 px-1">
                 {GRUPO_LABEL[grupo]}
               </div>
               <ul className="space-y-0.5">

@@ -2,6 +2,7 @@ import { useMemo, useRef } from 'react';
 import { TablaCargasCdc } from '../components/TablaCargasCdc';
 import { PanelCofresCdc } from '../components/PanelCofresCdc';
 import { VistaFrontalCdcSvg } from '../components/VistaFrontalCdcSvg';
+import { HojaPlano } from '../components/HojaPlano';
 import { ResumenCdc } from '../components/ResumenCdc';
 import { ExportarPdfCdcBoton } from '../components/ExportarPdfCdcBoton';
 import { SUBTIPOS_CDC_LABEL, useCdcCargas, useCdcOpciones, useCdcStore, useCdcSubtipo } from '../store/cdc';
@@ -85,9 +86,9 @@ export function CdcPage() {
 
           <section className="space-y-2">
             <h2 className="text-lg font-semibold">Vista frontal</h2>
-            <div className="border border-slate-200 dark:border-slate-800 rounded-lg p-4 overflow-x-auto bg-white">
+            <HojaPlano>
               <VistaFrontalCdcSvg ref={svgRef} tablero={resultado.tablero} />
-            </div>
+            </HojaPlano>
           </section>
 
           <section>

@@ -5,6 +5,24 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dimensionador de tableros</title>
+    <script>
+      // Aplica el tema antes del primer pintado, para que la app no arranque en
+      // blanco y salte a oscuro cuando React monta. Debe leer la misma clave y
+      // la misma forma que el store de zustand (src/store/tema.ts).
+      (function () {
+        try {
+          var g = JSON.parse(localStorage.getItem('dimensionador-tema') || 'null');
+          var t = (g && g.state && g.state.tema) || 'sistema';
+          var osc =
+            t === 'oscuro' ||
+            (t === 'sistema' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.classList.toggle('dark', osc);
+          document.documentElement.style.colorScheme = osc ? 'dark' : 'light';
+        } catch (e) {
+          /* sin localStorage: queda el tema claro por defecto */
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

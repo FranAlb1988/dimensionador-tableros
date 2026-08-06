@@ -57,7 +57,7 @@ function Tarjeta({ titulo, badge, children }: { titulo: string; badge: string; c
 function Linea({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
   return (
     <div className="flex">
-      <dt className="text-slate-500 w-24 shrink-0">{label}</dt>
+      <dt className="text-slate-500 dark:text-slate-400 w-24 shrink-0">{label}</dt>
       <dd className={mono ? 'font-mono text-xs' : ''}>{value}</dd>
     </div>
   );
@@ -66,7 +66,7 @@ function Linea({ label, value, mono = false }: { label: string; value: string; m
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <span className="text-slate-500">{label}: </span>
+      <span className="text-slate-500 dark:text-slate-400">{label}: </span>
       <span className="font-semibold tabular-nums">{value}</span>
     </div>
   );

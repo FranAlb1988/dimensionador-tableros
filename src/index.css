@@ -3,7 +3,10 @@
 @variant dark (&:where(.dark, .dark *));
 
 :root {
-  color-scheme: light dark;
+  /* El `color-scheme` concreto lo fija el tema (src/store/tema.ts). Aquí NO va
+     `light dark`: con el par, los controles nativos y las barras de scroll
+     siguen la preferencia del sistema en vez del tema elegido, y al forzar uno
+     quedaban al revés que la página. */
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

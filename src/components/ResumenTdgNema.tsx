@@ -17,25 +17,25 @@ export function ResumenTdgNema({ resultado }: { resultado: ResultadoTdgNema }) {
   return (
     <div className="grid sm:grid-cols-2 gap-4">
       <div className="border border-slate-200 dark:border-slate-800 rounded-lg p-4">
-        <div className="text-sm font-medium text-slate-500 mb-2">Dimensiones del tablero</div>
+        <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Dimensiones del tablero</div>
         <dl className="grid grid-cols-2 gap-y-1 text-sm">
-          <dt className="text-slate-500">Columnas</dt>
+          <dt className="text-slate-500 dark:text-slate-400">Columnas</dt>
           <dd className="font-medium tabular-nums">{t.columnas}</dd>
-          <dt className="text-slate-500">Alto</dt>
+          <dt className="text-slate-500 dark:text-slate-400">Alto</dt>
           <dd className="font-medium tabular-nums">{fmtMm(t.altoTotalMm)}</dd>
-          <dt className="text-slate-500">Ancho</dt>
+          <dt className="text-slate-500 dark:text-slate-400">Ancho</dt>
           <dd className="font-medium tabular-nums">{fmtMm(t.anchoTotalMm)}</dd>
-          <dt className="text-slate-500">Profundidad</dt>
+          <dt className="text-slate-500 dark:text-slate-400">Profundidad</dt>
           <dd className="font-medium tabular-nums">{fmtMm(t.profundidadTotalMm)}</dd>
-          <dt className="text-slate-500">FLC total</dt>
+          <dt className="text-slate-500 dark:text-slate-400">FLC total</dt>
           <dd className="font-medium tabular-nums">{fmtAmp(t.corrienteTotalA)}</dd>
-          <dt className="text-slate-500">Salidas</dt>
+          <dt className="text-slate-500 dark:text-slate-400">Salidas</dt>
           <dd className="font-medium tabular-nums">{t.salidas.length}</dd>
         </dl>
       </div>
 
       <div className="border border-slate-200 dark:border-slate-800 rounded-lg p-4">
-        <div className="text-sm font-medium text-slate-500 mb-2">Salidas por frame ANSI</div>
+        <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Salidas por frame ANSI</div>
         <ul className="space-y-1 text-sm">
           {[...conteo.entries()].sort((a, b) => a[0] - b[0]).map(([f, n]) => (
             <li key={f} className="flex justify-between">
@@ -44,7 +44,7 @@ export function ResumenTdgNema({ resultado }: { resultado: ResultadoTdgNema }) {
             </li>
           ))}
           <li className="flex justify-between border-t border-slate-200 dark:border-slate-800 pt-1 mt-2">
-            <span className="text-slate-500">Total</span>
+            <span className="text-slate-500 dark:text-slate-400">Total</span>
             <span className="font-semibold tabular-nums">{t.salidas.length}</span>
           </li>
         </ul>

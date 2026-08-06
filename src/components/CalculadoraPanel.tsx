@@ -105,7 +105,7 @@ export function CalculadoraPanel({ calculadora }: { calculadora: Calculadora }) 
       <div className="p-4 grid lg:grid-cols-2 gap-5">
         {/* Entradas */}
         <div>
-          <div className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">
+          <div className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">
             Datos de entrada
           </div>
           <div className="grid sm:grid-cols-2 gap-3">
@@ -154,7 +154,7 @@ export function CalculadoraPanel({ calculadora }: { calculadora: Calculadora }) 
           </div>
 
           <div className="mt-3 rounded bg-slate-100 dark:bg-slate-800/60 px-3 py-2">
-            <div className="text-xs font-medium text-slate-500 mb-0.5">Fórmula</div>
+            <div className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-0.5">Fórmula</div>
             <code className="text-xs text-slate-700 dark:text-slate-200 break-words">
               {calculadora.formula}
             </code>
@@ -163,7 +163,7 @@ export function CalculadoraPanel({ calculadora }: { calculadora: Calculadora }) 
 
         {/* Resultados */}
         <div>
-          <div className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">
+          <div className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">
             Resultados
           </div>
           {resultado.error ? (
@@ -223,7 +223,7 @@ export function CalculadoraPanel({ calculadora }: { calculadora: Calculadora }) 
 
       {Vista && !resultado.error && (
         <div className="border-t border-slate-200 dark:border-slate-800 p-4">
-          <div className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">
+          <div className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">
             Visualización
           </div>
           <Vista entradas={entradas} resultado={resultado} />
@@ -260,7 +260,7 @@ function CampoLista({ campo, entradas, setRowField, addRow, removeRow }: CampoLi
               const valor = entradas[`${campo.key}.${i}.${sc.key}`] ?? '';
               return (
                 <label key={sc.key} className="flex-1 min-w-[110px]" title={sc.ayuda}>
-                  <span className="text-[10px] text-slate-500 block mb-0.5">
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 block mb-0.5">
                     {sc.label}{sc.unidad ? ` (${sc.unidad})` : ''}
                   </span>
                   {sc.tipo === 'select' ? (
@@ -290,7 +290,7 @@ function CampoLista({ campo, entradas, setRowField, addRow, removeRow }: CampoLi
               onClick={() => removeRow(i)}
               disabled={count <= min}
               title="Quitar fila"
-              className="mb-1.5 text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400 disabled:opacity-30 disabled:hover:text-slate-500 px-2 py-1 text-lg leading-none"
+              className="mb-1.5 text-slate-500 hover:text-red-600 dark:text-red-300 dark:text-slate-400 dark:hover:text-red-400 disabled:opacity-30 disabled:hover:text-slate-500 px-2 py-1 text-lg leading-none"
             >
               ×
             </button>
