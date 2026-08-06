@@ -12,6 +12,7 @@ import {
   type Envolvente,
 } from '../logic/climatizacion';
 import { fmtCantidad, fmtNumero } from '../util/format';
+import { parsearNumero } from '../util/numero';
 
 const controlCls =
   'w-full px-2 py-1 rounded border border-slate-300 dark:border-slate-700 ' +
@@ -41,6 +42,12 @@ interface CampoProps {
 
 function Campo({ label, valor, onChange, unidad, paso = 1 }: CampoProps) {
   const id = useId();
+
+  // Borrador de lo que el usuario está escribiendo mientras no sea un número
+  // válido. Sin esto, `Number('')` daba 0 y bastaba borrar un campo para
+  // rehacer el cálculo con cero: no se podía vaciar para reescribir.
+  const [borrador, setBorrador] = useState<string | null>(null);
+
   return (
     <>
       <label htmlFor={id} className={etiquetaCls}>{label}</label>
@@ -48,8 +55,15 @@ function Campo({ label, valor, onChange, unidad, paso = 1 }: CampoProps) {
         id={id}
         type="number"
         step={paso}
-        value={valor}
-        onChange={(e) => onChange(Number(e.target.value))}
+        value={borrador ?? valor}
+        onChange={(e) => {
+          const n = parsearNumero(e.target.value);
+          if (n === undefined) setBorrador(e.target.value);
+          else { setBorrador(null); onChange(n); }
+        }}
+        // Al salir se descarta el borrador y vuelve el último valor válido: un
+        // campo no puede quedar vacío y dejar el cálculo a medias.
+        onBlur={() => setBorrador(null)}
         className={controlCls}
       />
       <span className={unidadCls}>{unidad}</span>
