@@ -6,6 +6,7 @@ import { corrienteNominal } from '../logic/corriente';
 import { fmtAmp } from '../util/format';
 import { aKw, desdeKw } from '../util/potencia';
 import { nombreDeFila, rotuloDeCampo } from '../util/rotulos';
+import { TablaDesplazable } from './TablaDesplazable';
 
 const inputCls =
   'w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded ' +
@@ -75,7 +76,7 @@ export function TablaCargasCdc() {
           Sin circuitos. Agrega uno o carga el ejemplo.
         </div>
       ) : (
-        <div className="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-lg">
+        <TablaDesplazable etiqueta="Tabla de circuitos del CDC">
           <table className="w-full text-sm border-separate border-spacing-0">
             <thead className="bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-200">
               <tr>
@@ -104,7 +105,7 @@ export function TablaCargasCdc() {
               ))}
             </tbody>
           </table>
-        </div>
+        </TablaDesplazable>
       )}
     </div>
   );

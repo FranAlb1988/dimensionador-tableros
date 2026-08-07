@@ -6,6 +6,7 @@ import { corrienteNominal } from '../logic/corriente';
 import { fmtAmp, fmtNumeroFijo } from '../util/format';
 import { aKw, desdeKw } from '../util/potencia';
 import { nombreDeFila, rotuloDeCampo } from '../util/rotulos';
+import { TablaDesplazable } from './TablaDesplazable';
 
 function potenciaMostrada(c: Carga): string {
   if (c.potenciaKw == null) return '';
@@ -79,7 +80,7 @@ export function TablaSalidas() {
           No hay salidas. Agrega una o carga el ejemplo.
         </div>
       ) : (
-        <div className="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-lg">
+        <TablaDesplazable etiqueta="Tabla de salidas del TDG">
           <table className="w-full text-sm">
             <thead className="bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-300">
               <tr>
@@ -107,7 +108,7 @@ export function TablaSalidas() {
               ))}
             </tbody>
           </table>
-        </div>
+        </TablaDesplazable>
       )}
     </div>
   );

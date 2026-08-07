@@ -13,6 +13,7 @@ import {
 } from '../logic/climatizacion';
 import { fmtCantidad, fmtNumero } from '../util/format';
 import { parsearNumero } from '../util/numero';
+import { TablaDesplazable } from './TablaDesplazable';
 
 const controlCls =
   'w-full px-2 py-1 rounded border border-slate-300 dark:border-slate-700 ' +
@@ -185,7 +186,7 @@ export function ClimatizacionPanel() {
       {resultado && (
         <>
           <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
-            <div className="overflow-x-auto">
+            <TablaDesplazable etiqueta="Tabla de condiciones por estación" borde={false}>
               <table className="w-full text-sm">
                 <thead className="bg-slate-50 dark:bg-slate-900 text-left">
                   <tr className="[&>th]:px-3 [&>th]:py-2 [&>th]:font-medium [&>th]:text-slate-600 dark:[&>th]:text-slate-400">
@@ -225,7 +226,7 @@ export function ClimatizacionPanel() {
                   })}
                 </tbody>
               </table>
-            </div>
+            </TablaDesplazable>
           </div>
 
           <div className="grid sm:grid-cols-3 gap-4">

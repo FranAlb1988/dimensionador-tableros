@@ -17,6 +17,7 @@ import { useCcmStore } from '../store/ccm';
 import { fmtAmp } from '../util/format';
 import { desdeKw } from '../util/potencia';
 import { ARRANQUE_LABEL, type Fases, type TipoArranque, type TipoCarga, type UnidadPotencia } from '../types';
+import { TablaDesplazable } from './TablaDesplazable';
 
 interface Props {
   abierto: boolean;
@@ -450,7 +451,7 @@ function PanelVistaPrevia({
     );
   }
   return (
-    <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-x-auto">
+    <TablaDesplazable etiqueta="Vista previa de la importación">
       <div className="text-sm font-medium px-3 py-2 border-b border-slate-200 dark:border-slate-800">
         Vista previa ({candidatas.length} filas)
       </div>
@@ -497,6 +498,6 @@ function PanelVistaPrevia({
           })}
         </tbody>
       </table>
-    </div>
+    </TablaDesplazable>
   );
 }

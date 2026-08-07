@@ -1,6 +1,7 @@
 import type { ResultadoMt } from '../logic/mt';
 import { TIPO_CELDA_MT_LABEL } from '../types';
 import { fmtAmp, fmtMm } from '../util/format';
+import { TablaDesplazable } from './TablaDesplazable';
 
 interface Props {
   resultado: ResultadoMt;
@@ -25,7 +26,7 @@ export function ResumenMt({ resultado }: Props) {
         <Dato etiqueta="I requerida" valor={fmtAmp(t.corrienteRequeridaA)} />
       </div>
 
-      <div className="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-lg">
+      <TablaDesplazable etiqueta="Resumen de media tensión">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 dark:bg-slate-900 text-left">
             <tr>
@@ -48,7 +49,7 @@ export function ResumenMt({ resultado }: Props) {
             ))}
           </tbody>
         </table>
-      </div>
+      </TablaDesplazable>
 
       {resultado.salidasSinAsignar.length > 0 && (
         <div className="border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 rounded p-3 text-sm">

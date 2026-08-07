@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import type { Carga } from '../types';
 import { HORAS_DIA_DEFECTO, resumirDemanda, type Potencias } from '../logic/demanda';
 import { fmtAmp, fmtCantidad, fmtNumero } from '../util/format';
+import { TablaDesplazable } from './TablaDesplazable';
 
 interface Props {
   cargas: readonly Carga[];
@@ -49,7 +50,7 @@ export function EstudioCargasPanel({ cargas, tensionBarraV }: Props) {
         </p>
       </div>
 
-      <div className="overflow-x-auto">
+      <TablaDesplazable etiqueta="Tabla del estudio de cargas" borde={false}>
         <table className="min-w-max text-sm border-separate border-spacing-0">
           <thead>
             <tr>
@@ -98,7 +99,7 @@ export function EstudioCargasPanel({ cargas, tensionBarraV }: Props) {
             </tr>
           </tbody>
         </table>
-      </div>
+      </TablaDesplazable>
 
       <dl className="grid grid-cols-2 sm:grid-cols-4 gap-y-1 gap-x-4 text-sm">
         <dt className="text-slate-500 dark:text-slate-400">Factor de demanda</dt>

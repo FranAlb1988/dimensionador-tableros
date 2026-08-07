@@ -10,6 +10,7 @@ import { CATALOGO_MT, corrienteDesdeMva } from '../logic/mt';
 import { TIPO_CELDA_MT_LABEL, type SalidaMt } from '../types';
 import { fmtAmp } from '../util/format';
 import { nombreDeFila, rotuloDeCampo } from '../util/rotulos';
+import { TablaDesplazable } from './TablaDesplazable';
 
 const inputCls =
   'w-full bg-transparent border border-slate-300 dark:border-slate-700 rounded px-2 py-1 ' +
@@ -88,7 +89,7 @@ export function TablaSalidasMt() {
         </div>
       </div>
 
-      <div className="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-lg">
+      <TablaDesplazable etiqueta="Tabla de celdas de media tensión">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 dark:bg-slate-900 text-left">
             <tr>
@@ -168,7 +169,7 @@ export function TablaSalidasMt() {
             })}
           </tbody>
         </table>
-      </div>
+      </TablaDesplazable>
 
       <div className="flex gap-2 flex-wrap">
         <button className={btnPrimary} onClick={() => agregar('salida')}>+ Salida</button>

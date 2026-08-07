@@ -2,6 +2,7 @@ import type { ChangeEvent } from 'react';
 import { COLUMNAS_POR_CATEGORIA, useAuxiliaresPorCategoria, useAuxiliaresStore, type ColumnaAuxiliar } from '../store/auxiliares';
 import type { CategoriaAuxiliar, EquipoAuxiliar } from '../types';
 import { nombreDeFila, rotuloDeCampo } from '../util/rotulos';
+import { TablaDesplazable } from './TablaDesplazable';
 
 const inputCls =
   'w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded ' +
@@ -56,7 +57,7 @@ export function TablaAuxiliares({ categoria }: Props) {
           Sin equipos en esta categoría. Agrega uno o carga el ejemplo.
         </div>
       ) : (
-        <div className="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-lg">
+        <TablaDesplazable etiqueta="Tabla de equipos auxiliares">
           <table className="w-full text-sm border-separate border-spacing-0">
             <thead className="bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-200">
               <tr>
@@ -87,7 +88,7 @@ export function TablaAuxiliares({ categoria }: Props) {
               ))}
             </tbody>
           </table>
-        </div>
+        </TablaDesplazable>
       )}
     </div>
   );

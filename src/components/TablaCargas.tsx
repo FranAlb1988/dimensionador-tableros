@@ -8,6 +8,7 @@ import { useFactorDerrateo } from '../store/proyecto-meta';
 import { fmtAmp } from '../util/format';
 import { aKw, desdeKw } from '../util/potencia';
 import { nombreDeFila, rotuloDeCampo } from '../util/rotulos';
+import { TablaDesplazable } from './TablaDesplazable';
 
 /** Tensiones de baja tensión más comunes en CCM (V). */
 const TENSIONES_BT = [110, 220, 380, 400, 415, 440, 480, 600, 660, 690] as const;
@@ -74,7 +75,7 @@ export function TablaCargas() {
           No hay cargas. Agrega una o carga el ejemplo.
         </div>
       ) : (
-        <div className="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-lg">
+        <TablaDesplazable etiqueta="Tabla de cargas del CCM">
           <table className="min-w-max text-sm border-separate border-spacing-0">
             <thead className="bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-200">
               <tr>
@@ -156,7 +157,7 @@ export function TablaCargas() {
               ))}
             </tbody>
           </table>
-        </div>
+        </TablaDesplazable>
       )}
     </div>
   );
