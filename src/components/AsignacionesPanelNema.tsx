@@ -117,7 +117,9 @@ function Variador({ cargaId, v }: { cargaId: string; v: NonNullable<AsignacionCc
                 className={
                   'px-1.5 py-0.5 text-[11px] font-medium transition-colors '
                   + (activo
-                    ? 'bg-sky-600 text-white dark:bg-sky-500 dark:text-sky-950'
+                    // sky-700 y no sky-600: con blanco encima, el 600 da 4,0:1
+                    // y este texto mide 11 px.
+                    ? 'bg-sky-700 text-white dark:bg-sky-500 dark:text-sky-950'
                     : 'bg-white dark:bg-sky-950 text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900')
                 }
               >

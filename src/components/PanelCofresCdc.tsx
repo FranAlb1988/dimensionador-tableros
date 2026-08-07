@@ -63,7 +63,7 @@ function FilaResumen({ fila }: { fila: FilaDin }) {
           </span>
         ))}
         {fila.modulosLibres > 0 && (
-          <span className="px-1.5 py-0.5 rounded border border-dashed border-slate-300 dark:border-slate-700 text-slate-400 text-[10px]">
+          <span className="px-1.5 py-0.5 rounded border border-dashed border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400 text-[10px]">
             Libre {fila.modulosLibres}
           </span>
         )}

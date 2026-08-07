@@ -77,7 +77,7 @@ export function EstudioCargasPanel({ cargas, tensionBarraV }: Props) {
                     className={`px-3 py-1.5 text-right tabular-nums border-b border-slate-200 dark:border-slate-800
                       ${c.destacar ? 'bg-slate-50 dark:bg-slate-900/60 font-medium' : ''}`}
                   >
-                    {fmtNumero(Math.round(c.p[f.clave]))} <span className="text-slate-400">{f.unidad}</span>
+                    {fmtNumero(Math.round(c.p[f.clave]))} <span className="text-slate-500 dark:text-slate-400">{f.unidad}</span>
                   </td>
                 ))}
               </tr>

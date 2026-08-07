@@ -126,8 +126,8 @@ export function CalculadoraPanel({ calculadora }: { calculadora: Calculadora }) 
                 <label key={campo.key} className="block" title={campo.ayuda}>
                   <span className="text-xs text-slate-600 dark:text-slate-300 mb-1 inline-block">
                     {campo.label}
-                    {campo.unidad ? <span className="text-slate-400"> ({campo.unidad})</span> : null}
-                    {campo.opcional ? <span className="text-slate-400"> · opcional</span> : null}
+                    {campo.unidad ? <span className="text-slate-500 dark:text-slate-400"> ({campo.unidad})</span> : null}
+                    {campo.opcional ? <span className="text-slate-500 dark:text-slate-400"> · opcional</span> : null}
                   </span>
                   {campo.tipo === 'select' ? (
                     <select
@@ -154,7 +154,9 @@ export function CalculadoraPanel({ calculadora }: { calculadora: Calculadora }) 
           </div>
 
           <div className="mt-3 rounded bg-slate-100 dark:bg-slate-800/60 px-3 py-2">
-            <div className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-0.5">Fórmula</div>
+            {/* slate-600 y no 500: este rótulo va sobre la tarjeta tintada, no
+                sobre blanco, y ahí el 500 se queda en 4,35:1. */}
+            <div className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-0.5">Fórmula</div>
             <code className="text-xs text-slate-700 dark:text-slate-200 break-words">
               {calculadora.formula}
             </code>
@@ -255,7 +257,7 @@ function CampoLista({ campo, entradas, setRowField, addRow, removeRow }: CampoLi
       <div className="space-y-1.5">
         {Array.from({ length: count }).map((_, i) => (
           <div key={i} className="flex items-end gap-2 flex-wrap bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded px-2 py-1.5">
-            <span className="text-[11px] font-medium text-slate-400 w-5 mb-1.5">{i + 1}</span>
+            <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 w-5 mb-1.5">{i + 1}</span>
             {subcampos.map((sc) => {
               const valor = entradas[`${campo.key}.${i}.${sc.key}`] ?? '';
               return (

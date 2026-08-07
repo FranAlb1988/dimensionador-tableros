@@ -313,7 +313,7 @@ function PanelArchivo({
     <div className="border border-slate-200 dark:border-slate-800 rounded-lg p-3 text-sm flex items-center gap-3 flex-wrap">
       <span className="text-slate-500 dark:text-slate-400">Archivo:</span>
       <span className="font-medium">{archivo.nombreArchivo}</span>
-      <span className="text-slate-400">·</span>
+      <span className="text-slate-500 dark:text-slate-400">·</span>
       <span className="text-slate-500 dark:text-slate-400">Hoja:</span>
       {archivo.hojas.length === 1 ? (
         <span>{archivo.hojas[0]!.nombre} ({archivo.hojas[0]!.filas.length} filas)</span>
@@ -330,7 +330,7 @@ function PanelArchivo({
       )}
       {hoja?.matriz && (
         <>
-          <span className="text-slate-400">·</span>
+          <span className="text-slate-500 dark:text-slate-400">·</span>
           <label className="text-slate-500 dark:text-slate-400" htmlFor="fila-header">Fila de encabezados:</label>
           <input
             id="fila-header"
@@ -340,7 +340,7 @@ function PanelArchivo({
             onChange={(e) => onFilaHeaderChange(Number(e.target.value))}
             className="w-20 border border-slate-300 dark:border-slate-700 rounded px-2 py-1 bg-white dark:bg-slate-900 tabular-nums"
           />
-          <span className="text-xs text-slate-400">
+          <span className="text-xs text-slate-500 dark:text-slate-400">
             Cámbiala si la app tomó la fila equivocada (el título del proyecto, por ejemplo).
           </span>
         </>

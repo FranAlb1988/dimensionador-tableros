@@ -348,7 +348,7 @@ function FilaCarga({ carga, indice, zebra, onChange, onDuplicar, onEliminar }: F
             aria-label={`${rotulo('Rendimiento del motor')}. Vacío usa 0,9`}
           />
         ) : (
-          <span className="text-slate-400 text-sm">—</span>
+          <span className="text-slate-500 dark:text-slate-400 text-sm">—</span>
         )}
       </td>
       <td className={cellCls}>
@@ -365,7 +365,7 @@ function FilaCarga({ carga, indice, zebra, onChange, onDuplicar, onEliminar }: F
         {I > 0 ? (
           <span className="text-slate-700 dark:text-slate-200">{fmtAmp(I)}</span>
         ) : (
-          <span className="text-slate-400">—</span>
+          <span className="text-slate-500 dark:text-slate-400">—</span>
         )}
       </td>
       <td className={cellCls}>
@@ -385,7 +385,7 @@ function FilaCarga({ carga, indice, zebra, onChange, onDuplicar, onEliminar }: F
             {frameLabel}
           </span>
         ) : (
-          <span className="text-slate-400 text-xs">—</span>
+          <span className="text-slate-500 dark:text-slate-400 text-xs">—</span>
         )}
       </td>
       <td className={cellCls}>
@@ -399,7 +399,7 @@ function FilaCarga({ carga, indice, zebra, onChange, onDuplicar, onEliminar }: F
             {TIPOS_ARRANQUE.map((a) => <option key={a} value={a}>{ARRANQUE_LABEL[a]}</option>)}
           </select>
         ) : (
-          <span className="text-slate-400 text-sm">—</span>
+          <span className="text-slate-500 dark:text-slate-400 text-sm">—</span>
         )}
       </td>
       <td className={`${cellCls} text-right whitespace-nowrap`}>

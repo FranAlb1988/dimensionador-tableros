@@ -210,7 +210,7 @@ function Fila({ carga, indice, zebra, onChange, onDuplicar, onEliminar }: FilaPr
           aria-label={`${rotulo('Corriente')}, en amperes. Vacío la calcula`} />
       </td>
       <td className={`${cellCls} bg-slate-50 dark:bg-slate-900/60 text-right tabular-nums font-medium`}>
-        {I > 0 ? <span>{fmtAmp(I)}</span> : <span className="text-slate-400">—</span>}
+        {I > 0 ? <span>{fmtAmp(I)}</span> : <span className="text-slate-500 dark:text-slate-400">—</span>}
       </td>
       <td className={`${cellCls} text-right whitespace-nowrap`}>
         <button onClick={onDuplicar} title="Duplicar" aria-label={`Duplicar ${nombre}`}

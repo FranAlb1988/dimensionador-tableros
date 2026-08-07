@@ -63,7 +63,7 @@ export function Resumen({ resultado }: { resultado: ResultadoCcm }) {
               <li key={t} className="flex justify-between">
                 <span>{tamanoEnXTexto(t)}</span>
                 <span className="font-medium tabular-nums">
-                  {n} <span className="text-slate-400">({fmtX(n * tamanoEnX(t))})</span>
+                  {n} <span className="text-slate-500 dark:text-slate-400">({fmtX(n * tamanoEnX(t))})</span>
                 </span>
               </li>
             );
@@ -71,7 +71,7 @@ export function Resumen({ resultado }: { resultado: ResultadoCcm }) {
           <li className="flex justify-between border-t border-slate-200 dark:border-slate-800 pt-1 mt-2">
             <span className="text-slate-500 dark:text-slate-400">Total</span>
             <span className="font-semibold tabular-nums">
-              {asignaciones.length} <span className="text-slate-400">({fmtX(xUsadoTotal)})</span>
+              {asignaciones.length} <span className="text-slate-500 dark:text-slate-400">({fmtX(xUsadoTotal)})</span>
             </span>
           </li>
         </ul>
