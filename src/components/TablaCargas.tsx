@@ -26,7 +26,7 @@ const TENSIONES_TODAS: readonly number[] = [...TENSIONES_BT, ...TENSIONES_MT.map
 
 const inputBase =
   'bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded ' +
-  'px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-500 ' +
+  'px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-slate-500 ' +
   'text-sm tabular-nums';
 
 const inputCls = `w-full ${inputBase}`;

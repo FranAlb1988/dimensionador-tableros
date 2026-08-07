@@ -11,7 +11,7 @@ const VISUALIZACIONES: Record<string, ComponentType<{ entradas: EntradasCalc; re
 
 const inputCls =
   'w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded ' +
-  'px-2 py-1.5 text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-500';
+  'px-2 py-1.5 text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-slate-500';
 
 function entradasIniciales(calc: Calculadora): EntradasCalc {
   const e: EntradasCalc = {};

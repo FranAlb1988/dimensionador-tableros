@@ -5,7 +5,7 @@ import { nombreDeFila, rotuloDeCampo } from '../util/rotulos';
 
 const inputCls =
   'w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded ' +
-  'px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-500 text-sm';
+  'px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm';
 
 const btnPrimary =
   'px-3 py-1.5 text-sm font-medium rounded bg-slate-900 text-white hover:bg-slate-700 ' +
