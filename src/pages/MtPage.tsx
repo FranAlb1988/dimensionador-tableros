@@ -83,7 +83,8 @@ export function MtPage() {
         </>
       )}
 
-      {!resultado.tablero && resultado.motivo && (
+      {/* Con la tabla vacía no hay fallo que avisar: la tabla ya dice qué hacer. */}
+      {salidas.length > 0 && !resultado.tablero && resultado.motivo && (
         <div className="border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 rounded p-3 text-sm text-amber-900 dark:text-amber-100">
           {resultado.motivo}
         </div>

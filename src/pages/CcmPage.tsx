@@ -89,6 +89,16 @@ export function CcmPage() {
     [cargas, esMt, factorDerrateoMt, reservaPorcentaje],
   );
 
+  /**
+   * Hay overflow de barra y se puede resolver moviendo parte de las cargas a
+   * otro CCM. Si sobran TODAS, desglosar no arregla nada y corresponde
+   * explicar en vez de ofrecer un botón que deja el tablero igual.
+   */
+  const puedeDesglosarNema =
+    resultadoNema?.overflowBarra != null
+    && resultadoNema.overflowBarra.idsOverflow.length > 0
+    && resultadoNema.overflowBarra.idsOverflow.length < resultadoNema.asignaciones.length;
+
   const handleDesglosar = () => {
     if (!resultadoNema?.overflowBarra || !activoId) return;
     const { idsOverflow } = resultadoNema.overflowBarra;
@@ -361,15 +371,64 @@ export function CcmPage() {
         Cuando el dimensionamiento no llega a un tablero (p. ej. la barra
         requerida se sale del catálogo), hay que decir por qué. Antes la página
         simplemente no mostraba nada y parecía que la app no calculaba.
+
+        Un solo bloque para los dos desenlaces posibles. Antes eran dos
+        condiciones separadas que podían cumplirse a la vez, y el mismo motivo
+        aparecía repetido en dos cajas.
+
+        Con la tabla vacía no se muestra nada: no haber agregado cargas todavía
+        no es un fallo de dimensionamiento, y la tabla ya dice qué hacer. La
+        página recibía al usuario con dos avisos de error antes de que tocara
+        nada.
       */}
-      {!esMt && norma === 'NEMA' && resultadoNema && !resultadoNema.tablero && resultadoNema.motivo && (
-        <div className="border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 rounded p-3 text-sm text-amber-900 dark:text-amber-100">
-          <p className="font-medium">No se pudo dimensionar el CCM.</p>
-          <p>{resultadoNema.motivo}</p>
-          <p className="mt-1 text-amber-800 dark:text-amber-200">
-            Pruebe con menos reserva, reparta las cargas en más de un CCM o use la convención IEC.
-          </p>
-        </div>
+      {norma === 'NEMA' && resultadoNema && !resultadoNema.tablero && cargas.length > 0 && (
+        puedeDesglosarNema ? (
+          <div className="border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-950/40 rounded-lg p-4 space-y-3">
+            <div className="flex items-start gap-3">
+              <span className="text-red-500 text-lg leading-none mt-0.5" aria-hidden>⚠</span>
+              <div>
+                <p className="font-semibold text-red-900 dark:text-red-200">
+                  Corriente total supera la barra principal máxima disponible
+                </p>
+                <p className="text-sm text-red-700 dark:text-red-300 mt-0.5">
+                  FLC total:{' '}
+                  <strong>{resultadoNema.overflowBarra!.corrienteTotalA.toFixed(0)} A</strong>
+                  {' — '}
+                  Barra máxima:{' '}
+                  <strong>{resultadoNema.overflowBarra!.maxFlcA} A</strong>
+                </p>
+              </div>
+            </div>
+            <div className="pl-8 text-sm text-red-800 dark:text-red-200 space-y-1">
+              <p className="font-medium">
+                {resultadoNema.overflowBarra!.idsOverflow.length} carga(s) que se moverán al nuevo CCM:
+              </p>
+              <ul className="list-disc list-inside space-y-0.5 text-red-700 dark:text-red-300">
+                {cargas
+                  .filter((c) => resultadoNema.overflowBarra!.idsOverflow.includes(c.id))
+                  .map((c) => (
+                    <li key={c.id}>{c.descripcion || '(sin descripción)'}</li>
+                  ))}
+              </ul>
+            </div>
+            <div className="pl-8">
+              <button
+                onClick={handleDesglosar}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white rounded text-sm font-medium transition-colors"
+              >
+                Crear nuevo CCM con las cargas sobrantes
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 rounded p-3 text-sm text-amber-900 dark:text-amber-100">
+            <p className="font-medium">No se pudo dimensionar el CCM.</p>
+            {resultadoNema.motivo && <p>{resultadoNema.motivo}</p>}
+            <p className="mt-1 text-amber-800 dark:text-amber-200">
+              Pruebe con menos reserva, reparta las cargas en más de un CCM o use la convención IEC.
+            </p>
+          </div>
+        )
       )}
 
       {norma === 'NEMA' && resultadoNema && resultadoNema.tablero && (
@@ -388,57 +447,6 @@ export function CcmPage() {
           </section>
           <section><ResumenCcmNema resultado={resultadoNema} /></section>
         </>
-      )}
-
-      {norma === 'NEMA' && resultadoNema && !resultadoNema.tablero && (
-        resultadoNema.overflowBarra && resultadoNema.overflowBarra.idsOverflow.length > 0
-          && resultadoNema.overflowBarra.idsOverflow.length < resultadoNema.asignaciones.length
-          ? (
-            <div className="border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-950/40 rounded-lg p-4 space-y-3">
-              <div className="flex items-start gap-3">
-                <span className="text-red-500 text-lg leading-none mt-0.5" aria-hidden>⚠</span>
-                <div>
-                  <p className="font-semibold text-red-900 dark:text-red-200">
-                    Corriente total supera la barra principal máxima disponible
-                  </p>
-                  <p className="text-sm text-red-700 dark:text-red-300 mt-0.5">
-                    FLC total:{' '}
-                    <strong>{resultadoNema.overflowBarra.corrienteTotalA.toFixed(0)} A</strong>
-                    {' — '}
-                    Barra máxima:{' '}
-                    <strong>{resultadoNema.overflowBarra.maxFlcA} A</strong>
-                  </p>
-                </div>
-              </div>
-              <div className="pl-8 text-sm text-red-800 dark:text-red-200 space-y-1">
-                <p className="font-medium">
-                  {resultadoNema.overflowBarra.idsOverflow.length} carga(s) que se moverán al nuevo CCM:
-                </p>
-                <ul className="list-disc list-inside space-y-0.5 text-red-700 dark:text-red-300">
-                  {cargas
-                    .filter((c) => resultadoNema.overflowBarra!.idsOverflow.includes(c.id))
-                    .map((c) => (
-                      <li key={c.id}>{c.descripcion || '(sin descripción)'}</li>
-                    ))}
-                </ul>
-              </div>
-              <div className="pl-8">
-                <button
-                  onClick={handleDesglosar}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white rounded text-sm font-medium transition-colors"
-                >
-                  Crear nuevo CCM con las cargas sobrantes
-                </button>
-              </div>
-            </div>
-          )
-          : resultadoNema.motivo
-            ? (
-              <div className="border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 rounded p-3 text-sm text-amber-900 dark:text-amber-100">
-                {resultadoNema.motivo}
-              </div>
-            )
-            : null
       )}
 
       <ImportarCargasModal abierto={importAbierto} onCerrar={() => setImportAbierto(false)} />

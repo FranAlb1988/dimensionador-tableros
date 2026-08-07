@@ -211,7 +211,9 @@ export function TdgPage() {
         );
       })()}
 
-      {((norma === 'IEC' && resultadoIec && !resultadoIec.tablero && resultadoIec.motivo) ||
+      {/* Con la tabla vacía no hay fallo que avisar: la tabla ya dice qué hacer. */}
+      {salidas.length > 0 &&
+        ((norma === 'IEC' && resultadoIec && !resultadoIec.tablero && resultadoIec.motivo) ||
         (norma === 'NEMA' && resultadoNema && !resultadoNema.tablero && resultadoNema.motivo)) && (
         <div className="border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 rounded p-3 text-sm text-amber-900 dark:text-amber-100">
           {(norma === 'IEC' ? resultadoIec?.motivo : resultadoNema?.motivo) ?? ''}
