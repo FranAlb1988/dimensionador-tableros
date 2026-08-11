@@ -4,8 +4,9 @@ import {
   SOBRECARGA_PISO_DISENO_KGM2, type TipoEquipoSala,
 } from '../logic/carga-piso';
 import {
-  DISPOSICION_LABEL, dimensionarSala, dimensionesTipicas, holguraFrontalPorDefecto,
-  type CriteriosSala, type Disposicion, type EquipoEnSala,
+  CONSTRUCCION_LABEL, DISPOSICION_LABEL, dimensionarSala, dimensionesTipicas,
+  ESPESOR_MURO_MM, holguraFrontalPorDefecto,
+  type CriteriosSala, type Disposicion, type EquipoEnSala, type TipoConstruccion,
 } from '../logic/sala';
 import { fmtCantidad, fmtNumero } from '../util/format';
 import { parsearNumero } from '../util/numero';
@@ -80,7 +81,15 @@ export function DimensionSalaPanel() {
   const [holguraFrontal, setHolguraFrontal] = useState(holguraFrontalPorDefecto('dosFilasEnfrentadas'));
   const [holguraPosterior, setHolguraPosterior] = useState(0);
   const [holguraLateral, setHolguraLateral] = useState(600);
+  const [construccion, setConstruccion] = useState<TipoConstruccion>('prefabricada');
+  const [espesorMuro, setEspesorMuro] = useState(ESPESOR_MURO_MM.prefabricada);
+  // Apagado por defecto: el largo neto es el requisito de ingeniería y modular
+  // es una decisión de fabricación. Además el salto es brusco — 3 % de exceso
+  // sobre tres módulos obliga a un cuarto contenedor entero.
+  const [modular, setModular] = useState(false);
+  const [sobre1200A, setSobre1200A] = useState(true);
   const idDisposicion = useId();
+  const idConstruccion = useId();
   const idEquipos = useId();
 
   const cambiarDisposicion = (d: Disposicion) => {
@@ -90,6 +99,13 @@ export function DimensionSalaPanel() {
     if (holguraFrontal === holguraFrontalPorDefecto(disposicion)) {
       setHolguraFrontal(holguraFrontalPorDefecto(d));
     }
+  };
+
+  const cambiarConstruccion = (c: TipoConstruccion) => {
+    setConstruccion(c);
+    if (espesorMuro === ESPESOR_MURO_MM[construccion]) setEspesorMuro(ESPESOR_MURO_MM[c]);
+    // Modular a contenedor no tiene sentido en obra civil: la planta es libre.
+    if (c === 'hormigon') setModular(false);
   };
 
   const resultado = useMemo(() => {
@@ -107,9 +123,14 @@ export function DimensionSalaPanel() {
       holguraFrontalMm: holguraFrontal,
       holguraPosteriorMm: holguraPosterior,
       holguraLateralMm: holguraLateral,
+      construccion,
+      espesorMuroMm: espesorMuro,
+      modularContenedor: modular && construccion === 'prefabricada',
+      equipoSobre1200A: sobre1200A,
     };
     return dimensionarSala(equipos, criterios);
-  }, [cantidades, disposicion, holguraFrontal, holguraPosterior, holguraLateral]);
+  }, [cantidades, disposicion, holguraFrontal, holguraPosterior, holguraLateral,
+      construccion, espesorMuro, modular, sobre1200A]);
 
   const piso = useMemo(() => {
     if (!resultado) return undefined;
@@ -180,6 +201,49 @@ export function DimensionSalaPanel() {
             <Campo label="Holgura posterior" valor={holguraPosterior} onChange={setHolguraPosterior} unidad="mm" paso={50} />
             <Campo label="Holgura lateral" valor={holguraLateral} onChange={setHolguraLateral} unidad="mm" paso={50} />
           </div>
+
+          <label htmlFor={idConstruccion} className={`block pt-1 ${etiquetaCls}`}>Construcción</label>
+          <select
+            id={idConstruccion}
+            value={construccion}
+            onChange={(e) => cambiarConstruccion(e.target.value as TipoConstruccion)}
+            className={controlCls}
+          >
+            {(Object.keys(CONSTRUCCION_LABEL) as TipoConstruccion[]).map((c) => (
+              <option key={c} value={c}>{CONSTRUCCION_LABEL[c]}</option>
+            ))}
+          </select>
+          <div className={REJILLA}>
+            <Campo label="Espesor de muro" valor={espesorMuro} onChange={setEspesorMuro} unidad="mm" paso={10} />
+          </div>
+
+          <label className="flex items-start gap-2 text-sm cursor-pointer">
+            <input
+              type="checkbox"
+              checked={modular && construccion === 'prefabricada'}
+              disabled={construccion === 'hormigon'}
+              onChange={(e) => setModular(e.target.checked)}
+              className="mt-0.5"
+            />
+            <span className={etiquetaCls}>
+              Ajustar el largo a módulos de contenedor
+              {construccion === 'hormigon' && (
+                <span className="block text-xs">En obra civil la planta es libre.</span>
+              )}
+            </span>
+          </label>
+
+          <label className="flex items-start gap-2 text-sm cursor-pointer">
+            <input
+              type="checkbox"
+              checked={sobre1200A}
+              onChange={(e) => setSobre1200A(e.target.checked)}
+              className="mt-0.5"
+            />
+            <span className={etiquetaCls}>
+              Hay equipo de 1.200 A o más y sobre 1,8 m de ancho
+            </span>
+          </label>
           {resultado && (
             <p className="text-xs text-slate-500 dark:text-slate-400">
               Condición {resultado.condicionNec} del NEC 110.26.
@@ -199,13 +263,21 @@ export function DimensionSalaPanel() {
         <>
           <div className="grid sm:grid-cols-3 gap-4">
             <div className="border border-slate-200 dark:border-slate-800 rounded-lg p-4">
-              <div className="text-xs text-slate-500 dark:text-slate-400">Dimensiones estimadas</div>
+              <div className="text-xs text-slate-500 dark:text-slate-400">Interior libre</div>
               <div className="text-3xl font-semibold tabular-nums">
                 {fmtCantidad(resultado.largoM, 2)} × {fmtCantidad(resultado.anchoM, 2)}
                 <span className="text-base font-normal text-slate-500 dark:text-slate-400"> m</span>
               </div>
               <div className="text-xs text-slate-500 dark:text-slate-400">
                 {fmtCantidad(resultado.superficieM2, 1)} m² de planta
+                {resultado.modulos != null && ` · ${resultado.modulos} módulos de contenedor`}
+              </div>
+              <div className="text-xs text-slate-500 dark:text-slate-400 mt-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+                Exterior con muros:{' '}
+                <strong className="tabular-nums font-medium">
+                  {fmtCantidad(resultado.largoExteriorM, 2)} × {fmtCantidad(resultado.anchoExteriorM, 2)} m
+                </strong>
+                {' '}({fmtCantidad(resultado.superficieExteriorM2, 1)} m²)
               </div>
             </div>
             <div className="border border-slate-200 dark:border-slate-800 rounded-lg p-4">
@@ -255,12 +327,30 @@ export function DimensionSalaPanel() {
             </table>
           </TablaDesplazable>
 
-          {resultado.frenteEnMuroMm > 0 && (
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Hay {fmtCantidad(resultado.frenteEnMuroMm / 1000, 2)} m de frente montado en muro exterior
-              que no consume planta. En la sala de referencia son los 9 equipos HVAC.
-            </p>
+          {resultado.requiereDobleAcceso && (
+            <div className="rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30 px-3 py-2 text-sm text-amber-900 dark:text-amber-100">
+              <strong>La sala necesita dos accesos.</strong> Con equipo de 1.200 A o más y sobre
+              1,8 m de ancho, el Art. 110.26(C)(2) exige una entrada en cada extremo del espacio
+              de trabajo, de 610 mm de ancho y 2,0 m de alto como mínimo. No cambia la superficie,
+              pero condiciona dónde van las puertas.
+            </div>
           )}
+
+          <div className="text-xs text-slate-500 dark:text-slate-400 space-y-1">
+            {resultado.frenteEnMuroMm > 0 && (
+              <p>
+                Hay {fmtCantidad(resultado.frenteEnMuroMm / 1000, 2)} m de frente montado en muro
+                exterior que no consume planta. En la sala de referencia son los 9 equipos HVAC.
+              </p>
+            )}
+            {resultado.holguraPorModulacionMm != null && resultado.holguraPorModulacionMm > 0 && (
+              <p>
+                Modular a {resultado.modulos} contenedores agrega{' '}
+                {fmtCantidad(resultado.holguraPorModulacionMm / 1000, 2)} m sobre el largo
+                estrictamente necesario.
+              </p>
+            )}
+          </div>
         </>
       )}
     </div>

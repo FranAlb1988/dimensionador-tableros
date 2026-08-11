@@ -5,8 +5,11 @@ import {
   CRITERIOS_POR_DEFECTO,
   dimensionarSala,
   dimensionesTipicas,
+  ESPESOR_MURO_MM,
+  filasDe,
   holguraFrontalPorDefecto,
   HOLGURA_NEC_MM,
+  MODULO_CONTENEDOR_MM,
   type CriteriosSala,
   type EquipoEnSala,
 } from './sala';
@@ -144,6 +147,110 @@ describe('dimensionarSala', () => {
       criterios({ holguraLateralMm: 0 }),
     )!;
     expect(r.largoM).toBeCloseTo(2, 6);
+  });
+});
+
+describe('tipo de construcción', () => {
+  const eq = [{ nombre: 'x', anchoMm: 3000, profundidadMm: 800, cantidad: 1 }];
+
+  it('el interior no depende de la construcción; el exterior sí', () => {
+    const prefab = dimensionarSala(eq, criterios({
+      construccion: 'prefabricada', espesorMuroMm: ESPESOR_MURO_MM.prefabricada,
+    }))!;
+    const hormigon = dimensionarSala(eq, criterios({
+      construccion: 'hormigon', espesorMuroMm: ESPESOR_MURO_MM.hormigon,
+    }))!;
+
+    // Un CCM mide lo mismo dentro de un contenedor que dentro de hormigón, y
+    // el Art. 110.26 pide la misma holgura: el interior libre es idéntico.
+    expect(hormigon.largoM).toBe(prefab.largoM);
+    expect(hormigon.anchoM).toBe(prefab.anchoM);
+
+    // El muro de hormigón agrega 100 mm por lado sobre el panel sándwich.
+    expect(hormigon.largoExteriorM - prefab.largoExteriorM).toBeCloseTo(0.2, 6);
+    expect(hormigon.anchoExteriorM - prefab.anchoExteriorM).toBeCloseTo(0.2, 6);
+  });
+
+  it('el exterior suma el espesor de los dos muros', () => {
+    const r = dimensionarSala(eq, criterios({ espesorMuroMm: 250 }))!;
+    expect(r.largoExteriorM).toBeCloseTo(r.largoM + 0.5, 6);
+    expect(r.anchoExteriorM).toBeCloseTo(r.anchoM + 0.5, 6);
+    expect(r.superficieExteriorM2).toBeGreaterThan(r.superficieM2);
+  });
+
+  it('sin modular no reporta módulos', () => {
+    const r = dimensionarSala(eq, criterios({ modularContenedor: false }))!;
+    expect(r.modulos).toBeUndefined();
+  });
+
+  it('modular lleva el largo al siguiente módulo de contenedor', () => {
+    const r = dimensionarSala(eq, criterios({
+      modularContenedor: true, holguraLateralMm: 0,
+    }))!;
+    // 3 m de frente entran en un módulo de 12,187 m.
+    expect(r.modulos).toBe(1);
+    expect(r.largoM).toBeCloseTo(MODULO_CONTENEDOR_MM / 1000, 6);
+    expect(r.holguraPorModulacionMm).toBeCloseTo(MODULO_CONTENEDOR_MM - 3000, 6);
+  });
+
+  it('la sala real modula en 3 contenedores, que es lo que tiene', () => {
+    const r = dimensionarSala(equiposDeLaSalaReal(), criterios({
+      disposicion: 'dosFilasEnfrentadas',
+      holguraFrontalMm: HOLGURA_NEC_MM.condicion3,
+      modularContenedor: true,
+    }))!;
+    expect(r.modulos).toBe(3);
+    expect(r.largoM).toBeCloseTo(SALA_REFERENCIA.largoM, 1);
+  });
+});
+
+describe('tres y cuatro filas', () => {
+  const muchos = Array.from({ length: 12 }, (_, i) => ({
+    nombre: `t${i}`, anchoMm: 1000, profundidadMm: 800, cantidad: 1,
+  }));
+
+  it('reparte en la cantidad de filas de la disposición', () => {
+    expect(filasDe('tresFilas')).toBe(3);
+    expect(filasDe('cuatroFilas')).toBe(4);
+    expect(dimensionarSala(muchos, criterios({ disposicion: 'tresFilas' }))!.filas).toHaveLength(3);
+    expect(dimensionarSala(muchos, criterios({ disposicion: 'cuatroFilas' }))!.filas).toHaveLength(4);
+  });
+
+  it('más filas acortan la sala y la ensanchan', () => {
+    const dos = dimensionarSala(muchos, criterios({ disposicion: 'dosFilasEnfrentadas' }))!;
+    const cuatro = dimensionarSala(muchos, criterios({ disposicion: 'cuatroFilas' }))!;
+    expect(cuatro.largoM).toBeLessThan(dos.largoM);
+    expect(cuatro.anchoM).toBeGreaterThan(dos.anchoM);
+  });
+
+  it('cuatro filas son dos pares enfrentados: dos pasillos, no cuatro', () => {
+    const r = dimensionarSala(muchos, criterios({
+      disposicion: 'cuatroFilas', holguraFrontalMm: 1200, holguraPosteriorMm: 0,
+    }))!;
+    const profundidades = r.filas.reduce((s, f) => s + f.profundidadMm, 0);
+    expect(r.anchoM).toBeCloseTo((profundidades + 2 * 1200) / 1000, 6);
+  });
+
+  it('no caben en un contenedor, y por eso son de obra civil', () => {
+    const r = dimensionarSala(muchos, criterios({ disposicion: 'cuatroFilas' }))!;
+    // Un contenedor no pasa de unos 4,5 m de ancho por transporte.
+    expect(r.anchoM).toBeGreaterThan(4.5);
+  });
+});
+
+describe('doble acceso — Art. 110.26(C)(2)', () => {
+  const eq = [{ nombre: 'swgr', anchoMm: 4860, profundidadMm: 1700, cantidad: 1 }];
+
+  it('lo marca solo cuando hay equipo de 1.200 A o más y sobre 1,8 m', () => {
+    expect(dimensionarSala(eq, criterios({ equipoSobre1200A: true }))!.requiereDobleAcceso).toBe(true);
+    expect(dimensionarSala(eq, criterios({ equipoSobre1200A: false }))!.requiereDobleAcceso).toBe(false);
+  });
+
+  it('es un requisito de accesos, no de superficie', () => {
+    // Condiciona dónde van las puertas, no cuánto mide la sala.
+    const con = dimensionarSala(eq, criterios({ equipoSobre1200A: true }))!;
+    const sin = dimensionarSala(eq, criterios({ equipoSobre1200A: false }))!;
+    expect(con.superficieM2).toBe(sin.superficieM2);
   });
 });
 
