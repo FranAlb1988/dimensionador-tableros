@@ -11,9 +11,9 @@ function calc(id: string) {
 }
 
 describe('registro de calculadoras', () => {
-  it('expone 13 calculadoras con id único', () => {
-    expect(CALCULADORAS).toHaveLength(13);
-    expect(new Set(CALCULADORAS.map((c) => c.id)).size).toBe(13);
+  it('expone 14 calculadoras con id único', () => {
+    expect(CALCULADORAS).toHaveLength(14);
+    expect(new Set(CALCULADORAS.map((c) => c.id)).size).toBe(14);
   });
 });
 

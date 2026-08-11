@@ -17,6 +17,12 @@ import {
 } from './canalizaciones-catalogo';
 import { factorDerrateoAltura, type NivelTension } from '../derrateo';
 import {
+  calibrePorCorriente as calibrePorCorrienteNec,
+  factorAgrupamiento as factorAgrupamientoNec,
+  factorTemperatura as factorTemperaturaNec,
+  type MaterialConductor, type TempAislacion,
+} from '../nec';
+import {
   datosTipo, itmNormalizadoRic, metodosDe, metodosInstalacionRic,
   seccionPorAmpacidad, tiposConductorRic,
 } from './ric-conductores';
@@ -31,7 +37,7 @@ export type NormaAgrupamiento = 'RIC' | 'NEC';
  * canalización. Las dos normas que usa la app agrupan distinto y no son
  * intercambiables:
  *
- *   Conductores    RIC N°4 Tabla 4.6    NEC 310.15(B)(3)(a)
+ *   Conductores    RIC N°4 Tabla 4.6    NEC 310.15(C)(1)
  *   1 a 3                  1,00                 1,00
  *   4 a 6                  0,80                 0,80
  *   7 a 9                  0,70                 0,70
@@ -45,23 +51,21 @@ export type NormaAgrupamiento = 'RIC' | 'NEC';
  * A partir de 10 conductores el NEC derratea mucho más, y aplicarlo a un
  * proyecto RIC sube el conductor uno o dos calibres sin necesidad. Antes esta
  * función tenía la tabla del NEC citando RIC N°4 Tabla 4.6.
+ *
+ * El lado NEC ya no repite los valores: los toma de la tabla cargada del
+ * capítulo 3. La cita también estaba vieja — en el NEC 2020 esta tabla pasó de
+ * 310.15(B)(3)(a) a 310.15(C)(1); los valores no cambiaron.
  */
 export function factorApilamiento(
   nConductores: number,
   norma: NormaAgrupamiento = 'RIC',
 ): number {
+  if (norma === 'NEC') return factorAgrupamientoNec(nConductores);
   if (nConductores <= 3) return 1;
   if (nConductores <= 6) return 0.8;
-  if (norma === 'RIC') {
-    if (nConductores <= 24) return 0.7;
-    if (nConductores <= 42) return 0.6;
-    return 0.5;
-  }
-  if (nConductores <= 9) return 0.7;
-  if (nConductores <= 20) return 0.5;
-  if (nConductores <= 30) return 0.45;
-  if (nConductores <= 40) return 0.4;
-  return 0.35;
+  if (nConductores <= 24) return 0.7;
+  if (nConductores <= 42) return 0.6;
+  return 0.5;
 }
 
 /** Núcleo común del cálculo de caída de tensión en un conductor. */
@@ -621,11 +625,96 @@ const seccionConductor: Calculadora = {
   },
 };
 
+/**
+ * Calibre de conductor por la Tabla 310.16 del NEC.
+ *
+ * La app dimensionaba conductores siempre con el RIC, incluso en la rama NEMA,
+ * que es enteramente de convención norteamericana. Esta calculadora es la
+ * contraparte de `seccionConductor` para proyectos que se rigen por el NEC.
+ */
+const calibreNec: Calculadora = {
+  id: 'calibre-nec',
+  grupo: 'conductores',
+  nombre: 'Calibre de conductor — NEC',
+  descripcion:
+    'Calibre AWG/kcmil mínimo por ampacidad, con las correcciones del NEC. '
+    + 'La ampacidad de la Tabla 310.16 es un valor base a 30 °C: hay que corregirla por '
+    + 'temperatura ambiente y por número de conductores antes de compararla con la corriente.',
+  norma: 'NFPA 70 (NEC) · Tablas 310.16, 310.15(B)(1)(1) y 310.15(C)(1)',
+  formula: 'Iz = I_tabla · f_temp · f_agrup ≥ I_diseño',
+  campos: [
+    { key: 'I', label: 'Corriente de diseño', unidad: 'A' },
+    {
+      key: 'material', label: 'Material', tipo: 'select', defecto: 'cobre',
+      opciones: [
+        { value: 'cobre', label: 'Cobre' },
+        { value: 'aluminio', label: 'Aluminio' },
+      ],
+    },
+    {
+      key: 'aislacion', label: 'Temperatura del aislamiento', tipo: 'select', defecto: '75',
+      opciones: [
+        { value: '60', label: '60 °C (TW, UF)' },
+        { value: '75', label: '75 °C (THW, THHW, XHHW)' },
+        { value: '90', label: '90 °C (THHN, XHHW-2)' },
+      ],
+      ayuda: 'La terminación del equipo suele limitar a 75 °C aunque el cable sea de 90 °C (NEC 110.14(C)).',
+    },
+    { key: 'ambiente', label: 'Temperatura ambiente', unidad: '°C', defecto: 30 },
+    {
+      key: 'nConductores', label: 'Conductores portadores de corriente', unidad: '', defecto: 3,
+      ayuda: 'Hasta 3 no se ajusta. El neutro solo cuenta si lleva corriente (NEC 310.15(E)).',
+    },
+  ],
+  salidas: [
+    { key: 'calibre', label: 'Calibre mínimo', destacado: true, esTexto: true },
+    { key: 'izTabla', label: 'Ampacidad de tabla', unidad: 'A', decimales: 0 },
+    { key: 'ft', label: 'Factor por temperatura', unidad: '', decimales: 2 },
+    { key: 'fa', label: 'Factor por agrupamiento', unidad: '', decimales: 2 },
+    { key: 'izCorregida', label: 'Ampacidad corregida', unidad: 'A', decimales: 1 },
+  ],
+  calcular: (e): ResultadoCalc => {
+    const I = num(e, 'I');
+    const ambiente = num(e, 'ambiente');
+    const n = num(e, 'nConductores');
+    const material = (e['material'] ?? 'cobre') as MaterialConductor;
+    const aislacion = Number(e['aislacion'] ?? '75') as TempAislacion;
+
+    if (![I, ambiente, n].every(Number.isFinite)) {
+      return { valores: {}, error: 'Completa corriente, temperatura ambiente y número de conductores.' };
+    }
+    if (I <= 0) return { valores: {}, error: 'La corriente de diseño debe ser mayor que 0.' };
+    if (n < 1) return { valores: {}, error: 'El número de conductores debe ser ≥ 1.' };
+
+    if (factorTemperaturaNec(ambiente, aislacion) == null) {
+      return {
+        valores: {},
+        error: `La Tabla 310.15(B)(1)(1) no publica factor para ${ambiente} °C con aislamiento `
+          + `de ${aislacion} °C. A esa ambiente ese aislamiento no sirve: sube a 75 o 90 °C.`,
+      };
+    }
+
+    const r = calibrePorCorrienteNec(I, material, aislacion, ambiente, Math.round(n));
+    if (!r) {
+      return {
+        valores: {},
+        error: `Ningún calibre de la Tabla 310.16 cubre ${I} A con esos factores. `
+          + 'Corresponde poner conductores en paralelo (NEC 310.10(G)), que es decisión de proyecto.',
+      };
+    }
+    return {
+      valores: { izTabla: r.base, ft: r.factorTemperatura, fa: r.factorAgrupamiento, izCorregida: r.corregida },
+      textos: { calibre: `${r.calibre} ${/^\d{3,}$/.test(r.calibre) ? 'kcmil' : 'AWG'}` },
+    };
+  },
+};
+
 export const CALCULADORAS_CONDUCTORES: readonly Calculadora[] = [
   caidaPermanente,
   caidaPartida,
   corrienteDiseno,
   seccionConductor,
+  calibreNec,
   tamanoDucto,
   anchoEscalerilla,
 ];

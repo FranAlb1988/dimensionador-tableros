@@ -1,0 +1,875 @@
+{
+ "_comment": "Tablas del Capítulo 3 del NFPA 70 (NEC) 2026, extraídas del libro del proyecto. Solo están las que la app usa: ampacidad, corrección por temperatura, ajuste por agrupamiento y llenado de bandeja. El resto del capítulo (volúmenes de caja, expansión del PVC, radios de curvatura, soportes de conduit, cable IGS) no tiene cálculo asociado y se dejó fuera a propósito para no cargar datos que nadie lee. Traducción técnica no oficial: los valores se verificaron contra los que ya tenía la app y contra la propia coherencia interna de cada tabla.",
+ "_comentarioAmpacidad": "Tabla 310.16 — hasta tres conductores portadores de corriente en canalización, cable o enterrados directamente, con temperatura ambiente de 30 °C. Es la ampacidad ANTES de corregir: hay que aplicarle temperatura (310.15(B)(1)) y agrupamiento (310.15(C)(1)). El calibre 14 AWG no existe en aluminio y va en null.",
+ "ampacidad": [
+  {
+   "calibre": "14",
+   "cu60": 15,
+   "cu75": 20,
+   "cu90": 25,
+   "al60": null,
+   "al75": null,
+   "al90": null
+  },
+  {
+   "calibre": "12",
+   "cu60": 20,
+   "cu75": 25,
+   "cu90": 30,
+   "al60": 15,
+   "al75": 20,
+   "al90": 25
+  },
+  {
+   "calibre": "10",
+   "cu60": 30,
+   "cu75": 35,
+   "cu90": 40,
+   "al60": 25,
+   "al75": 30,
+   "al90": 35
+  },
+  {
+   "calibre": "8",
+   "cu60": 40,
+   "cu75": 50,
+   "cu90": 55,
+   "al60": 35,
+   "al75": 40,
+   "al90": 45
+  },
+  {
+   "calibre": "6",
+   "cu60": 55,
+   "cu75": 65,
+   "cu90": 75,
+   "al60": 40,
+   "al75": 50,
+   "al90": 55
+  },
+  {
+   "calibre": "4",
+   "cu60": 70,
+   "cu75": 85,
+   "cu90": 95,
+   "al60": 55,
+   "al75": 65,
+   "al90": 75
+  },
+  {
+   "calibre": "3",
+   "cu60": 85,
+   "cu75": 100,
+   "cu90": 115,
+   "al60": 65,
+   "al75": 75,
+   "al90": 85
+  },
+  {
+   "calibre": "2",
+   "cu60": 95,
+   "cu75": 115,
+   "cu90": 130,
+   "al60": 75,
+   "al75": 90,
+   "al90": 100
+  },
+  {
+   "calibre": "1",
+   "cu60": 110,
+   "cu75": 130,
+   "cu90": 145,
+   "al60": 85,
+   "al75": 100,
+   "al90": 115
+  },
+  {
+   "calibre": "1/0",
+   "cu60": 125,
+   "cu75": 150,
+   "cu90": 170,
+   "al60": 100,
+   "al75": 120,
+   "al90": 135
+  },
+  {
+   "calibre": "2/0",
+   "cu60": 145,
+   "cu75": 175,
+   "cu90": 195,
+   "al60": 115,
+   "al75": 135,
+   "al90": 150
+  },
+  {
+   "calibre": "3/0",
+   "cu60": 165,
+   "cu75": 200,
+   "cu90": 225,
+   "al60": 130,
+   "al75": 155,
+   "al90": 175
+  },
+  {
+   "calibre": "4/0",
+   "cu60": 195,
+   "cu75": 230,
+   "cu90": 260,
+   "al60": 150,
+   "al75": 180,
+   "al90": 205
+  },
+  {
+   "calibre": "250",
+   "cu60": 215,
+   "cu75": 255,
+   "cu90": 290,
+   "al60": 170,
+   "al75": 205,
+   "al90": 230
+  },
+  {
+   "calibre": "300",
+   "cu60": 240,
+   "cu75": 285,
+   "cu90": 320,
+   "al60": 195,
+   "al75": 230,
+   "al90": 260
+  },
+  {
+   "calibre": "350",
+   "cu60": 260,
+   "cu75": 310,
+   "cu90": 350,
+   "al60": 210,
+   "al75": 250,
+   "al90": 280
+  },
+  {
+   "calibre": "400",
+   "cu60": 280,
+   "cu75": 335,
+   "cu90": 380,
+   "al60": 225,
+   "al75": 270,
+   "al90": 305
+  },
+  {
+   "calibre": "500",
+   "cu60": 320,
+   "cu75": 380,
+   "cu90": 430,
+   "al60": 260,
+   "al75": 310,
+   "al90": 350
+  },
+  {
+   "calibre": "600",
+   "cu60": 350,
+   "cu75": 420,
+   "cu90": 475,
+   "al60": 285,
+   "al75": 340,
+   "al90": 385
+  },
+  {
+   "calibre": "700",
+   "cu60": 385,
+   "cu75": 460,
+   "cu90": 520,
+   "al60": 315,
+   "al75": 375,
+   "al90": 425
+  },
+  {
+   "calibre": "750",
+   "cu60": 400,
+   "cu75": 475,
+   "cu90": 535,
+   "al60": 320,
+   "al75": 385,
+   "al90": 435
+  },
+  {
+   "calibre": "800",
+   "cu60": 410,
+   "cu75": 490,
+   "cu90": 555,
+   "al60": 330,
+   "al75": 395,
+   "al90": 445
+  },
+  {
+   "calibre": "900",
+   "cu60": 435,
+   "cu75": 520,
+   "cu90": 585,
+   "al60": 355,
+   "al75": 425,
+   "al90": 480
+  },
+  {
+   "calibre": "1000",
+   "cu60": 455,
+   "cu75": 545,
+   "cu90": 615,
+   "al60": 375,
+   "al75": 445,
+   "al90": 500
+  },
+  {
+   "calibre": "1250",
+   "cu60": 495,
+   "cu75": 590,
+   "cu90": 665,
+   "al60": 405,
+   "al75": 485,
+   "al90": 545
+  },
+  {
+   "calibre": "1500",
+   "cu60": 525,
+   "cu75": 625,
+   "cu90": 705,
+   "al60": 435,
+   "al75": 520,
+   "al90": 585
+  },
+  {
+   "calibre": "1750",
+   "cu60": 545,
+   "cu75": 650,
+   "cu90": 735,
+   "al60": 455,
+   "al75": 545,
+   "al90": 615
+  },
+  {
+   "calibre": "2000",
+   "cu60": 555,
+   "cu75": 665,
+   "cu90": 750,
+   "al60": 470,
+   "al75": 560,
+   "al90": 630
+  }
+ ],
+ "_comentarioTemperatura": "Tabla 310.15(B)(1)(1), base 30 °C — la que corresponde a las ampacidades de la 310.16. `desdeC` en null significa 'esa temperatura o menos'.",
+ "correccionTemperatura30": [
+  {
+   "desdeC": null,
+   "hastaC": 10,
+   "c60": 1.29,
+   "c75": 1.2,
+   "c90": 1.15
+  },
+  {
+   "desdeC": 11,
+   "hastaC": 15,
+   "c60": 1.22,
+   "c75": 1.15,
+   "c90": 1.12
+  },
+  {
+   "desdeC": 16,
+   "hastaC": 20,
+   "c60": 1.15,
+   "c75": 1.11,
+   "c90": 1.08
+  },
+  {
+   "desdeC": 21,
+   "hastaC": 25,
+   "c60": 1.08,
+   "c75": 1.05,
+   "c90": 1.04
+  },
+  {
+   "desdeC": 26,
+   "hastaC": 30,
+   "c60": 1,
+   "c75": 1,
+   "c90": 1
+  },
+  {
+   "desdeC": 31,
+   "hastaC": 35,
+   "c60": 0.91,
+   "c75": 0.94,
+   "c90": 0.96
+  },
+  {
+   "desdeC": 36,
+   "hastaC": 40,
+   "c60": 0.82,
+   "c75": 0.88,
+   "c90": 0.91
+  },
+  {
+   "desdeC": 41,
+   "hastaC": 45,
+   "c60": 0.71,
+   "c75": 0.82,
+   "c90": 0.87
+  },
+  {
+   "desdeC": 46,
+   "hastaC": 50,
+   "c60": 0.58,
+   "c75": 0.75,
+   "c90": 0.82
+  },
+  {
+   "desdeC": 51,
+   "hastaC": 55,
+   "c60": 0.41,
+   "c75": 0.67,
+   "c90": 0.76
+  },
+  {
+   "desdeC": 56,
+   "hastaC": 60,
+   "c60": null,
+   "c75": 0.58,
+   "c90": 0.71
+  },
+  {
+   "desdeC": 61,
+   "hastaC": 65,
+   "c60": null,
+   "c75": 0.47,
+   "c90": 0.65
+  },
+  {
+   "desdeC": 66,
+   "hastaC": 70,
+   "c60": null,
+   "c75": 0.33,
+   "c90": 0.58
+  },
+  {
+   "desdeC": 71,
+   "hastaC": 75,
+   "c60": null,
+   "c75": null,
+   "c90": 0.5
+  },
+  {
+   "desdeC": 76,
+   "hastaC": 80,
+   "c60": null,
+   "c75": null,
+   "c90": 0.41
+  },
+  {
+   "desdeC": 81,
+   "hastaC": 85,
+   "c60": null,
+   "c75": null,
+   "c90": 0.29
+  }
+ ],
+ "_comentarioTemperatura40": "Tabla 310.15(B)(1)(2), base 40 °C. Aplica a las tablas de ampacidad que vienen referidas a 40 °C, no a la 310.16. Incluye las aislaciones de alta temperatura.",
+ "correccionTemperatura40": [
+  {
+   "desdeC": null,
+   "hastaC": 10,
+   "c60": 1.58,
+   "c75": 1.36,
+   "c90": 1.26,
+   "c150": 1.13,
+   "c200": 1.09,
+   "c250": 1.07
+  },
+  {
+   "desdeC": 11,
+   "hastaC": 15,
+   "c60": 1.5,
+   "c75": 1.31,
+   "c90": 1.22,
+   "c150": 1.11,
+   "c200": 1.08,
+   "c250": 1.06
+  },
+  {
+   "desdeC": 16,
+   "hastaC": 20,
+   "c60": 1.41,
+   "c75": 1.25,
+   "c90": 1.18,
+   "c150": 1.09,
+   "c200": 1.06,
+   "c250": 1.05
+  },
+  {
+   "desdeC": 21,
+   "hastaC": 25,
+   "c60": 1.32,
+   "c75": 1.2,
+   "c90": 1.14,
+   "c150": 1.07,
+   "c200": 1.05,
+   "c250": 1.04
+  },
+  {
+   "desdeC": 26,
+   "hastaC": 30,
+   "c60": 1.22,
+   "c75": 1.13,
+   "c90": 1.1,
+   "c150": 1.04,
+   "c200": 1.03,
+   "c250": 1.02
+  },
+  {
+   "desdeC": 31,
+   "hastaC": 35,
+   "c60": 1.12,
+   "c75": 1.07,
+   "c90": 1.05,
+   "c150": 1.02,
+   "c200": 1.02,
+   "c250": 1.01
+  },
+  {
+   "desdeC": 36,
+   "hastaC": 40,
+   "c60": 1,
+   "c75": 1,
+   "c90": 1,
+   "c150": 1,
+   "c200": 1,
+   "c250": 1
+  },
+  {
+   "desdeC": 41,
+   "hastaC": 45,
+   "c60": 0.87,
+   "c75": 0.93,
+   "c90": 0.95,
+   "c150": 0.98,
+   "c200": 0.98,
+   "c250": 0.99
+  },
+  {
+   "desdeC": 46,
+   "hastaC": 50,
+   "c60": 0.71,
+   "c75": 0.85,
+   "c90": 0.89,
+   "c150": 0.95,
+   "c200": 0.97,
+   "c250": 0.98
+  },
+  {
+   "desdeC": 51,
+   "hastaC": 55,
+   "c60": 0.5,
+   "c75": 0.76,
+   "c90": 0.84,
+   "c150": 0.93,
+   "c200": 0.95,
+   "c250": 0.96
+  },
+  {
+   "desdeC": 56,
+   "hastaC": 60,
+   "c60": null,
+   "c75": 0.65,
+   "c90": 0.77,
+   "c150": 0.9,
+   "c200": 0.94,
+   "c250": 0.95
+  },
+  {
+   "desdeC": 61,
+   "hastaC": 65,
+   "c60": null,
+   "c75": 0.53,
+   "c90": 0.71,
+   "c150": 0.88,
+   "c200": 0.92,
+   "c250": 0.94
+  },
+  {
+   "desdeC": 66,
+   "hastaC": 70,
+   "c60": null,
+   "c75": 0.38,
+   "c90": 0.63,
+   "c150": 0.85,
+   "c200": 0.9,
+   "c250": 0.93
+  },
+  {
+   "desdeC": 71,
+   "hastaC": 75,
+   "c60": null,
+   "c75": null,
+   "c90": 0.55,
+   "c150": 0.83,
+   "c200": 0.88,
+   "c250": 0.91
+  },
+  {
+   "desdeC": 76,
+   "hastaC": 80,
+   "c60": null,
+   "c75": null,
+   "c90": 0.45,
+   "c150": 0.8,
+   "c200": 0.87,
+   "c250": 0.9
+  },
+  {
+   "desdeC": 81,
+   "hastaC": 90,
+   "c60": null,
+   "c75": null,
+   "c90": null,
+   "c150": 0.74,
+   "c200": 0.83,
+   "c250": 0.87
+  },
+  {
+   "desdeC": 91,
+   "hastaC": 100,
+   "c60": null,
+   "c75": null,
+   "c90": null,
+   "c150": 0.67,
+   "c200": 0.79,
+   "c250": 0.85
+  },
+  {
+   "desdeC": 101,
+   "hastaC": 110,
+   "c60": null,
+   "c75": null,
+   "c90": null,
+   "c150": 0.6,
+   "c200": 0.75,
+   "c250": 0.82
+  },
+  {
+   "desdeC": 111,
+   "hastaC": 120,
+   "c60": null,
+   "c75": null,
+   "c90": null,
+   "c150": 0.52,
+   "c200": 0.71,
+   "c250": 0.79
+  },
+  {
+   "desdeC": 121,
+   "hastaC": 130,
+   "c60": null,
+   "c75": null,
+   "c90": null,
+   "c150": 0.43,
+   "c200": 0.66,
+   "c250": 0.76
+  },
+  {
+   "desdeC": 131,
+   "hastaC": 140,
+   "c60": null,
+   "c75": null,
+   "c90": null,
+   "c150": 0.3,
+   "c200": 0.61,
+   "c250": 0.72
+  },
+  {
+   "desdeC": 141,
+   "hastaC": 160,
+   "c60": null,
+   "c75": null,
+   "c90": null,
+   "c150": null,
+   "c200": 0.5,
+   "c250": 0.65
+  },
+  {
+   "desdeC": 161,
+   "hastaC": 180,
+   "c60": null,
+   "c75": null,
+   "c90": null,
+   "c150": null,
+   "c200": 0.35,
+   "c250": 0.58
+  },
+  {
+   "desdeC": 181,
+   "hastaC": 200,
+   "c60": null,
+   "c75": null,
+   "c90": null,
+   "c150": null,
+   "c200": null,
+   "c250": 0.49
+  },
+  {
+   "desdeC": 201,
+   "hastaC": 225,
+   "c60": null,
+   "c75": null,
+   "c90": null,
+   "c150": null,
+   "c200": null,
+   "c250": 0.35
+  }
+ ],
+ "_comentarioAgrupamiento": "Tabla 310.15(C)(1) — más de tres conductores portadores de corriente. En el NEC 2020 esta tabla pasó de 310.15(B)(3)(a) a 310.15(C)(1); la app citaba la numeración vieja. `hasta` en null es el último tramo, sin tope.",
+ "agrupamiento": [
+  {
+   "desde": 4,
+   "hasta": 6,
+   "factor": 0.8
+  },
+  {
+   "desde": 7,
+   "hasta": 9,
+   "factor": 0.7
+  },
+  {
+   "desde": 10,
+   "hasta": 20,
+   "factor": 0.5
+  },
+  {
+   "desde": 21,
+   "hasta": 30,
+   "factor": 0.45
+  },
+  {
+   "desde": 31,
+   "hasta": 40,
+   "factor": 0.4
+  },
+  {
+   "desde": 41,
+   "hasta": null,
+   "factor": 0.35
+  }
+ ],
+ "_comentarioTemperaturaMt": "Tabla 315.60(D)(4) — corrección por temperatura ambiente para media tensión, sobre ampacidades referidas a 40 °C.",
+ "correccionTemperaturaMt": [
+  {
+   "desdeC": null,
+   "hastaC": 10,
+   "c90": 1.26,
+   "c105": 1.21
+  },
+  {
+   "desdeC": 11,
+   "hastaC": 15,
+   "c90": 1.22,
+   "c105": 1.18
+  },
+  {
+   "desdeC": 16,
+   "hastaC": 20,
+   "c90": 1.18,
+   "c105": 1.14
+  },
+  {
+   "desdeC": 21,
+   "hastaC": 25,
+   "c90": 1.14,
+   "c105": 1.11
+  },
+  {
+   "desdeC": 26,
+   "hastaC": 30,
+   "c90": 1.1,
+   "c105": 1.07
+  },
+  {
+   "desdeC": 31,
+   "hastaC": 35,
+   "c90": 1.05,
+   "c105": 1.04
+  },
+  {
+   "desdeC": 36,
+   "hastaC": 40,
+   "c90": 1,
+   "c105": 1
+  },
+  {
+   "desdeC": 41,
+   "hastaC": 45,
+   "c90": 0.95,
+   "c105": 0.96
+  },
+  {
+   "desdeC": 46,
+   "hastaC": 50,
+   "c90": 0.89,
+   "c105": 0.92
+  },
+  {
+   "desdeC": 51,
+   "hastaC": 55,
+   "c90": 0.84,
+   "c105": 0.88
+  },
+  {
+   "desdeC": 56,
+   "hastaC": 60,
+   "c90": 0.77,
+   "c105": 0.83
+  },
+  {
+   "desdeC": 61,
+   "hastaC": 65,
+   "c90": 0.71,
+   "c105": 0.78
+  },
+  {
+   "desdeC": 66,
+   "hastaC": 70,
+   "c90": 0.63,
+   "c105": 0.73
+  },
+  {
+   "desdeC": 71,
+   "hastaC": 75,
+   "c90": 0.55,
+   "c105": 0.68
+  },
+  {
+   "desdeC": 76,
+   "hastaC": 80,
+   "c90": 0.45,
+   "c105": 0.62
+  },
+  {
+   "desdeC": 81,
+   "hastaC": 85,
+   "c90": 0.32,
+   "c105": 0.55
+  },
+  {
+   "desdeC": 86,
+   "hastaC": 90,
+   "c90": null,
+   "c105": 0.48
+  },
+  {
+   "desdeC": 91,
+   "hastaC": 95,
+   "c90": null,
+   "c105": 0.39
+  },
+  {
+   "desdeC": 96,
+   "hastaC": 100,
+   "c90": null,
+   "c105": 0.28
+  }
+ ],
+ "_comentarioBandejas": "Tabla 392.22(A)(1) — área de llenado para cables MULTICONDUCTORES de hasta 2.000 V. Los monopolares se rigen por la 392.22(B)(1), que es distinta y menor, y no está acá. La columna métrica da exactamente 30 mm² por mm de ancho; la columna en pulgadas redondea distinto y equivale a 29,63 mm²/mm. Se usa la métrica, que es la que el NEC publica para trabajar en milímetros.",
+ "bandejas": [
+  {
+   "anchoMm": 50,
+   "anchoPulg": 2,
+   "escaleraMm2": 1500,
+   "escaleraPulg2": 2.5,
+   "fondoSolidoMm2": 1200,
+   "fondoSolidoPulg2": 2
+  },
+  {
+   "anchoMm": 100,
+   "anchoPulg": 4,
+   "escaleraMm2": 3000,
+   "escaleraPulg2": 4.5,
+   "fondoSolidoMm2": 2500,
+   "fondoSolidoPulg2": 3.5
+  },
+  {
+   "anchoMm": 150,
+   "anchoPulg": 6,
+   "escaleraMm2": 4500,
+   "escaleraPulg2": 7,
+   "fondoSolidoMm2": 3500,
+   "fondoSolidoPulg2": 5.5
+  },
+  {
+   "anchoMm": 200,
+   "anchoPulg": 8,
+   "escaleraMm2": 6000,
+   "escaleraPulg2": 9.5,
+   "fondoSolidoMm2": 4500,
+   "fondoSolidoPulg2": 7
+  },
+  {
+   "anchoMm": 225,
+   "anchoPulg": 9,
+   "escaleraMm2": 6800,
+   "escaleraPulg2": 10.5,
+   "fondoSolidoMm2": 5100,
+   "fondoSolidoPulg2": 8
+  },
+  {
+   "anchoMm": 300,
+   "anchoPulg": 12,
+   "escaleraMm2": 9000,
+   "escaleraPulg2": 14,
+   "fondoSolidoMm2": 7100,
+   "fondoSolidoPulg2": 11
+  },
+  {
+   "anchoMm": 400,
+   "anchoPulg": 16,
+   "escaleraMm2": 12000,
+   "escaleraPulg2": 18.5,
+   "fondoSolidoMm2": 9400,
+   "fondoSolidoPulg2": 14.5
+  },
+  {
+   "anchoMm": 450,
+   "anchoPulg": 18,
+   "escaleraMm2": 13500,
+   "escaleraPulg2": 21,
+   "fondoSolidoMm2": 10600,
+   "fondoSolidoPulg2": 16.5
+  },
+  {
+   "anchoMm": 500,
+   "anchoPulg": 20,
+   "escaleraMm2": 15000,
+   "escaleraPulg2": 23.5,
+   "fondoSolidoMm2": 11800,
+   "fondoSolidoPulg2": 18.5
+  },
+  {
+   "anchoMm": 600,
+   "anchoPulg": 24,
+   "escaleraMm2": 18000,
+   "escaleraPulg2": 28,
+   "fondoSolidoMm2": 14200,
+   "fondoSolidoPulg2": 22
+  },
+  {
+   "anchoMm": 750,
+   "anchoPulg": 30,
+   "escaleraMm2": 22500,
+   "escaleraPulg2": 35,
+   "fondoSolidoMm2": 17700,
+   "fondoSolidoPulg2": 27.5
+  },
+  {
+   "anchoMm": 900,
+   "anchoPulg": 36,
+   "escaleraMm2": 27000,
+   "escaleraPulg2": 42,
+   "fondoSolidoMm2": 21300,
+   "fondoSolidoPulg2": 33
+  }
+ ]
+}
