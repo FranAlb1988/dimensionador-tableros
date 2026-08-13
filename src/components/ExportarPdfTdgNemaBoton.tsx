@@ -120,6 +120,7 @@ export function ExportarPdfTdgNemaBoton({ svgRef, resultado, subtipo = 'general'
         ancho: pageWidth - 28,
         pageHeight,
         lineas: CRITERIOS_CDC,
+        resultado,
       });
 
       const fecha = new Date().toISOString().slice(0, 10);

@@ -2,6 +2,7 @@ import { useMemo, useRef } from 'react';
 import { TablaSalidasMt } from '../components/TablaSalidasMt';
 import { VistaFrontalMtSvg } from '../components/VistaFrontalMtSvg';
 import { HojaPlano } from '../components/HojaPlano';
+import { AvisoPlaceholders } from '../components/AvisoPlaceholders';
 import { ResumenMt } from '../components/ResumenMt';
 import { ExportarPdfMtBoton } from '../components/ExportarPdfMtBoton';
 import { TableroSelector } from '../components/TableroSelector';
@@ -73,6 +74,8 @@ export function MtPage() {
 
       {resultado.tablero && (
         <>
+          <AvisoPlaceholders resultado={resultado} />
+
           <section className="space-y-2">
             <h2 className="text-lg font-semibold">Vista frontal</h2>
             <HojaPlano>

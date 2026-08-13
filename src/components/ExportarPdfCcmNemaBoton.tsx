@@ -100,6 +100,7 @@ export function ExportarPdfCcmNemaBoton({ svgRef, resultado }: Props) {
         ancho: pageWidth - 28,
         pageHeight,
         lineas: CRITERIOS_CCM_NEMA,
+        resultado,
       });
 
       const fecha = new Date().toISOString().slice(0, 10);

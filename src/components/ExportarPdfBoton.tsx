@@ -123,6 +123,7 @@ export function ExportarPdfBoton({ svgRef, resultado }: Props) {
         ancho: pageWidth - 28,
         pageHeight,
         lineas: CRITERIOS_CCM_IEC,
+        resultado,
       });
 
       const fecha = new Date().toISOString().slice(0, 10);

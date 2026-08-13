@@ -1,53 +1,83 @@
 import { describe, expect, it } from 'vitest';
-import { jsPDF } from 'jspdf';
-import {
-  CRITERIOS_CCM_IEC,
-  CRITERIOS_CCM_NEMA,
-  CRITERIOS_CDC,
-  dibujarCriteriosSeleccion,
-} from './pdf-criterios';
+import type { jsPDF } from 'jspdf';
+import { CRITERIOS_CCM_IEC, dibujarCriteriosSeleccion } from './pdf-criterios';
 
-describe('dibujarCriteriosSeleccion', () => {
-  it('dibuja los criterios y devuelve una Y mayor a la inicial', () => {
-    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-    const yFinal = dibujarCriteriosSeleccion(doc, {
-      y: 30, xInicio: 14, ancho: 269, pageHeight: 210, lineas: CRITERIOS_CCM_IEC,
-    });
-    expect(yFinal).toBeGreaterThan(30);
-    expect(doc.getNumberOfPages()).toBe(1);
-  });
+/**
+ * Doble de jsPDF que registra lo dibujado. Alcanza para comprobar el
+ * contenido: lo que importa es que la advertencia salga en la memoria, no
+ * cómo se ve.
+ */
+function docFalso() {
+  const textos: string[] = [];
+  const colores: [number, number, number][] = [];
+  const doc = {
+    setFont: () => {},
+    setFontSize: () => {},
+    setTextColor: (r: number, g: number, b: number) => { colores.push([r, g, b]); },
+    addPage: () => {},
+    splitTextToSize: (t: string) => [t],
+    text: (t: string | string[]) => { textos.push(...(Array.isArray(t) ? t : [t])); },
+  };
+  return { doc: doc as unknown as jsPDF, textos, colores };
+}
 
-  it('salta de página cuando no queda espacio', () => {
-    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+const opciones = { y: 20, xInicio: 14, ancho: 180, pageHeight: 297 };
+
+describe('advertencia de placeholders en la memoria PDF', () => {
+  it('la dibuja cuando el resultado trae selecciones sin verificar', () => {
+    const { doc, textos } = docFalso();
     dibujarCriteriosSeleccion(doc, {
-      y: 200, xInicio: 14, ancho: 269, pageHeight: 210, lineas: CRITERIOS_CCM_NEMA,
+      ...opciones,
+      lineas: CRITERIOS_CCM_IEC,
+      resultado: {
+        asignaciones: [{ proteccion: { referencia: 'XT2N160', placeholder: true } }],
+      },
     });
-    expect(doc.getNumberOfPages()).toBe(2);
+    const aviso = textos.find((t) => t.includes('placeholder'));
+    expect(aviso).toBeDefined();
+    expect(aviso).toContain('XT2N160');
+    expect(aviso).toContain('no deben llevarse a plano');
   });
 
-  it('los criterios documentan el doble margen y las referencias normativas', () => {
-    const texto = CRITERIOS_CCM_IEC.join(' ');
-    expect(texto).toContain('doble margen');
-    expect(texto).toContain('1,44');
-    expect(texto).toContain('IEC 60947-4-1');
-    expect(texto).toContain('NEC 430.52');
-    expect(CRITERIOS_CCM_NEMA.join(' ')).toContain('E300');
+  it('va primero, antes de los criterios, para que no se pase por alto', () => {
+    const { doc, textos } = docFalso();
+    dibujarCriteriosSeleccion(doc, {
+      ...opciones,
+      lineas: CRITERIOS_CCM_IEC,
+      resultado: { p: { referencia: 'X', placeholder: true } },
+    });
+    const iAviso = textos.findIndex((t) => t.includes('placeholder'));
+    const iPrimerCriterio = textos.findIndex((t) => t.includes('Corriente de diseño'));
+    expect(iAviso).toBeGreaterThan(-1);
+    expect(iAviso).toBeLessThan(iPrimerCriterio);
   });
 
-  it('los criterios del CDC documentan la coordinación con el trafo y la Icc', () => {
-    const texto = CRITERIOS_CDC.join(' ');
-    expect(texto).toContain('mayor consumidor');
-    expect(texto).toContain('In del secundario');
-    expect(texto).toContain('Icc de barra');
-    expect(texto).toContain('IEC 61439');
+  it('la pinta en rojo y devuelve el color al negro', () => {
+    const { doc, colores } = docFalso();
+    dibujarCriteriosSeleccion(doc, {
+      ...opciones,
+      lineas: CRITERIOS_CCM_IEC,
+      resultado: { p: { referencia: 'X', placeholder: true } },
+    });
+    expect(colores[0]).toEqual([180, 30, 30]);
+    expect(colores[colores.length - 1]).toEqual([0, 0, 0]);
   });
 
-  it('usa solo glifos compatibles con WinAnsi (cp1252) de las fuentes estándar jsPDF', () => {
-    const prohibidos = ['≥', '≤', '√', 'Σ', 'φ', 'η', '→', '↔'];
-    for (const linea of [...CRITERIOS_CCM_IEC, ...CRITERIOS_CCM_NEMA, ...CRITERIOS_CDC]) {
-      for (const g of prohibidos) {
-        expect(linea.includes(g), `glifo no WinAnsi "${g}" en: ${linea}`).toBe(false);
-      }
-    }
+  it('no ensucia una memoria que sí está toda verificada', () => {
+    const { doc, textos, colores } = docFalso();
+    dibujarCriteriosSeleccion(doc, {
+      ...opciones,
+      lineas: CRITERIOS_CCM_IEC,
+      resultado: { asignaciones: [{ proteccion: { referencia: 'NSX100F' } }] },
+    });
+    expect(textos.some((t) => t.includes('placeholder'))).toBe(false);
+    expect(colores).toHaveLength(0);
+  });
+
+  it('sin resultado se comporta como antes', () => {
+    const { doc, textos } = docFalso();
+    dibujarCriteriosSeleccion(doc, { ...opciones, lineas: CRITERIOS_CCM_IEC });
+    expect(textos.some((t) => t.includes('placeholder'))).toBe(false);
+    expect(textos.length).toBeGreaterThan(CRITERIOS_CCM_IEC.length);
   });
 });

@@ -3,6 +3,7 @@ import { TablaCargasCdc } from '../components/TablaCargasCdc';
 import { PanelCofresCdc } from '../components/PanelCofresCdc';
 import { VistaFrontalCdcSvg } from '../components/VistaFrontalCdcSvg';
 import { HojaPlano } from '../components/HojaPlano';
+import { AvisoPlaceholders } from '../components/AvisoPlaceholders';
 import { ResumenCdc } from '../components/ResumenCdc';
 import { ExportarPdfCdcBoton } from '../components/ExportarPdfCdcBoton';
 import { SUBTIPOS_CDC_LABEL, useCdcCargas, useCdcOpciones, useCdcStore, useCdcSubtipo } from '../store/cdc';
@@ -80,6 +81,8 @@ export function CdcPage() {
 
       {resultado.tablero && resultado.asignaciones.length > 0 && (
         <>
+          <AvisoPlaceholders resultado={resultado} />
+
           <section>
             <PanelCofresCdc cofres={resultado.tablero.cofres} />
           </section>

@@ -4,6 +4,7 @@ import { TransformadorAlimentadorModal } from '../components/TransformadorAlimen
 import { PanelPrincipalBarra } from '../components/PanelPrincipalBarra';
 import { VistaFrontalTdgSvg } from '../components/VistaFrontalTdgSvg';
 import { HojaPlano } from '../components/HojaPlano';
+import { AvisoPlaceholders } from '../components/AvisoPlaceholders';
 import { ResumenTdg } from '../components/ResumenTdg';
 import { ExportarPdfTdgBoton } from '../components/ExportarPdfTdgBoton';
 import { PanelPrincipalBarraNema } from '../components/PanelPrincipalBarraNema';
@@ -161,6 +162,8 @@ export function TdgPage() {
       <section>
         <TablaSalidas />
       </section>
+
+      <AvisoPlaceholders resultado={norma === 'IEC' ? resultadoIec : resultadoNema} />
 
       {norma === 'IEC' && resultadoIec?.tablero && (
         <>

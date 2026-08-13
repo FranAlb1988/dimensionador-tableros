@@ -11,6 +11,7 @@
 // glifos fuera de ese set (≥, √, Σ, φ, η); usar ">=", "1,73", "f.p.", etc.
 
 import type { jsPDF } from 'jspdf';
+import { lineaCriterioPlaceholders, recolectarPlaceholders } from '../logic/placeholders';
 
 /** Criterios del CCM IEC (NSX/Tmax + TeSys, gavetas Blokset). */
 export const CRITERIOS_CCM_IEC: readonly string[] = [
@@ -79,6 +80,14 @@ export interface OpcionesCriterios {
   /** Alto de página (mm) — para saltar de página si no cabe. */
   pageHeight: number;
   lineas: readonly string[];
+  /**
+   * Resultado del dimensionamiento. Si trae selecciones con datos placeholder,
+   * la advertencia se dibuja al principio de los criterios y en rojo.
+   *
+   * Va acá y no en cada botón de exportación para que ninguna memoria pueda
+   * salir sin la advertencia por olvido de un call site.
+   */
+  resultado?: unknown;
 }
 
 /**
@@ -100,6 +109,20 @@ export function dibujarCriteriosSeleccion(doc: jsPDF, opts: OpcionesCriterios): 
   doc.setFontSize(10);
   doc.text('Criterios de selección (memoria de cálculo)', opts.xInicio, y);
   y += 5.5;
+
+  const aviso = opts.resultado === undefined
+    ? undefined
+    : lineaCriterioPlaceholders(recolectarPlaceholders(opts.resultado));
+  if (aviso) {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(180, 30, 30);
+    const wrapped = doc.splitTextToSize(`• ${aviso}`, opts.ancho) as string[];
+    asegurar(wrapped.length * salto);
+    doc.text(wrapped, opts.xInicio, y);
+    y += wrapped.length * salto + 1.2;
+    doc.setTextColor(0, 0, 0);
+  }
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);

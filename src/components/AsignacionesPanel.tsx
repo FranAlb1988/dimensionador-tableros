@@ -78,7 +78,10 @@ function Tarjeta({ asignacion }: { asignacion: AsignacionCarga }) {
       )}
       {placeholder && (
         <div className="mt-2 text-[11px] text-amber-700 dark:text-amber-300">
-          ⚠ Datos placeholder — verificar SKU contra catálogo Schneider vigente.
+          {/* La marca sale de la propia selección: el mensaje decía siempre
+              "Schneider" aunque el tablero fuera ABB o Chint. */}
+          ⚠ Datos placeholder — verificar SKU contra el catálogo{' '}
+          {proteccion.marca ?? 'Schneider'} vigente.
         </div>
       )}
     </div>

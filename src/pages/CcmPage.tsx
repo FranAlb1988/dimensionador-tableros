@@ -6,6 +6,7 @@ import { ImportarCargasModal } from '../components/ImportarCargasModal';
 import { AsignacionesPanel } from '../components/AsignacionesPanel';
 import { VistaFrontalSvg } from '../components/VistaFrontalSvg';
 import { HojaPlano } from '../components/HojaPlano';
+import { AvisoPlaceholders } from '../components/AvisoPlaceholders';
 import { Resumen } from '../components/Resumen';
 import { ExportarPdfBoton } from '../components/ExportarPdfBoton';
 import { AsignacionesPanelNema } from '../components/AsignacionesPanelNema';
@@ -315,6 +316,8 @@ export function CcmPage() {
           </div>
         );
       })()}
+
+      <AvisoPlaceholders resultado={resultadoMt ?? resultadoIec ?? resultadoNema} />
 
       {esMt && resultadoMt && resultadoMt.tablero && (
         <>
